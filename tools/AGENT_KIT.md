@@ -43,6 +43,9 @@ sNN-topic/                                   module (hyphens)
     └── test/java/sNN_topic/xxx01_aspect/    tests of the lesson and of its exercises; solutions tests under solutions/
 ```
 - NEVER put a `@SpringBootApplication` in the section package itself — it would scan all lessons at once.
+- `@SpringBootTest` looks for its configuration UP the package tree. A solution test in `solutions/<lesson>` that needs a Spring
+  context therefore needs its own `@SpringBootApplication` in that solutions package (or `@SpringBootTest(classes = ...)`),
+  otherwise it fails with "Unable to find a @SpringBootConfiguration".
 - Lesson-specific settings: `@SpringBootTest(properties = ...)`, `@TestPropertySource` or a profile file
   `application-<lesson>.properties` activated by the lesson's application class. H2 per lesson: `jdbc:h2:mem:<lesson>`.
   Flyway per lesson: `spring.flyway.locations=classpath:db/migration/<lesson>`.
