@@ -32,7 +32,19 @@ public class LessonLint {
 
     /** Lesson class name convention: Topic + 2-digit number + Aspect, e.g. Ioc02ConstructorInjection. */
     static final Pattern LESSON_NAME = Pattern.compile("[A-Z][A-Za-z]*\\d\\d[A-Z][A-Za-z0-9]*\\.java");
-    static final Pattern LESSON_PACKAGE = Pattern.compile(".*/(s\\d\\d_[a-z0-9_]+)/[^/]+\\.java");
+    /**
+     * Layout (CLAUDE.md): <module>/src/(main|test)/java/sNN_section/<lessonPackage>/... and
+     * sNN_section/solutions/<lessonPackage>/... . Group 1 = section package, the rest = path inside it.
+     */
+    static final Pattern IN_SECTION = Pattern.compile(".*/src/(?:main|test)/java/(s\\d\\d_[a-z0-9_]+)/(.+)\\.java");
+
+    /** lessonKey = "sNN_section/lessonPackage" (solutions/<lesson> mapped to the lesson), or "sNN_section/-" for files directly in the section. */
+    static String lessonKey(String section, String inside) {
+        String[] parts = inside.split("/");
+        if (parts.length >= 3 && parts[0].equals("solutions")) return section + "/" + parts[1];
+        if (parts.length >= 2 && !parts[0].equals("solutions")) return section + "/" + parts[0];
+        return section + "/-";
+    }
 
     public static void main(String[] args) throws IOException {
         List<java.nio.file.PathMatcher> scope = new ArrayList<>();
@@ -42,7 +54,7 @@ public class LessonLint {
         try (Stream<Path> w = Files.walk(ROOT)) {
             files = w.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
-                    .filter(p -> !rel(p).matches("(?:.*/)?(target|temp|tools|\\.git|\\.idea)/.*") && !rel(p).startsWith("tools/"))
+                    .filter(p -> !rel(p).matches("(?:.*/)?(target|temp|tools|\\.git|\\.idea|\\.mvn)/.*") && !rel(p).startsWith("tools/"))
                     .filter(p -> scope.isEmpty() || scope.stream().anyMatch(m -> m.matches(Path.of(rel(p)))))
                     .sorted().collect(Collectors.toList());
         }
@@ -87,20 +99,21 @@ public class LessonLint {
                 }
             }
 
-            Matcher pkg = LESSON_PACKAGE.matcher(rel);
-            if (!pkg.matches()) continue;
-            String packageName = pkg.group(1);
+            Matcher sec = IN_SECTION.matcher(rel);
+            if (!sec.matches()) continue;
+            String section = sec.group(1);
+            String lesson = lessonKey(section, sec.group(2));
             boolean isTest = rel.contains("/src/test/");
-            boolean[] flags = exercisePackages.computeIfAbsent(packageName, k -> new boolean[3]);
-            if (text.contains(ex)) flags[0] = true;
+            boolean[] flags = exercisePackages.computeIfAbsent(lesson, k -> new boolean[3]);
+            if (!isTest && text.contains(ex + " ")) flags[0] = true;
             if (isTest && text.contains("@Tag(\"cwiczenie\")")) flags[1] = true;
             if (isTest && text.contains("@Tag(\"wzorzec\")")) flags[2] = true;
 
             String fileName = p.getFileName().toString();
-            if (!isTest && rel.contains("/src/main/") && LESSON_NAME.matcher(fileName).matches() && text.contains("TEMAT:")) {
+            if (!isTest && LESSON_NAME.matcher(fileName).matches() && text.contains("TEMAT:")) {
                 for (String t : req) if (!text.contains(t)) problems.add("MISSING   " + rel + " : tag '" + t + "'");
                 if (!text.contains("defaultstate=\"collapsed\"")) problems.add("MISSING   " + rel + " : collapsed ODPOWIEDZI fold");
-                String key = packageName + "/" + fileName.replace(".java", "");
+                String key = section + "/" + fileName.replace(".java", "");
                 if (spring.loaded && !spring.classes.contains(key)) problems.add("REGISTRY  " + rel + " : " + key + " not in tools/lessons.txt");
             }
         }
@@ -133,8 +146,9 @@ public class LessonLint {
             if (!Files.exists(file)) return new Registry(false, classes, packages);
             for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
                 if (line.isBlank() || line.startsWith("#")) continue;
-                classes.add(line.strip());
-                packages.add(line.strip().split("/")[0]);
+                String entry = line.strip();
+                packages.add(entry.split("/")[0]);
+                if (!entry.endsWith("/*")) classes.add(entry);          // "sNN_section/*" registers only the section
             }
             return new Registry(true, classes, packages);
         }

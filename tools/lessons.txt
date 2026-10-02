@@ -1,0 +1,25 @@
+# Rejestr lekcji SpringLearning: jedna linia = dział/KlasaLekcji, np. s01_core_ioc/Ioc02ConstructorInjection
+# Linia zakończona ukośnikiem i gwiazdką rejestruje sam dział. Nazwy lekcji dopisuje się razem z konspektem działu, PRZED pisaniem lekcji.
+s00_start/*
+s01_core_ioc/*
+s02_configuration/*
+s03_boot_basics/*
+s04_web_rest/*
+s05_validation/*
+s06_error_handling/*
+s07_data_jdbc/*
+s08_data_jpa/*
+s09_jpa_relations/*
+s10_transactions/*
+s11_testing/*
+s12_security/*
+s13_rest_client/*
+s14_openapi/*
+s15_actuator_logging/*
+s16_cache_scheduling_async/*
+s17_events/*
+s18_aop/*
+s19_deploy/*
+s20_modulith/*
+s21_capstone/*
+s22_extras/*

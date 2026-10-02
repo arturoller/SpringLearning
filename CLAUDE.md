@@ -86,6 +86,7 @@ W treści: `PUŁAPKA:` i `DOBRA PRAKTYKA:` (zawsze z „dlaczego”), na końcu 
 - Lekcje, które uruchamiają aplikację, dostają plik `sNN-temat/http/<lekcja>.http` z gotowymi zapytaniami (IntelliJ HTTP Client).
 - Uruchamianie: cały kurs `./mvnw test`, jeden dział `./mvnw -pl s04-web-rest test`, jedna lekcja-aplikacja ▶ przy `main` jej
   klasy `@SpringBootApplication` albo `./mvnw -pl s04-web-rest spring-boot:run -Dspring-boot.run.main-class=…`.
+- Format lekcji sprawdza `tools/LessonLint.java` (sekcja 9) — wymagane `PROBLEMS: 0`.
 
 **Ćwiczenia — nie mogą psuć budowania:**
 - Szkielet ćwiczenia w `src/` (metody z `// TODO` i `throw new UnsupportedOperationException("TODO")`).
@@ -111,10 +112,11 @@ W treści: `PUŁAPKA:` i `DOBRA PRAKTYKA:` (zawsze z „dlaczego”), na końcu 
 - **Push robi użytkownik** (lokalnie). Sesja w chmurze: pracuj na osobnej gałęzi, wypchnij gałąź i otwórz pull request —
   nigdy nie wypychaj bezpośrednio na `main`.
 - Komunikaty commitów po polsku, np. `s04_web_rest: REST w Springu (6 lekcji)`, zakończone liniami Co-Authored-By modeli.
-- Przed commitem działu: pełne `mvnw test`, sprawdzenie tagów (format `TAG:`), brak encji HTML, brak plików w `temp/`.
+- Przed commitem działu: pełne `mvnw test` (zielone) + `java tools/LessonLint.java` z `PROBLEMS: 0` (tagi, encje HTML,
+  niewidoczne znaki, odesłania do lekcji obu kursów, rejestr, tagi testów ćwiczeń/rozwiązań), brak plików w `temp/`.
 - Agenci (subagenci): najwyżej 2 naraz (3 tylko za zgodą użytkownika). Proste działy → model Sonnet, trudne (Security, transakcje,
-  AOP, JPA od środka) → Opus. Agent dostaje KONKRETNY konspekt (plik w `temp/`), nie skanuje projektu, weryfikuje każdą lekcję
-  od razu po napisaniu. Nowa paczka lekcji = nowy agent; poprawki do jego paczki = wiadomość do tego samego agenta.
+  AOP, JPA od środka) → Opus. Agent dostaje `tools/AGENT_KIT.md` + KONKRETNY konspekt (plik w `temp/`), nie skanuje projektu,
+  weryfikuje każdą lekcję od razu po napisaniu. Nowa paczka lekcji = nowy agent; poprawki do jego paczki = wiadomość do tego samego agenta.
 - Każdą paczkę po agencie weryfikuje główna sesja: testy + wyrywkowo merytoryka (PUŁAPKA, ŚCIĄGA, ODPOWIEDZI).
 - Odpowiedzi „Co się stanie?” sprawdzaj uruchomieniem, nie liczeniem w głowie.
 
@@ -137,5 +139,14 @@ W treści: `PUŁAPKA:` i `DOBRA PRAKTYKA:` (zawsze z „dlaczego”), na końcu 
    rozumiał checkery od pierwszej lekcji), pliki `.http`, ćwiczenia z tagiem. `./mvnw test` zielony.
 4. Sprawdź w IntelliJ (opis w README), że projekt otwiera się jako wielomodułowy i ▶ działa przy teście i przy `main`.
 5. Commit `s00_start: …` i aktualizacja spisu treści w README (⏳ → ✅).
-6. Konspekty kolejnych działów zapisuj w `temp/ASSIGNMENTS.md` przed zleceniem ich agentom. Nowy dział = nowy moduł
-   (`sNN-temat/pom.xml` + wpis w `<modules>`).
+6. Konspekty kolejnych działów zapisuj w `temp/ASSIGNMENTS.md` przed zleceniem ich agentom i od razu dopisz nazwy lekcji do
+   `tools/lessons.txt` (`sNN_dzial/KlasaLekcji`). Nowy dział = nowy moduł (`sNN-temat/pom.xml` + wpis w `<modules>`).
+
+## 9. Narzędzia (`tools/`, w repozytorium)
+| Plik | Do czego |
+|---|---|
+| `tools/AGENT_KIT.md` | Zasady pisania lekcji dla podagentów — przekazuj go każdemu agentowi razem z konspektem. |
+| `tools/LessonLint.java` | Sprawdzacz formatu: `java -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 tools/LessonLint.java ["sNN-moduł/**"]`. |
+| `tools/lessons.txt` | Rejestr lekcji (`sNN_dzial/KlasaLekcji`; linia z `/*` na końcu = sam dział). Uzupełniany razem z konspektem. |
+| `tools/javalearning-lessons.txt` | Rejestr lekcji JavaLearning — do odesłań `tNN_pakiet/Klasa`. Aktualizuj, gdy w JavaLearning dojdą lekcje. |
+| `tools/tags.txt` | Wymagane tagi i tagi sprawdzane pod kątem formatu (wspólne z JavaLearning). |
