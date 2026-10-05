@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+        Parent POM (rodzic) całego kursu SpringLearning.
+        - Dziedziczy po spring-boot-starter-parent: stąd wersje WSZYSTKICH bibliotek Springa (BOM — bill of materials,
+          czyli „spis części” z wersjami), ustawienia kompilatora i pluginów.
+        - Sam nie zawiera kodu (packaging = pom). Kod jest w modułach — jeden moduł = jeden dział kursu.
+        - Moduły dopisujemy do <modules> dopiero wtedy, gdy dział powstaje.
+    -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>springlearning</groupId>
+    <artifactId>spring-learning</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>SpringLearning</name>
+    <description>Kurs Spring Boota po polsku: lekcje sprawdzane testami, ćwiczenia i rozwiązania wzorcowe.</description>
+
+    <modules>
+        <module>s00-start</module>
+    </modules>
+
+    <properties>
+        <!-- Minimalna wersja Javy kursu (zalecana 25 — kod kompiluje się do poziomu 21, więc działa na 21 i 25). -->
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!--
+            Testy ćwiczeń (@Tag("cwiczenie")) są domyślnie WYŁĄCZONE, żeby nierozwiązane ćwiczenia nie psuły budowania.
+            To właściwość, a nie konfiguracja pluginu, więc da się ją nadpisać z linii poleceń:
+              ./mvnw -pl s00-start test -Dgroups=cwiczenie -DexcludedGroups=none
+        -->
+        <excludedGroups>cwiczenie</excludedGroups>
+
+        <!-- Biblioteki spoza BOM Spring Boota (używane w późniejszych działach). -->
+        <springdoc.version>3.1.1</springdoc.version>
+        <spring-modulith.version>2.1.1</spring-modulith.version>
+        <spring-ai.version>2.0.1</spring-ai.version>
+    </properties>
+
+    <dependencies>
+        <!-- Wspólne dla wszystkich działów: JUnit, AssertJ, Mockito, Spring Test. Tylko do testów (scope test). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

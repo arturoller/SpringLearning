@@ -48,7 +48,8 @@ temp/                      lokalne pliki robocze Claude (konspekty, notatki, nar
 
 ## 3. Wersje
 - **Zapisane decyzje: Java = 21 (minimum, `<java.version>21</java.version>` w parent pom), zalecana 25 (LTS);
-  Spring Boot = 4.1.1** (najnowsza stabilna 4.x w chwili planowania, 2026-10; sprawdzone w Maven Central).
+  Spring Boot = 4.1.1** (najnowsza stabilna 4.x — sprawdzone w Maven Central 2026-10-05 przy tworzeniu szkieletu);
+  Maven Wrapper 3.3.4 z Mavenem 3.9.16.
   Boot 4.1.1 wymaga Javy 17+ i jest zgodny do Javy 26 włącznie, więc 21 i 25 działają.
 - W Boot 4.1.1 przychodzą m.in.: Spring Framework 7.0, Spring Security 7.1, Spring Data 2026.0, Hibernate 7.4, Jackson 3.1,
   JUnit 6.0, Testcontainers 2.0, Flyway 12. Przy tworzeniu szkieletu sprawdź, czy nie ma nowszej 4.x z poprawkami
@@ -90,8 +91,9 @@ W treści: `PUŁAPKA:` i `DOBRA PRAKTYKA:` (zawsze z „dlaczego”), na końcu 
 
 **Ćwiczenia — nie mogą psuć budowania:**
 - Szkielet ćwiczenia w `src/` (metody z `// TODO` i `throw new UnsupportedOperationException("TODO")`).
-- Testy ćwiczeń oznaczone `@Tag("cwiczenie")` — **wyłączone z domyślnego `mvnw test`** (konfiguracja surefire:
-  `<excludedGroups>cwiczenie</excludedGroups>`). Uczeń uruchamia je sam (▶ w IntelliJ albo `mvnw test -Dgroups=cwiczenie`).
+- Testy ćwiczeń oznaczone `@Tag("cwiczenie")` — **wyłączone z domyślnego `mvnw test`** (WŁAŚCIWOŚĆ `<excludedGroups>cwiczenie`
+  w `<properties>` parent pom, nie konfiguracja pluginu — dzięki temu da się ją nadpisać). Uczeń uruchamia je sam: ▶ w IntelliJ
+  albo `./mvnw -pl <moduł> test -Dgroups=cwiczenie -DexcludedGroups=none` (samo `-Dgroups=cwiczenie` daje 0 testów).
 - Rozwiązania wzorcowe w pakiecie `sNN_temat.solutions.<lekcja>` (rodzeństwo lekcji, NIE jej podpakiet — inaczej klasa
   startowa lekcji zeskanowałaby rozwiązanie razem ze szkieletem i miałaby dwa beany tego samego typu), a ich testy (`@Tag("wzorzec")`) BIEGNĄ domyślnie — dowód, że ćwiczenie jest
   rozwiązywalne, a test poprawny. Odpowiedzi na pytania kontrolne: w zwiniętym bloku

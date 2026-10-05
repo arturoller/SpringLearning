@@ -1,0 +1,12 @@
+# Lekcja s00_start / Start03FirstApplication
+# Najpierw uruchom Start03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# Potem kliknij zielony trójkąt ▶ obok wybranego zapytania. Odpowiedź pojawi się w oknie Services (Usługi).
+
+### 1. Powitanie z parametrem name — oczekiwane: 200 OK, {"message":"Cześć, Ala!"}
+GET http://localhost:8080/api/hello?name=Ala
+
+### 2. Bez parametru — wartość domyślna: {"message":"Cześć, świecie!"}
+GET http://localhost:8080/api/hello
+
+### 3. Adres, którego nie ma — oczekiwane: 404 Not Found
+GET http://localhost:8080/api/nie-ma-takiego-adresu

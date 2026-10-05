@@ -1,0 +1,11 @@
+# Lekcja s00_start / Start04TestingIntro
+# Najpierw uruchom Start04Application (▶ obok main). Te same zapytania wysyłają testy lekcji — przez MockMvc, bez sieci.
+
+### 1. Cena brutto ze stawką 23% — oczekiwane: 200 OK, {"net":10000,"vat":23,"gross":12300}
+GET http://localhost:8080/api/price?net=10000&vat=23
+
+### 2. Zaokrąglenie: 999 gr + 23% = 1228,77 gr → 1229
+GET http://localhost:8080/api/price?net=999&vat=23
+
+### 3. Nieznana stawka VAT — oczekiwane: 400 Bad Request, {"error":"Nieznana stawka VAT: 7"}
+GET http://localhost:8080/api/price?net=10000&vat=7
