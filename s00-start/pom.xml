@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+        Moduł s00-start — dział 0: jak korzystać z kursu, projekt wielomodułowy, pierwsza aplikacja, wprowadzenie do testów,
+        pliki .http, ćwiczenia. Zależności TYLKO tego działu: Spring MVC (aplikacje webowe) i jego narzędzia testowe.
+        Wersji nie podajemy — dziedziczymy je z rodzica (spring-boot-starter-parent).
+    -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>springlearning</groupId>
+        <artifactId>spring-learning</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>s00-start</artifactId>
+    <name>s00-start</name>
+
+    <dependencies>
+        <!-- webmvc = Spring MVC: kontrolery REST, wbudowany serwer Tomcat, JSON (Jackson). W Boot 3 nazywał się -web. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <!-- Narzędzia do testowania warstwy web: MockMvc, @WebMvcTest, @AutoConfigureMockMvc. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

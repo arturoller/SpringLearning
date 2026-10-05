@@ -70,8 +70,6 @@ Zanim zaczniesz, przerób (albo przynajmniej dobrze znaj) te działy z [JavaLear
 
 ## Szybki start
 
-Tak będzie to wyglądać, gdy pojawią się pierwsze lekcje:
-
 1. Zainstaluj **JDK 25** (albo co najmniej 21). Najprościej z IntelliJ: File → Project Structure → Project → SDK →
    Download JDK → wersja 25 (dowolny dostawca, np. Eclipse Temurin). Wybierz ją potem jako SDK projektu.
 2. Sklonuj repozytorium i otwórz w IntelliJ IDEA **główny** `pom.xml` (File → Open → wskaż `pom.xml` w korzeniu → Open as
@@ -140,11 +138,11 @@ Tagi zawsze mają dokładnie tę postać (wielkie litery + dwukropek), więc wys
 
 ## Spis treści
 
-Legenda: ✅ gotowe · 🔶 w trakcie · ⏳ zaplanowane — tutaj wszystko jest jeszcze ⏳.
+Legenda: ✅ gotowe · 🔶 w trakcie · ⏳ zaplanowane.
 
 | Dział (moduł) | Temat | Stan |
 |---|---|---|
-| `s00-start` | Jak korzystać z kursu, Spring Initializr (generator szkieletu projektu Spring Boot), budowa projektu wielomodułowego, uruchamianie aplikacji i testów, **wprowadzenie do testów** (jak czytać checkery: `@SpringBootTest`, MockMvc, asercje AssertJ), pliki `.http` | ⏳ |
+| `s00-start` | Jak korzystać z kursu, Spring Initializr (generator szkieletu projektu Spring Boot), budowa projektu wielomodułowego, uruchamianie aplikacji i testów, **wprowadzenie do testów** (jak czytać checkery: `@SpringBootTest`, MockMvc, asercje AssertJ), pliki `.http`, jak działają ćwiczenia i rozwiązania wzorcowe (6 lekcji) | ✅ |
 | `s01-core-ioc` | Kontener IoC (odwrócenie sterowania — Inversion of Control: to Spring, nie Ty, tworzy obiekty i zarządza zależnościami), beany (bean — ziarno, czyli obiekt zarządzany przez Springa), `@Component`/`@Service`/`@Repository`, `@Bean`, wstrzykiwanie przez konstruktor, zasięgi (scope: singleton — jeden obiekt na całą aplikację, prototype — nowy obiekt przy każdym pobraniu), cykl życia beana | ⏳ |
 | `s02-configuration` | `@Configuration`, `@Value`, `@ConfigurationProperties`, profile (profile — zestawy konfiguracji na różne środowiska, np. dev/test/prod), `application.properties`/`.yml` | ⏳ |
 | `s03-boot-basics` | Autokonfiguracja (auto-configuration — Spring Boot sam dobiera konfigurację na podstawie zależności w projekcie), startery (starter — gotowy zestaw zależności Maven pod jedną nazwą; w Boot 4 podzielone na mniejsze moduły), `SpringApplication`, DevTools (automatyczne przeładowanie aplikacji po zmianie kodu), jak Boot „zgaduje” konfigurację | ⏳ |
@@ -176,7 +174,8 @@ Legenda: ✅ gotowe · 🔶 w trakcie · ⏳ zaplanowane — tutaj wszystko jest
   kliknij ▶ obok metody `main` klasy z `@SpringBootApplication` w pakiecie lekcji i poczekaj na komunikat w stylu
   „Tomcat started on port 8080”. Z linii poleceń: `./mvnw -pl s04-web-rest spring-boot:run -Dspring-boot.run.main-class=<pełna nazwa klasy>`.
 - **Ćwiczenia:** testy ćwiczeń (z tagiem `cwiczenie`) są wyłączone z `./mvnw test`, żeby nierozwiązane zadania nie
-  psuły budowania. Uruchamiasz je sam: ▶ w IntelliJ albo `./mvnw -pl <moduł> test -Dgroups=cwiczenie`.
+  psuły budowania. Uruchamiasz je sam: ▶ w IntelliJ albo `./mvnw -pl <moduł> test -Dgroups=cwiczenie -DexcludedGroups=none`
+  (samo `-Dgroups=cwiczenie` uruchomi zero testów, bo `pom.xml` i tak wyklucza ten tag — szczegóły w `s00_start/Start06Exercises`).
 - **Docker:** testy z Testcontainers (dział `s11` i dalej) uruchomią się tylko wtedy, gdy działa Docker (np. Docker Desktop).
   Bez niego są pomijane (żółty, a nie czerwony wynik) — reszta kursu działa normalnie.
 - **Błąd kompilacji w innym pliku:** tak jak w JavaLearning, IntelliJ przed uruchomieniem kompiluje moduł. Błąd w jednej

@@ -1,0 +1,39 @@
+# Lekcja s00_start / Start05HttpFiles — plik .http (IntelliJ HTTP Client)
+# 1. Uruchom Start05Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Odpowiedź (status, nagłówki, ciało) pojawi się w oknie Services.
+# Linia z ### oddziela zapytania; tekst po ### to nazwa zapytania. Linie z # to komentarze.
+# Zmienna @host — zmień ją w jednym miejscu, jeśli uruchomisz aplikację na innym porcie (--server.port=8081).
+
+@host = http://localhost:8080
+
+### 1. Wszystkie produkty — oczekiwane: 200 OK i tablica z Kawą, Herbatą i Czekoladą
+GET {{host}}/api/products
+
+### 2. Jeden produkt — oczekiwane: 200 OK, {"id":2,"name":"Herbata","priceGrosze":1599}
+GET {{host}}/api/products/2
+
+### 3. Produkt, którego nie ma — oczekiwane: 404 Not Found, puste ciało
+GET {{host}}/api/products/999
+
+### 4. Nowy produkt — oczekiwane: 201 Created, nagłówek Location: /api/products/4 (przy pierwszym wysłaniu)
+# Po pustej linii pod nagłówkami jest CIAŁO zapytania (JSON). Nagłówek Content-Type mówi serwerowi, że to JSON.
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "name": "Ciastka",
+  "priceGrosze": 1299
+}
+
+### 5. Zła cena — oczekiwane: 400 Bad Request
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "name": "Błąd",
+  "priceGrosze": -5
+}
+
+### 6. To samo co zapytanie 1, ale z nagłówkiem Accept — prosimy wprost o JSON
+GET {{host}}/api/products
+Accept: application/json
