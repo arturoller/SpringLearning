@@ -22,7 +22,13 @@ s03_boot_basics/Boot01AutoConfiguration
 s03_boot_basics/Boot02WritingAutoConfiguration
 s03_boot_basics/Boot03SpringApplication
 s03_boot_basics/Boot04Starters
-s04_web_rest/*
+s04_web_rest/Rest01Controllers
+s04_web_rest/Rest02RequestData
+s04_web_rest/Rest03Responses
+s04_web_rest/Rest04Json
+s04_web_rest/Rest05CrudApi
+s04_web_rest/Rest06Cors
+s04_web_rest/Rest07ApiVersioning
 s05_validation/*
 s06_error_handling/*
 s07_data_jdbc/*
