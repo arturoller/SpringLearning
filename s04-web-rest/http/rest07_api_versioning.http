@@ -1,0 +1,40 @@
+# Lekcja s04_web_rest / Rest07ApiVersioning — wersjonowanie API (Spring Framework 7)
+# 1. Uruchom Rest07Application (▶ obok main). 2. Kliknij ▶ obok zapytania. Wersję podajemy nagłówkiem API-Version.
+# Obsługiwane wersje: 1.0 (wycofywana), 1.1, 2.0.
+
+@host = http://localhost:8080
+
+### 1. Wersja 1.0 — oczekiwane: {"id":1,"name":"Kawa","priceGrosze":2999} + nagłówki Deprecation, Sunset, Link
+GET {{host}}/api/products/1
+API-Version: 1.0
+
+### 2. Wersja 1.1 — baseline 1.0+: ten sam kształt, bez nagłówków wycofania
+GET {{host}}/api/products/1
+API-Version: 1.1
+
+### 3. Wersja 2 (= 2.0) — oczekiwane: {"id":1,"name":"Kawa","price":{"amount":29.99,"currency":"PLN"}}
+GET {{host}}/api/products/1
+API-Version: 2
+
+### 4. Lista w wersji 1.0 — oczekiwane: tablica
+GET {{host}}/api/products
+API-Version: 1.0
+
+### 5. Lista w wersji 2.0 — oczekiwane: {"items":[...],"total":2} (baseline 1.1+ obejmuje 2.0)
+GET {{host}}/api/products
+API-Version: 2.0
+
+### 6. Bez wersji — oczekiwane: 400 „API version is required.”
+GET {{host}}/api/products/1
+
+### 7. Wersja nieobsługiwana — oczekiwane: 400
+GET {{host}}/api/products/1
+API-Version: 9
+
+### 8. PUŁAPKA: stałe wersje 1.0 i 2.0 na /price, zapytanie w 1.1 — oczekiwane: 400
+GET {{host}}/api/products/1/price
+API-Version: 1.1
+
+### 9. Adres bez atrybutu version — działa z dowolną obsługiwaną wersją (ale bez wersji → 400)
+GET {{host}}/api/health
+API-Version: 2.0

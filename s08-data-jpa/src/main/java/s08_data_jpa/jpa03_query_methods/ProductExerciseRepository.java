@@ -18,7 +18,6 @@ import java.util.Optional;
  */
 @NoRepositoryBean
 public interface ProductExerciseRepository extends JpaRepository<Product, Long> {
-    List<Product> findByTitle(String t);
 
     /**
      * ĆWICZENIE 1 (łatwe): produkty podanej kategorii posortowane po nazwie rosnąco.

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.contains;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -45,7 +46,7 @@ class Rest05CrudApiTest {
         mockMvc.perform(get("/api/products"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(3))
-                .andExpect(jsonPath("$[*].id").value(org.hamcrest.Matchers.contains(1, 2, 3)));
+                .andExpect(jsonPath("$[*].id").value(contains(1, 2, 3)));
         mockMvc.perform(get("/api/products/2"))
                 .andExpect(content().json("{\"id\":2,\"name\":\"Herbata\",\"priceGrosze\":1599}"));
         mockMvc.perform(get("/api/products/99")).andExpect(status().isNotFound());

@@ -190,7 +190,7 @@ public final class Rest01Controllers {
      *      odpowiedzi (JSON). W zwykłym @Controller wynik (String) to nazwa widoku HTML, chyba że metoda ma
      *      @ResponseBody. Do API używaj @RestController.
      *   2. 405 Method Not Allowed i nagłówek Allow: GET — adres jest znany, ale tylko z metodą GET.
-     *      Sprawdzone testem (Rest01ControllersTest, sekcja 4 — ten sam mechanizm dla POST).
+     *      Sprawdzone testem (Rest01ControllersTest, sekcja 4 — DELETE i POST na /api/shop/info).
      *   3. bestsellers() — stała ścieżka jest bardziej konkretna niż wzorzec /{id}, więc wygrywa niezależnie od
      *      kolejności metod. Sprawdzone testem (sekcja 3).
      *   4. Brak @ResponseBody: "Cześć" to nazwa widoku, Spring robi forward pod adres „Cześć”, którego nie ma → 404.

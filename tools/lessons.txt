@@ -68,7 +68,12 @@ s11_testing/Test04DataJpaTest
 s11_testing/Test05TestConfiguration
 s11_testing/Test06Testcontainers
 s11_testing/Test07DockerCompose
-s12_security/*
+s12_security/Sec01Basics
+s12_security/Sec02Authorization
+s12_security/Sec03UsersPasswords
+s12_security/Sec04StatelessApi
+s12_security/Sec05Jwt
+s12_security/Sec06SecurityTesting
 s13_rest_client/*
 s14_openapi/*
 s15_actuator_logging/*
