@@ -1,0 +1,37 @@
+# Lekcja s04_web_rest / Rest06Cors — CORS „udawany” z pliku .http
+# 1. Uruchom Rest06Application (▶ obok main). 2. Kliknij ▶ obok zapytania i patrz na nagłówki Access-Control-*.
+# Uwaga: plik .http to NIE przeglądarka — sam niczego nie blokuje. Nagłówek Origin dopisujemy ręcznie, żeby zobaczyć,
+# co serwer odpowiedziałby przeglądarce.
+
+@host = http://localhost:8080
+
+### 1. Bez Origin — to nie jest zapytanie CORS: 200, brak nagłówków Access-Control-*
+GET {{host}}/api/catalog
+
+### 2. @CrossOrigin, dozwolone pochodzenie — 200 i Access-Control-Allow-Origin: https://sklep.example.com
+GET {{host}}/api/catalog
+Origin: https://sklep.example.com
+
+### 3. @CrossOrigin, obce pochodzenie — 403 „Invalid CORS request”
+GET {{host}}/api/catalog
+Origin: https://zlodziej.example.com
+
+### 4. Preflight do @CrossOrigin — 200, Access-Control-Allow-Methods: GET, Access-Control-Max-Age: 1800
+OPTIONS {{host}}/api/catalog
+Origin: https://sklep.example.com
+Access-Control-Request-Method: GET
+
+### 5. Konfiguracja globalna, preflight POST z panelu — 200, Allow-Methods: GET,POST, Max-Age: 3600
+OPTIONS {{host}}/api/orders
+Origin: https://panel.example.com
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: Content-Type
+
+### 6. Konfiguracja globalna, preflight DELETE z panelu — 403 (DELETE spoza listy)
+OPTIONS {{host}}/api/orders/5
+Origin: https://panel.example.com
+Access-Control-Request-Method: DELETE
+
+### 7. Brak konfiguracji CORS — 200 i dane, ale bez Access-Control-Allow-Origin (przeglądarka zablokowałaby odczyt)
+GET {{host}}/api/internal/stats
+Origin: https://zlodziej.example.com

@@ -61,7 +61,13 @@ s10_transactions/Tx02Propagation
 s10_transactions/Tx03ProxyPitfalls
 s10_transactions/Tx04ReadOnlyIsolation
 s10_transactions/Tx05ProgrammaticTransactions
-s11_testing/*
+s11_testing/Test01TestSlices
+s11_testing/Test02MockitoBeans
+s11_testing/Test03MockMvcTester
+s11_testing/Test04DataJpaTest
+s11_testing/Test05TestConfiguration
+s11_testing/Test06Testcontainers
+s11_testing/Test07DockerCompose
 s12_security/*
 s13_rest_client/*
 s14_openapi/*
