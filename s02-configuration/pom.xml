@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+        Moduł s02-configuration — dział 2: konfiguracja aplikacji — application.properties/.yml, @Value,
+        @ConfigurationProperties, profile, Environment. Tylko spring-boot-starter (bez weba).
+    -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>springlearning</groupId>
+        <artifactId>spring-learning</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>s02-configuration</artifactId>
+    <name>s02-configuration</name>
+
+    <dependencies>
+        <!-- starter = rdzeń: spring-core, spring-context (kontener IoC), autokonfiguracja, logowanie, jakarta.annotation. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+    </dependencies>
+</project>
