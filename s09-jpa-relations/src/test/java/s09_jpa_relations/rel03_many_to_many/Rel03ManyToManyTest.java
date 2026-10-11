@@ -2,6 +2,7 @@ package s09_jpa_relations.rel03_many_to_many;
 
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
+import org.hibernate.TransientPropertyValueException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.DisplayName;
@@ -54,12 +55,12 @@ class Rel03ManyToManyTest {
     }
 
     @Test
-    @DisplayName("2. Set: usunięcie jednego tagu = 1 instrukcja SQL (DELETE jednego wiersza)")
+    @DisplayName("2. Set: usunięcie jednego tagu = 1 instrukcja SQL (DELETE jednego wiersza z product_tags)")
     void removeFromSetDeletesOneRow() {
         Long id = productWithTags(new String[]{"a", "b", "c"});
         Product product = em.find(Product.class, id);
         Tag first = product.getTags().stream().filter(t -> t.getName().equals("a")).findFirst().orElseThrow();
-        product.getTags().size();                     // wczytaj kolekcję PRZED pomiarem
+        first.getProducts().size();                   // wczytaj drugą stronę PRZED pomiarem (patrz następny test)
         Statistics stats = statistics();
 
         product.removeTag(first);
@@ -67,6 +68,21 @@ class Rel03ManyToManyTest {
 
         assertThat(stats.getPrepareStatementCount()).isEqualTo(1);
         assertThat(countRows("product_tags")).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("2. Metoda pomocnicza dotyka tag.products — leniwa kolekcja drugiej strony dociąga się SELECT-em (1 + 1)")
+    void helperLoadsInverseCollection() {
+        Long id = productWithTags(new String[]{"a", "b", "c"});
+        Product product = em.find(Product.class, id);
+        Tag first = product.getTags().stream().filter(t -> t.getName().equals("a")).findFirst().orElseThrow();
+        Statistics stats = statistics();
+
+        product.removeTag(first);                     // tag.productsInternal().remove(...) → SELECT produktów tagu
+        em.flush();                                   // DELETE z product_tags
+
+        assertThat(stats.getPrepareStatementCount()).isEqualTo(2);
+        assertThat(stats.getCollectionLoadCount()).as("wczytana kolekcja Tag.products").isEqualTo(1);
     }
 
     @Test
@@ -92,14 +108,28 @@ class Rel03ManyToManyTest {
     }
 
     @Test
-    @DisplayName("3. Usunięcie tagu, który jest jeszcze przypięty do produktu → naruszenie klucza obcego")
+    @DisplayName("3. Usunięcie tagu przypiętego do produktu (produkt nie w pamięci) → naruszenie klucza obcego w bazie")
     void removingLinkedTagViolatesForeignKey() {
+        productWithTags(new String[]{"bio"});         // kończy się em.clear() — produktu nie ma w pamięci
+        Tag bio = em.getEntityManager().createQuery("select t from Tag t where t.name = 'bio'", Tag.class)
+                .getSingleResult();
+
+        em.remove(bio);                               // Tag to strona odwrotna — product_tags nikt nie czyści
+
+        assertThatThrownBy(() -> em.flush()).isInstanceOf(ConstraintViolationException.class);
+    }
+
+    @Test
+    @DisplayName("3. To samo, gdy produkt JEST w pamięci: Hibernate 7 łapie to wcześniej — TransientPropertyValueException")
+    void removingLinkedTagDetectedInMemory() {
         Long productId = productWithTags(new String[]{"bio"});
         Tag bio = em.find(Product.class, productId).getTags().iterator().next();
 
-        em.remove(bio);                               // Tag to strona odwrotna — product_tags zostaje
+        em.remove(bio);
 
-        assertThatThrownBy(() -> em.flush()).isInstanceOf(ConstraintViolationException.class);
+        assertThatThrownBy(() -> em.flush())
+                .isInstanceOf(IllegalStateException.class)
+                .hasCauseInstanceOf(TransientPropertyValueException.class);
     }
 
     @Test
@@ -118,7 +148,7 @@ class Rel03ManyToManyTest {
     }
 
     @Test
-    @DisplayName("4. PUŁAPKA: cascade = REMOVE na @ManyToMany próbuje usunąć tag wspólny z innym produktem")
+    @DisplayName("4. PUŁAPKA: cascade = REMOVE na @ManyToMany usuwa tag wspólny z innym produktem → błąd klucza obcego")
     void cascadeRemoveOnManyToManyIsDangerous() {
         Tag promo = em.persist(new Tag("promocja"));
         DangerousProduct first = new DangerousProduct("Kawa");
@@ -128,10 +158,27 @@ class Rel03ManyToManyTest {
         em.persist(first);
         em.persist(second);
         em.flush();
+        em.clear();
 
-        em.remove(first);                             // kaskada: usuń też tag „promocja”
+        em.remove(em.find(DangerousProduct.class, first.getId()));   // kaskada: usuń też tag „promocja”
 
         assertThatThrownBy(() -> em.flush()).isInstanceOf(ConstraintViolationException.class);
+    }
+
+    @Test
+    @DisplayName("4. Gdy tag nie ma innych produktów, kaskada „po cichu” go usuwa — znika z całego sklepu")
+    void cascadeRemoveSilentlyDeletesTag() {
+        Tag promo = em.persist(new Tag("promocja"));
+        DangerousProduct only = new DangerousProduct("Kawa");
+        only.getTags().add(promo);
+        em.persist(only);
+        em.flush();
+        em.clear();
+
+        em.remove(em.find(DangerousProduct.class, only.getId()));
+        em.flush();
+
+        assertThat(countRows("tags")).as("tag usunięty razem z produktem").isZero();
     }
 
     @Test
