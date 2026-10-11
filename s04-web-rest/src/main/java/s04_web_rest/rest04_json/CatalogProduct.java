@@ -18,7 +18,8 @@ import java.time.LocalDate;
  * @param description opis — pomijany w JSON, gdy null ({@code @JsonInclude(NON_NULL)} = dołącz, gdy nie null)
  * @param addedOn     data dodania (LocalDate) — w JSON jako tekst ISO-8601 "2026-10-01"
  * @param updatedAt   chwila ostatniej zmiany (Instant) — w JSON jako tekst ISO-8601 "2026-10-01T08:30:00Z"
- * @param purchasePriceGrosze cena zakupu — TAJEMNICA sklepu: {@code @JsonIgnore} (ignoruj) nie wypuszcza jej do JSON-a
+ * @param purchasePriceGrosze cena zakupu — TAJEMNICA sklepu: {@code @JsonIgnore} (ignoruj) nie wypuszcza jej do JSON-a.
+ *                    Typ Integer, a nie int — dlaczego, pokazuje SecretPriceProduct (PUŁAPKA w sekcji 2).
  */
 public record CatalogProduct(
         long id,
@@ -27,5 +28,5 @@ public record CatalogProduct(
         @JsonInclude(JsonInclude.Include.NON_NULL) String description,
         LocalDate addedOn,
         Instant updatedAt,
-        @JsonIgnore int purchasePriceGrosze) {
+        @JsonIgnore Integer purchasePriceGrosze) {
 }

@@ -1,0 +1,24 @@
+### Lekcja Val04CustomValidators — uruchom Val04Application (▶ przy main), potem ▶ przy zapytaniu.
+### Poprawny produkt (kategoria AGD istnieje w katalogu) -> 200
+POST http://localhost:8080/api/catalog-products
+Content-Type: application/json
+
+{"code": "ABC-1234", "category": "AGD"}
+
+### Zły kod (@ProductCode) i nieznana kategoria (@ExistingCategory, walidator z beanem) -> 400
+POST http://localhost:8080/api/catalog-products
+Content-Type: application/json
+
+{"code": "abc", "category": "KOSMOS"}
+
+### Poprawna promocja -> 200
+POST http://localhost:8080/api/promotions
+Content-Type: application/json
+
+{"validFrom": "2026-05-01", "validTo": "2026-05-31", "priceGrosze": 1000, "discountGrosze": 300}
+
+### Reguła klasowa @ValidPromotion: koniec przed początkiem i zniżka większa od ceny -> 400
+POST http://localhost:8080/api/promotions
+Content-Type: application/json
+
+{"validFrom": "2026-06-01", "validTo": "2026-05-01", "priceGrosze": 1000, "discountGrosze": 1500}

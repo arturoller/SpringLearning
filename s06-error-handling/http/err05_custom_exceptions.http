@@ -1,0 +1,51 @@
+# Lekcja s06_error_handling / Err05CustomExceptions — własne wyjątki domenowe, walidacja, ProblemDetail
+# Uruchom Err05Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# Produkt 1 (Kawa): 5 szt. w magazynie; produkt 2 (Herbata): 0 szt.; innych nie ma.
+# Klienci „gateway-down” i „boom” to SYMULACJE awarii na potrzeby lekcji.
+
+@host = http://localhost:8080
+
+### 1. Poprawne zamówienie — oczekiwane: 201 Created, {"orderId":100,"productId":1,"quantity":2} (numer rośnie przy kolejnych wysłaniach)
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{"customer": "Ala", "productId": 1, "quantity": 2}
+
+### 2. Nieistniejący produkt — oczekiwane: 404, problem+json, "code":"PRODUCT_NOT_FOUND"
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{"customer": "Ala", "productId": 999, "quantity": 1}
+
+### 3. Za mało towaru — oczekiwane: 409, problem+json z polami "requested":3 i "available":0
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{"customer": "Ala", "productId": 2, "quantity": 3}
+
+### 4. Awaria bramki płatności (symulacja) — oczekiwane: 502, ogólny komunikat; adres bramki widać tylko w logu serwera
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{"customer": "gateway-down", "productId": 1, "quantity": 1}
+
+### 5. Nieprzewidziany błąd (symulacja) — oczekiwane: 500, "Wystąpił nieoczekiwany błąd"; szczegóły (ORDERS_V2) tylko w logu
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{"customer": "boom", "productId": 1, "quantity": 1}
+
+### 6. Walidacja — oczekiwane: 400 i "errors": {"customer": [...], "productId": [...], "quantity": [...]}
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{"customer": "", "productId": -1, "quantity": 0}
+
+### 7. Uszkodzony JSON — oczekiwane: 400, problem+json
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{"customer":
+
+### 8. Zła metoda HTTP — oczekiwane: 405 (a nie 500!)
+GET {{host}}/api/orders

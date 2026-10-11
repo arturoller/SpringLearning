@@ -1,0 +1,28 @@
+# Lekcja s06_error_handling / Err04ProblemDetail — ProblemDetail (RFC 9457), application/problem+json
+# Uruchom Err04Application Z WŁASNYM ADVICE: w konfiguracji uruchomieniowej (Run → Edit Configurations) dopisz w
+# „Program arguments”:  --err04.custom-advice=true   (bez tego advice jest wyłączony i odpowiedzi są puste).
+# Alternatywa: --spring.mvc.problemdetails.enabled=true włącza tylko gotowy advice Boota (bez handlera ProductNotFoundException).
+
+@host = http://localhost:8080
+
+### 1. Wyjątek domenowy — oczekiwane: 404, Content-Type: application/problem+json,
+###    {"detail":"...","instance":"/api/products/999","status":404,"title":"Produkt nie istnieje","type":"https://shop.example.com/problems/product-not-found","productId":999}
+GET {{host}}/api/products/999
+
+### 2. Brak wymaganego parametru q — oczekiwane: 400, problem+json (title "Bad Request", detail po angielsku od Springa)
+GET {{host}}/api/search
+
+### 3. Zła metoda HTTP — oczekiwane: 405, problem+json
+POST {{host}}/api/search
+
+### 4. ResponseStatusException — oczekiwane: 409, problem+json z detail "Towar chwilowo niedostępny: 1"
+GET {{host}}/api/products/1/stock
+
+### 5. ErrorResponseException z własnym ProblemDetail — oczekiwane: 429, własny tytuł, typ i pole retryAfterSeconds
+GET {{host}}/api/limits
+
+### 6. Zły typ parametru ścieżki — oczekiwane: 400, problem+json
+GET {{host}}/api/products/abc
+
+### 7. Poprawne zapytanie — oczekiwane: 200 OK
+GET {{host}}/api/products/7

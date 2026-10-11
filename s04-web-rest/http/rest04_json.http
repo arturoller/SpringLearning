@@ -1,0 +1,37 @@
+# Lekcja s04_web_rest / Rest04Json — Jackson 3: adnotacje, daty, nieznane pola
+# 1. Uruchom Rest04Application (▶ obok main). 2. Kliknij ▶ obok zapytania.
+
+@host = http://localhost:8080
+
+### 1. Rekord z adnotacjami — oczekiwane: "product_name", daty jako tekst ISO, BRAK purchasePriceGrosze
+GET {{host}}/api/catalog/1
+
+### 2. @JsonInclude(NON_NULL) — oczekiwane: brak pola "description" (jest null)
+GET {{host}}/api/catalog/2
+
+### 3. @JsonFormat — oczekiwane: "validUntil":"31.10.2026"
+GET {{host}}/api/catalog/promotion
+
+### 4. Odczyt + nieznane pole "color" — oczekiwane: 200, pole zignorowane
+POST {{host}}/api/catalog/echo
+Content-Type: application/json
+
+{"id": 5, "product_name": "Miód", "priceGrosze": 2499, "addedOn": "2026-10-05", "color": "złoty"}
+
+### 5. Brak pola int priceGrosze — oczekiwane: 400 (Jackson 3: null dla int to błąd)
+POST {{host}}/api/catalog/echo
+Content-Type: application/json
+
+{"id": 5, "product_name": "Miód"}
+
+### 6. Data w złym formacie — oczekiwane: 400
+POST {{host}}/api/catalog/echo
+Content-Type: application/json
+
+{"id": 5, "product_name": "Miód", "priceGrosze": 2499, "addedOn": "05.10.2026"}
+
+### 7. PUŁAPKA: @JsonIgnore na int w rekordzie — oczekiwane: 400, choć JSON jest poprawny
+POST {{host}}/api/catalog/secret-echo
+Content-Type: application/json
+
+{"name": "Kawa", "purchasePriceGrosze": 1800}

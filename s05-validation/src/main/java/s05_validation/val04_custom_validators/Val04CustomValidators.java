@@ -57,6 +57,10 @@ public final class Val04CustomValidators {
     // PUŁAPKA: zapominasz @Retention(RUNTIME). Dlaczego to podstępne? Domyślnie adnotacja jest zachowana tylko w
     //   pliku .class (CLASS) i nie dociera do refleksji; kod się kompiluje, a reguła po prostu... nie działa, bez błędu.
     //
+    // PUŁAPKA: klasa walidatora bez publicznego konstruktora bezparametrowego (np. zagnieżdżona klasa pakietowa z domyślnym
+    //   konstruktorem). Dlaczego to boli? Hibernate Validator tworzy walidator refleksją i przy pierwszym validate(...)
+    //   rzuca ValidationException HV000064 („Unable to instantiate ConstraintValidator”). Sprawdzone uruchomieniem.
+    //
     // Testy: Val04CustomValidatorsTest.productCodeConstraint.
 
     // =================================================================================================

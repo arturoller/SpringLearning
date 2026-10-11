@@ -164,7 +164,7 @@ class Val04CustomValidatorsTest {
         ConstraintViolation<LongCodeItem> violation = validator.validate(new LongCodeItem("ABC-1234")).iterator().next();
         assertThat(violation.getMessage()).isEqualTo("Kod produktu: trzy wielkie litery, myślnik i 6 cyfr");   // {digits} podstawione
 
-        // PUŁAPKA: adnotacja bez @Retention(RUNTIME) — brak błędu, brak reguły
+        // Pułapka: adnotacja bez @Retention(RUNTIME) — brak błędu, brak reguły
         record NoRuntimeProbe(@NoRuntime String a) {
         }
         assertThat(validator.validate(new NoRuntimeProbe("x"))).isEmpty();
@@ -195,10 +195,10 @@ class Val04CustomValidatorsTest {
         ConstraintViolation<Promotion> v = validator.validate(new Promotion(to, from, 1000, 300)).iterator().next();
         assertThat(v.getMessage()).isEqualTo("Data końca nie może być przed datą początku");
 
-        // PUŁAPKA 1: bez disableDefaultConstraintViolation() — dwa naruszenia (domyślne na całości i własne na polu)
+        // Pułapka 1: bez disableDefaultConstraintViolation() — dwa naruszenia (domyślne na całości i własne na polu)
         assertThat(paths(validator.validate(new SloppyRange(1, 2)))).containsExactly("", "to");
 
-        // PUŁAPKA 2: komunikat domyślny wyłączony, ale brak addConstraintViolation() — Hibernate Validator zgłasza błąd
+        // Pułapka 2: komunikat domyślny wyłączony, ale brak addConstraintViolation() — Hibernate Validator zgłasza błąd
         assertThatThrownBy(() -> validator.validate(new ForgetfulRange(1, 2)))
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("HV000033");

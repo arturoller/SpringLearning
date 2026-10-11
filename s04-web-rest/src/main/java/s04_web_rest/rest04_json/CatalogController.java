@@ -31,6 +31,18 @@ public class CatalogController {
         return PRODUCTS.stream().filter(p -> p.id() == id).findFirst().orElseThrow();
     }
 
+    /** GET /api/catalog/promotion → {"code":"JESIEN","validUntil":"31.10.2026"} — format z {@code @JsonFormat}. */
+    @GetMapping("/promotion")
+    public Promotion promotion() {
+        return new Promotion("JESIEN", LocalDate.of(2026, 10, 31));
+    }
+
+    /** POST /api/catalog/secret-echo — ZŁY PRZYKŁAD: odczyt rekordu z {@code @JsonIgnore int} zawsze kończy się 400. */
+    @PostMapping("/secret-echo")
+    public SecretPriceProduct secretEcho(@RequestBody SecretPriceProduct product) {
+        return product;
+    }
+
     /** POST /api/catalog/echo → Jackson czyta JSON do rekordu i od razu zapisuje go z powrotem („echo” = odbicie). */
     @PostMapping("/echo")
     public CatalogProduct echo(@RequestBody CatalogProduct product) {

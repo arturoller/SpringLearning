@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Testy lekcji Val03NestedAndGroups — zwykłe testy jednostkowe z samym Validatorem (bez Springa). Kontroler sprawdza
@@ -95,6 +96,12 @@ class Val03NestedAndGroupsTest {
                 .containsExactly("tags[1].<list element>", "tags[2].<list element>");
         assertThat(validator.validate(new TagList(List.of("tani", "nowy")))).isEmpty();
         assertThat(paths(validator.validate(new TagList(List.of())))).containsExactly("tags");   // @NotEmpty dotyczy listy
+
+        // adnotacja tekstowa przy POLU z listą (zamiast w nawiasach przy elemencie) → UnexpectedTypeException
+        record WrongPlace(@jakarta.validation.constraints.NotBlank List<String> tags) {
+        }
+        assertThatThrownBy(() -> validator.validate(new WrongPlace(List.of("a"))))
+                .isInstanceOf(jakarta.validation.UnexpectedTypeException.class);
     }
 
     @Test
