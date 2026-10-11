@@ -26,7 +26,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface ProductCode {
 
     /** Szablon komunikatu; {digits} zostanie podstawione wartością atrybutu. */
-    String message() default "Kod produktu ma postać ABC-{digits} cyfr";
+    String message() default "Kod produktu: trzy wielkie litery, myślnik i {digits} cyfr";
 
     /** Wymagany przez specyfikację: grupy walidacji (lekcja Val03NestedAndGroups). */
     Class<?>[] groups() default {};

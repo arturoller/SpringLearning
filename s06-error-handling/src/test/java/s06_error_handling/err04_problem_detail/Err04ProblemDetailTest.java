@@ -14,13 +14,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 class Err04ProblemDetailTest {
 
     @Test
-    @DisplayName("1. forStatus: typ domyślnie about:blank, tytuł to opis statusu, detail i instance puste")
+    @DisplayName("1. forStatus: typ nieustawiony (null = about:blank wg RFC), tytuł wynika ze statusu, detail i instance puste")
     void defaults() {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
 
         assertThat(problem.getStatus()).isEqualTo(404);
-        assertThat(problem.getType()).isEqualTo(URI.create("about:blank"));
-        assertThat(problem.getTitle()).isEqualTo("Not Found");   // gdy type = about:blank, tytuł wynika ze statusu
+        assertThat(problem.getType()).isNull();   // w Spring 7.0.9 brak typu = null; w JSON-ie pola nie ma (RFC: brak = about:blank)
+        assertThat(problem.getTitle()).isEqualTo("Not Found");   // getTitle() bez setTitle() zwraca opis statusu
         assertThat(problem.getDetail()).isNull();
         assertThat(problem.getInstance()).isNull();
         assertThat(problem.getProperties()).isNull();

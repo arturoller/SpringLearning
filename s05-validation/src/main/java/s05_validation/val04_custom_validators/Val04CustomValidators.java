@@ -88,8 +88,9 @@ public final class Val04CustomValidators {
     //   context.buildConstraintViolationWithTemplate("...").addPropertyNode("validTo").addConstraintViolation();
     //
     // PUŁAPKA: budujesz własne naruszenie, ale nie wywołujesz addConstraintViolation() albo nie wyłączasz domyślnego.
-    //   Dlaczego to ważne? Bez addConstraintViolation() budowniczy nic nie rejestruje; bez disableDefaultConstraintViolation()
-    //   dostajesz DWA naruszenia (domyślne na całości i własne na polu) — klient widzi dwa komunikaty o jednym błędzie.
+    //   Dlaczego to ważne? Bez disableDefaultConstraintViolation() dostajesz DWA naruszenia (domyślne na całości i własne
+    //   na polu) — klient widzi dwa komunikaty o jednym błędzie. A wyłączenie domyślnego bez addConstraintViolation()
+    //   kończy się wyjątkiem HV000033 („trzeba utworzyć co najmniej jeden własny komunikat”).
     //   Sprawdzone testem Val04CustomValidatorsTest.classLevelConstraint.
     //
     // Testy: Val04CustomValidatorsTest.classLevelConstraint.
@@ -132,8 +133,8 @@ public final class Val04CustomValidators {
      *   1. Z jakich dwóch elementów składa się własne ograniczenie i co je łączy?
      *   2. Co się stanie? W adnotacji brakuje @Retention(RUNTIME).
      *   3. Co się stanie? Pole opcjonalne {@code @ProductCode String code} ma wartość null. A pole z {@code @NotNull @ProductCode}?
-     *   4. ZNAJDŹ BŁĄD: walidator klasowy wywołuje {@code context.buildConstraintViolationWithTemplate("Błąd").addPropertyNode("validTo")},
-     *      ale kończy bez addConstraintViolation(). Co zobaczy klient?
+     *   4. Co się stanie? Walidator klasowy wywołuje disableDefaultConstraintViolation() i buduje własne naruszenie
+     *      (buildConstraintViolationWithTemplate(...).addPropertyNode("validTo")), ale kończy bez addConstraintViolation().
      *   5. Co się stanie? Walidator klasowy nie wywołuje disableDefaultConstraintViolation(), a zwraca false i dodaje własne
      *      naruszenie na polu.
      *   6. Co się stanie? ExistingCategoryValidator (z konstruktorem przyjmującym CategoryCatalog) użyty z Validatorem
@@ -186,17 +187,16 @@ public final class Val04CustomValidators {
      *   1. Adnotacja (nazwa reguły, komunikat, atrybuty) i klasa implementująca ConstraintValidator (kontrola). Łączy je
      *      @Constraint(validatedBy = KlasaWalidatora.class) na adnotacji.
      *   2. Adnotacja jest widoczna dla kompilatora, ale nie w czasie działania: Validator jej nie znajdzie i reguła
-     *      po cichu nie działa (brak błędu). Mechanizm Javy; w testach lekcji adnotacje mają RUNTIME.
+     *      po cichu nie działa (brak błędu). Sprawdzone testem Val04CustomValidatorsTest.productCodeConstraint.
      *   3. Pole z samym @ProductCode: brak naruszenia. Pole z @NotNull @ProductCode: naruszenie z NotNull.
      *      Sprawdzone testem Val04CustomValidatorsTest.nullConvention.
-     *   4. Nic — bez addConstraintViolation() budowniczy niczego nie rejestruje; po wyłączeniu domyślnego komunikatu
-     *      i zwróceniu false może wręcz nie powstać żadne naruszenie, a błąd zniknie. Zawsze kończ addConstraintViolation().
-     *      Mechanizm opisany w dokumentacji ConstraintValidatorContext; w lekcji pokazany poprawny wariant
-     *      (Val04CustomValidatorsTest.classLevelConstraint).
+     *   4. Hibernate Validator rzuca ValidationException HV000033 („At least one custom message must be created if the
+     *      default error message gets disabled”) — własny komunikat nie jest zarejestrowany, dopóki nie wywołasz
+     *      addConstraintViolation(). Sprawdzone testem Val04CustomValidatorsTest.classLevelConstraint.
      *   5. Powstają dwa naruszenia: domyślne (ścieżka pusta, cały obiekt) i własne na polu. Sprawdzone testem
      *      Val04CustomValidatorsTest.classLevelConstraint.
-     *   6. Walidator nie zostanie utworzony: Hibernate Validator wymaga konstruktora bezparametrowego, więc
-     *      validate(...) rzuca ValidationException. Sprawdzone testem Val04CustomValidatorsTest.plainFactoryCannotInject.
+     *   6. Walidator nie zostanie utworzony: Hibernate Validator wymaga publicznego konstruktora bezparametrowego, więc
+     *      validate(...) rzuca ValidationException (HV000064: Unable to instantiate ConstraintValidator). Sprawdzone testem Val04CustomValidatorsTest.plainFactoryCannotInject.
      *   7. Jedna instancja walidatora obsługuje wiele wątków jednocześnie, więc zmienny stan (np. liczniki, ostatnia
      *      wartość) powodowałby wyścigi. Bezpieczne jest tylko to, co ustawiono w initialize.
      */
