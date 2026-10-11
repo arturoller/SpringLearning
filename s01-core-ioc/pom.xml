@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+        Moduł s01-core-ioc — dział 1: kontener IoC, beany, wstrzykiwanie zależności, zasięgi, cykl życia.
+        Celowo BEZ weba: tylko spring-boot-starter (rdzeń Springa, autokonfiguracja, logowanie).
+        Kontener IoC to serce Springa i działa tak samo w aplikacji webowej, konsolowej czy w teście.
+    -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>springlearning</groupId>
+        <artifactId>spring-learning</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>s01-core-ioc</artifactId>
+    <name>s01-core-ioc</name>
+
+    <dependencies>
+        <!-- starter = rdzeń: spring-core, spring-context (kontener IoC), autokonfiguracja, logowanie, jakarta.annotation. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+    </dependencies>
+</project>
