@@ -28,6 +28,7 @@
 
     <modules>
         <module>s00-start</module>
+        <module>s01-core-ioc</module>
     </modules>
 
     <properties>

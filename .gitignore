@@ -11,3 +11,4 @@ out/
 Thumbs.db
 *.log
 temp/
+.claude/worktrees/

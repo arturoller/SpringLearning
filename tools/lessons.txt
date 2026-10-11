@@ -6,7 +6,13 @@ s00_start/Start03FirstApplication
 s00_start/Start04TestingIntro
 s00_start/Start05HttpFiles
 s00_start/Start06Exercises
-s01_core_ioc/*
+s01_core_ioc/Ioc01Container
+s01_core_ioc/Ioc02ConstructorInjection
+s01_core_ioc/Ioc03Stereotypes
+s01_core_ioc/Ioc04BeanMethods
+s01_core_ioc/Ioc05MultipleCandidates
+s01_core_ioc/Ioc06Scopes
+s01_core_ioc/Ioc07Lifecycle
 s02_configuration/*
 s03_boot_basics/*
 s04_web_rest/*
