@@ -1,0 +1,25 @@
+# Plik YAML lekcji Cfg04Yaml. Nazwa "cfg04" (a nie application) sprawia, że czyta go tylko ta lekcja:
+# Cfg04Application ustawia spring.config.name=cfg04, więc inne lekcje modułu nie widzą tego pliku.
+# YAML jest czytany jako UTF-8 — polskie litery wpisujesz normalnie (w .properties trzeba było kodów unicode).
+cfg04:
+  shop:
+    name: Sklep YAML
+    city: Łódź
+    country: NO              # PUŁAPKA: YAML 1.1 czyta NO jako false (wartość logiczna), a nie tekst "NO"!
+    opening-days:            # lista = pozycje z myślnikiem
+      - pon
+      - wt
+      - śr
+    address:                 # obiekt zagnieżdżony = wcięcie o dwie spacje
+      street: Długa 1
+      zip: "90-001"          # w cudzysłowie, żeby na pewno był tekstem
+    conflict: z-yml          # ten sam klucz jest też w cfg04.properties — kto wygra?
+---
+# Drugi dokument w tym samym pliku (separator ---): obowiązuje TYLKO przy aktywnym profilu cfg04-promo.
+spring:
+  config:
+    activate:
+      on-profile: cfg04-promo
+cfg04:
+  shop:
+    banner: Wyprzedaż do -30%!
