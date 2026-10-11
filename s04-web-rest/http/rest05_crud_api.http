@@ -1,0 +1,54 @@
+# Lekcja s04_web_rest / Rest05CrudApi — pełne API CRUD produktów
+# 1. Uruchom Rest05Application (▶ obok main). Na start są produkty 1 Kawa, 2 Herbata, 3 Czekolada.
+# 2. Wysyłaj zapytania PO KOLEI — opisy „oczekiwane” zakładają świeży start aplikacji.
+#    Dane są w pamięci: restart aplikacji = dane startowe od nowa.
+
+@host = http://localhost:8080
+
+### 1. Lista — oczekiwane: 200 i trzy produkty posortowane po id
+GET {{host}}/api/products
+
+### 2. Jeden produkt — oczekiwane: 200, {"id":2,"name":"Herbata","priceGrosze":1599}
+GET {{host}}/api/products/2
+
+### 3. Brak produktu — oczekiwane: 404
+GET {{host}}/api/products/99
+
+### 4. Utwórz — oczekiwane: 201, Location: http://localhost:8080/api/products/4
+POST {{host}}/api/products
+Content-Type: application/json
+
+{"name": "Ciastka", "priceGrosze": 1299}
+
+### 5. Złe dane — oczekiwane: 400, {"error":"Nazwa produktu nie może być pusta"}
+POST {{host}}/api/products
+Content-Type: application/json
+
+{"name": " ", "priceGrosze": 100}
+
+### 6. Zastąp całość (PUT) — oczekiwane: 200; wyślij kilka razy — wynik zawsze ten sam (idempotentny)
+PUT {{host}}/api/products/4
+Content-Type: application/json
+
+{"name": "Ciastka owsiane", "priceGrosze": 1399}
+
+### 7. PUT bez ceny — oczekiwane: 400 (PUT wymaga kompletu danych)
+PUT {{host}}/api/products/4
+Content-Type: application/json
+
+{"name": "Ciastka owsiane"}
+
+### 8. Zmień tylko cenę (PATCH) — oczekiwane: 200, nazwa bez zmian, cena 1199
+PATCH {{host}}/api/products/4
+Content-Type: application/json
+
+{"priceGrosze": 1199}
+
+### 9. Usuń — oczekiwane: 204 No Content
+DELETE {{host}}/api/products/4
+
+### 10. Usuń drugi raz — oczekiwane: 404 (stan ten sam: produktu nie ma — DELETE jest idempotentny)
+DELETE {{host}}/api/products/4
+
+### 11. Sprawdź — oczekiwane: 404
+GET {{host}}/api/products/4
