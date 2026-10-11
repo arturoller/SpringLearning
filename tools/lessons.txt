@@ -44,7 +44,12 @@ s07_data_jdbc/Jdbc02JdbcTemplate
 s07_data_jdbc/Jdbc03SqlInit
 s07_data_jdbc/Jdbc04Flyway
 s07_data_jdbc/Jdbc05Repository
-s08_data_jpa/*
+s08_data_jpa/Jpa01Entities
+s08_data_jpa/Jpa02Repositories
+s08_data_jpa/Jpa03QueryMethods
+s08_data_jpa/Jpa04CustomQueries
+s08_data_jpa/Jpa05PagingSorting
+s08_data_jpa/Jpa06FlywayWithJpa
 s09_jpa_relations/*
 s10_transactions/*
 s11_testing/*

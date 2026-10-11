@@ -35,6 +35,7 @@
         <module>s05-validation</module>
         <module>s06-error-handling</module>
         <module>s07-data-jdbc</module>
+        <module>s08-data-jpa</module>
     </modules>
 
     <properties>

@@ -1,0 +1,4 @@
+# Lekcja Boot02WritingAutoConfiguration: rejestracja naszej autokonfiguracji (pełna nazwa klasy, jedna w linii).
+# UWAGA: ten plik działa dla KAŻDEJ aplikacji Spring Boot w module s03-boot-basics - dlatego klasa ma bezpiecznik
+# @ConditionalOnProperty(name = "boot02.greeting.enabled", havingValue = "true").
+s03_boot_basics.boot02_writing_auto_configuration.Boot02GreetingAutoConfiguration
