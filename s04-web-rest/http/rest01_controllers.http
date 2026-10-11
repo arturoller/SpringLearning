@@ -1,0 +1,41 @@
+# Lekcja s04_web_rest / Rest01Controllers — kontrolery i metody HTTP
+# 1. Uruchom Rest01Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Pole "handler" w odpowiedzi mówi, KTÓRA metoda kontrolera zadziałała.
+
+@host = http://localhost:8080
+
+### 1. @RestController — oczekiwane: 200 OK, [{"handler":"ProductController.all", ...}]
+GET {{host}}/api/products
+
+### 2. Ten sam adres, różne metody HTTP — oczekiwane: handler ProductController.one
+GET {{host}}/api/products/7
+
+### 3. oczekiwane: handler ProductController.replace
+PUT {{host}}/api/products/7
+
+### 4. oczekiwane: handler ProductController.patch
+PATCH {{host}}/api/products/7
+
+### 5. oczekiwane: handler ProductController.delete
+DELETE {{host}}/api/products/7
+
+### 6. oczekiwane: handler ProductController.create
+POST {{host}}/api/products
+
+### 7. Konkretna ścieżka wygrywa z /{id} — oczekiwane: handler ProductController.bestsellers
+GET {{host}}/api/products/bestsellers
+
+### 8. @Controller + @ResponseBody — oczekiwane: 200 OK i JSON
+GET {{host}}/api/shop/info
+
+### 9. @Controller BEZ @ResponseBody — oczekiwane: 404 Not Found (forward do nieistniejącego widoku „shop-hours”)
+GET {{host}}/api/shop/forgotten
+
+### 10. Zła metoda HTTP — oczekiwane: 405 Method Not Allowed, nagłówek Allow: GET
+POST {{host}}/api/shop/info
+
+### 11. OPTIONS — oczekiwane: 200 OK, nagłówek Allow: GET,HEAD,OPTIONS
+OPTIONS {{host}}/api/shop/info
+
+### 12. Nieznany adres — oczekiwane: 404 Not Found i JSON błędu Boota
+GET {{host}}/api/nothing

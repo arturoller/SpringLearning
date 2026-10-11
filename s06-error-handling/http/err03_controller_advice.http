@@ -1,0 +1,26 @@
+# Lekcja s06_error_handling / Err03ControllerAdvice — globalna obsługa błędów (@RestControllerAdvice)
+# Uruchom Err03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# W odpowiedziach pole "handledBy" mówi, KTÓRY advice (albo kontroler) obsłużył wyjątek.
+
+@host = http://localhost:8080
+
+### 1. Globalny advice — oczekiwane: 404 i {"handledBy":"global","error":"Nie znaleziono produktu o id 999"}
+GET {{host}}/api/products/999
+
+### 2. Catch-all Exception — oczekiwane: 500 i stały komunikat (szczegóły awarii są tylko w logu serwera)
+GET {{host}}/api/products/crash
+
+### 3. Lokalny handler wygrywa z globalnym — oczekiwane: 404 i "handledBy":"local"
+GET {{host}}/api/local/missing
+
+### 4. Kolejność (@Order): PaymentAdvice (2) przed GlobalExceptionHandler (3) — oczekiwane: 402 i "handledBy":"payment-advice"
+GET {{host}}/api/products/pay
+
+### 5a. Zakres: OrderAdvice działa w OrderController — oczekiwane: 409 i "handledBy":"order-advice"
+GET {{host}}/api/orders/conflict
+
+### 5b. Ten sam wyjątek w ProductController (poza zakresem OrderAdvice) — oczekiwane: 500 i "handledBy":"global"
+GET {{host}}/api/products/conflict
+
+### 6. Szeroki handler OrderAdvice przesłania szczegółowy z Global — oczekiwane: 503 i "handledBy":"order-advice-fallback"
+GET {{host}}/api/orders/product

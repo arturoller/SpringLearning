@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+        Moduł s07-data-jdbc — dział 7: baza danych przez JDBC w Springu — JdbcClient, JdbcTemplate, schema.sql/data.sql,
+        migracje Flyway, repozytorium na JDBC. Baza H2 w pamięci (nic nie trzeba instalować).
+    -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>springlearning</groupId>
+        <artifactId>spring-learning</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>s07-data-jdbc</artifactId>
+    <name>s07-data-jdbc</name>
+
+    <dependencies>
+        <!-- jdbc = JdbcClient, JdbcTemplate, pula połączeń HikariCP, transakcje. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+
+        <!-- flyway = wersjonowane migracje bazy (pliki db/migration/V1__...sql). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+
+        <!-- H2 = baza danych w pamięci; runtime = potrzebna tylko w czasie działania, nie do kompilacji. -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Narzędzia do testów warstwy JDBC: @JdbcTest (wycinek kontekstu tylko z bazą). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

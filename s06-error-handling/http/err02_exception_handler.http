@@ -1,0 +1,31 @@
+# Lekcja s06_error_handling / Err02ExceptionHandler — @ExceptionHandler, @ResponseStatus, ResponseStatusException
+# Uruchom Err02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+
+@host = http://localhost:8080
+
+### 1. Wyjątek z @ResponseStatus(404) — oczekiwane: 404 Not Found, domyślne ciało Boota (timestamp, status, error, path)
+GET {{host}}/api/catalog/999
+
+### 2. ResponseStatusException(409) — oczekiwane: 409 Conflict, domyślne ciało Boota
+GET {{host}}/api/catalog/5/stock
+
+### 3. Lokalny @ExceptionHandler — oczekiwane: 400 i {"error":"Niepoprawne dane: Rabat musi być w zakresie 0..100: 150"}
+GET {{host}}/api/catalog/discount?percent=150
+
+### 4. Najbardziej szczegółowy handler — oczekiwane: 400 (NumberFormatException trafia do handlera IllegalArgumentException)
+GET {{host}}/api/inventory/parse?value=abc
+
+### 5. Szeroki handler RuntimeException — oczekiwane: 500 i {"error":"Wystąpił nieoczekiwany błąd"}
+GET {{host}}/api/inventory/broken
+
+### 6. PUŁAPKA: szeroki handler połyka wyjątek z @ResponseStatus(404) — oczekiwane: 500 zamiast 404
+GET {{host}}/api/inventory/missing
+
+### 7. Handler lokalny wygrywa z @ResponseStatus(GONE) — oczekiwane: 404 (nie 410) i {"error":"Produkt 13 został wycofany ze sprzedaży"}
+GET {{host}}/api/catalog/13
+
+### 8. Handler z OrderController — oczekiwane: 404 i {"error":"Nie znaleziono zamówienia o id 404"}
+GET {{host}}/api/orders/404
+
+### 9. Handler z CatalogController NIE działa w OrderController — oczekiwane: 500 (domyślne ciało Boota)
+GET {{host}}/api/orders/invalid

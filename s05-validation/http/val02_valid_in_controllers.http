@@ -1,0 +1,33 @@
+### Lekcja Val02ValidInControllers — uruchom Val02Application (▶ przy main), potem ▶ przy zapytaniu.
+### Poprawne ciało -> 201 Created
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{"name": "Mleko", "code": "MLK-0001", "priceGrosze": 349}
+
+### Złe ciało -> 400 i JSON z listą błędów pól
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{"name": "", "code": "x", "priceGrosze": 0}
+
+### Poprawne parametry -> 200
+GET http://localhost:8080/api/products?limit=10&search=mleko
+
+### Zły parametr (limit powyżej 100, search za krótki) -> 400
+GET http://localhost:8080/api/products?limit=500&search=x
+
+### Zła zmienna ścieżki (id musi być co najmniej 1) -> 400
+GET http://localhost:8080/api/products/0
+
+### PUT: ciało + zmienna ścieżki — wyjątek to HandlerMethodValidationException -> 400
+PUT http://localhost:8080/api/products/5
+Content-Type: application/json
+
+{"name": "", "code": "MLK-0001", "priceGrosze": 349}
+
+### @Validated na klasie kontrolera (stary sposób) -> 500 Internal Server Error
+GET http://localhost:8080/validated/items?limit=0
+
+### Bez własnej obsługi błędów -> samo 400
+GET http://localhost:8080/plain/items?limit=0

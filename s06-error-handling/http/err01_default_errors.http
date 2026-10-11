@@ -1,0 +1,21 @@
+# Lekcja s06_error_handling / Err01DefaultErrors — domyślne błędy Spring Boota
+# 1. Uruchom Err01Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania i obejrzyj status oraz ciało odpowiedzi.
+
+@host = http://localhost:8080
+
+### 1. Niezłapany wyjątek — oczekiwane: 500 Internal Server Error, JSON z polami timestamp, status, error, path (BEZ komunikatu)
+GET {{host}}/api/boom
+
+### 2. To samo, ale jak przeglądarka (Accept: text/html) — oczekiwane: 500 i strona HTML „Whitelabel Error Page”
+GET {{host}}/api/boom
+Accept: text/html
+
+### 3. Zły typ parametru ścieżki — oczekiwane: 400 Bad Request, ten sam format JSON
+GET {{host}}/api/products/abc
+
+### 4. Adres, którego nie ma — oczekiwane: 404 Not Found, ten sam format JSON
+GET {{host}}/api/nie-ma
+
+### 5. Poprawne zapytanie — oczekiwane: 200 OK, {"id":7,"name":"Kawa"}
+GET {{host}}/api/products/7

@@ -39,7 +39,11 @@ s06_error_handling/Err02ExceptionHandler
 s06_error_handling/Err03ControllerAdvice
 s06_error_handling/Err04ProblemDetail
 s06_error_handling/Err05CustomExceptions
-s07_data_jdbc/*
+s07_data_jdbc/Jdbc01JdbcClient
+s07_data_jdbc/Jdbc02JdbcTemplate
+s07_data_jdbc/Jdbc03SqlInit
+s07_data_jdbc/Jdbc04Flyway
+s07_data_jdbc/Jdbc05Repository
 s08_data_jpa/*
 s09_jpa_relations/*
 s10_transactions/*

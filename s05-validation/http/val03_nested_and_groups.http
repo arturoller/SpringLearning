@@ -1,0 +1,36 @@
+### Lekcja Val03NestedAndGroups — uruchom Val03Application (▶ przy main), potem ▶ przy zapytaniu.
+### Poprawne zamówienie -> 200
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{"customer": "Ala", "address": {"street": "Długa 1", "postalCode": "00-001"}, "items": [{"sku": "A-1", "quantity": 2}]}
+
+### Błędy zagnieżdżone: address.postalCode, items[1].sku, items[1].quantity -> 400
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{"customer": "Ala", "address": {"street": "Długa 1", "postalCode": "1"}, "items": [{"sku": "A-1", "quantity": 2}, {"sku": "", "quantity": 0}]}
+
+### Tworzenie produktu (grupa OnCreate): id musi być puste -> 200
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{"name": "Mleko"}
+
+### Tworzenie z id (łamie regułę OnCreate) -> 400
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{"id": 3, "name": "Mleko"}
+
+### Aktualizacja bez id (łamie regułę OnUpdate) -> 400
+PUT http://localhost:8080/api/products
+Content-Type: application/json
+
+{"name": "Mleko"}
+
+### Pułapka: zwykłe @Valid nie uruchamia reguł z grup -> 200 mimo pustej nazwy
+POST http://localhost:8080/api/products-with-valid
+Content-Type: application/json
+
+{"id": 3, "name": ""}

@@ -1,0 +1,50 @@
+# Lekcja s04_web_rest / Rest02RequestData — dane z zapytania: ścieżka, parametry, nagłówki, ciało
+# 1. Uruchom Rest02Application (▶ obok main). 2. Kliknij ▶ obok zapytania.
+
+@host = http://localhost:8080
+
+### 1. @PathVariable — oczekiwane: 200 OK, {"category":"?","id":42}
+GET {{host}}/api/products/42
+
+### 2. Dwie zmienne w ścieżce — oczekiwane: {"category":"kawa","id":7}
+GET {{host}}/api/categories/kawa/products/7
+
+### 3. Zły typ w ścieżce — oczekiwane: 400 Bad Request
+GET {{host}}/api/products/abc
+
+### 4. @RequestParam — tylko wymagany name; reszta: null, wartości domyślne i pusta lista
+GET {{host}}/api/search?name=kawa
+
+### 5. Wszystkie parametry; tag dwa razy → lista ["bio","fair"]
+GET {{host}}/api/search?name=kawa&maxPrice=3000&minPrice=100&page=2&tag=bio&tag=fair
+
+### 6. Brak wymaganego name — oczekiwane: 400 Bad Request
+GET {{host}}/api/search
+
+### 7. ZŁY PRZYKŁAD: required = false na int i brak parametru — oczekiwane: 500 Internal Server Error
+GET {{host}}/api/search/limited
+
+### 8. @RequestHeader — oczekiwane: {"clientId":"app-7","language":"pl"}
+GET {{host}}/api/client-info
+X-Client-Id: app-7
+
+### 9. Brak wymaganego nagłówka — oczekiwane: 400 Bad Request
+GET {{host}}/api/client-info
+
+### 10. @RequestBody — oczekiwane: 200 OK, {"customer":"Anna","lineCount":2,"totalQuantity":5}
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{"customer": "Anna", "lines": [{"productId": 1, "quantity": 2}, {"productId": 2, "quantity": 3}]}
+
+### 11. PUŁAPKA: ten sam JSON jako text/plain — oczekiwane: 415 Unsupported Media Type
+POST {{host}}/api/orders
+Content-Type: text/plain
+
+{"customer": "Anna", "lines": [{"productId": 1, "quantity": 2}]}
+
+### 12. Uszkodzony JSON — oczekiwane: 400 Bad Request
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{"customer":
