@@ -1,0 +1,4 @@
+# Lista autokonfiguracji tego jaru (lekcja s03 Boot02WritingAutoConfiguration): jedna linia = pełna nazwa klasy.
+# Linie zaczynające się od # to komentarze. Plik działa na całą ścieżkę klas modułu s03-boot-basics,
+# dlatego autokonfiguracja jest domyślnie wyłączona (s03.greeter.enabled=false).
+s03_boot_basics.boot02_writing_auto_configuration.ShopGreeterAutoConfiguration
