@@ -1,0 +1,52 @@
+# Lekcja s12_security / Sec04StatelessApi — plik .http (IntelliJ HTTP Client)
+# 1. Uruchom Sec04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Konta (hasła TESTOWE): anna (ADMIN), piotr (USER).
+# Część „web” (formularz, sesja, CSRF) najlepiej obejrzeć w przeglądarce: http://localhost:8080/web/profile
+# (zaloguj się jako piotr, potem otwórz http://localhost:8080/web/csrf — zobaczysz token CSRF swojej sesji).
+
+@host = http://localhost:8080
+
+### 1. API bez logowania — oczekiwane: 401, Content-Type: application/problem+json, BEZ Set-Cookie,
+#    {"detail":"Brak lub złe dane logowania.","instance":"/api/orders","status":401,"title":"Unauthorized"}
+GET {{host}}/api/orders
+
+### 2. API jako piotr — oczekiwane: 200, BEZ Set-Cookie (bez sesji)
+GET {{host}}/api/orders
+Authorization: Basic piotr piotr-test-123
+
+### 3. POST do API bez tokenu CSRF — oczekiwane: 201 (CSRF wyłączone w łańcuchu API)
+POST {{host}}/api/orders
+Authorization: Basic piotr piotr-test-123
+Content-Type: application/json
+
+{"sku": "ELE-003", "quantity": 2}
+
+### 4. Raport jako piotr — oczekiwane: 403, ProblemDetail {"detail":"Nie masz uprawnień do tego zasobu.",...}
+GET {{host}}/api/admin/report
+Authorization: Basic piotr piotr-test-123
+
+### 5. Złe hasło — oczekiwane: 401 w JSON (application/problem+json), WWW-Authenticate: Basic realm="sklep-api"
+GET {{host}}/api/orders
+Authorization: Basic anna zle-haslo
+
+### 6. CORS preflight z dozwolonego pochodzenia — oczekiwane: 200 i nagłówki Access-Control-Allow-Origin,
+#    Access-Control-Allow-Methods: GET,POST,PUT,DELETE, Access-Control-Max-Age: 3600 (bez logowania!)
+OPTIONS {{host}}/api/orders
+Origin: http://localhost:5173
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: authorization,content-type
+
+### 7. CORS preflight z obcego pochodzenia — oczekiwane: 403 i treść „Invalid CORS request”
+OPTIONS {{host}}/api/orders
+Origin: http://zly.example
+Access-Control-Request-Method: POST
+
+### 8. Strona web bez logowania — oczekiwane: 302 na /login i Set-Cookie: JSESSIONID (łańcuch web ma sesję)
+# @no-redirect
+GET {{host}}/web/profile
+
+### 9. Logowanie formularzem BEZ tokenu CSRF — oczekiwane: 403
+POST {{host}}/login
+Content-Type: application/x-www-form-urlencoded
+
+username=piotr&password=piotr-test-123

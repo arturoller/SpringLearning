@@ -1,0 +1,71 @@
+# Lekcja s12_security / Sec02Authorization — plik .http (IntelliJ HTTP Client)
+# 1. Uruchom Sec02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Każde zapytanie wysyłamy jako inny pracownik (hasła TESTOWE):
+#    anna — ADMIN, piotr — USER, kasia — HR, tomasz — SALES + uprawnienie report:read.
+# „Authorization: Basic login hasło” — IntelliJ sam zakoduje login i hasło w Base64.
+
+@host = http://localhost:8080
+
+### 1. Kadry jako kasia (HR) — oczekiwane: 200 i lista pracowników z pensjami
+GET {{host}}/api/hr/employees
+Authorization: Basic kasia kasia-test-123
+
+### 2. Kadry jako piotr (USER) — oczekiwane: 403
+GET {{host}}/api/hr/employees
+Authorization: Basic piotr piotr-test-123
+
+### 3. Raport sprzedaży jako tomasz (uprawnienie report:read) — oczekiwane: 200
+GET {{host}}/api/reports/sales
+Authorization: Basic tomasz tomasz-test-123
+
+### 4. Raport sprzedaży jako anna (ADMIN, ale bez report:read) — oczekiwane: 403 (role nie tworzą hierarchii)
+GET {{host}}/api/reports/sales
+Authorization: Basic anna anna-test-123
+
+### 5. Produkty bez logowania (GET) — oczekiwane: 200
+GET {{host}}/api/products
+
+### 6. Nowy produkt jako piotr (POST) — oczekiwane: 403
+POST {{host}}/api/products
+Authorization: Basic piotr piotr-test-123
+Content-Type: application/json
+
+{"sku": "DOM-002", "name": "Lampka biurkowa", "price": 129.00}
+
+### 7. Nowy produkt jako anna (POST) — oczekiwane: 201, Location: /api/products/DOM-002
+POST {{host}}/api/products
+Authorization: Basic anna anna-test-123
+Content-Type: application/json
+
+{"sku": "DOM-002", "name": "Lampka biurkowa", "price": 129.00}
+
+### 8. Usunięcie produktu bez logowania (DELETE) — oczekiwane: 401
+DELETE {{host}}/api/products/DOM-002
+
+### 9. Usunięcie produktu jako anna — oczekiwane: 204 No Content
+DELETE {{host}}/api/products/DOM-002
+Authorization: Basic anna anna-test-123
+
+### 10. Swoje zamówienia — piotr — oczekiwane: 200, ZAM-002 i ZAM-003
+GET {{host}}/api/orders/piotr
+Authorization: Basic piotr piotr-test-123
+
+### 11. Cudze zamówienia — piotr pyta o zamówienia anny — oczekiwane: 403 (@PreAuthorize)
+GET {{host}}/api/orders/anna
+Authorization: Basic piotr piotr-test-123
+
+### 12. Cudze zamówienia jako anna (ADMIN) — oczekiwane: 200
+GET {{host}}/api/orders/piotr
+Authorization: Basic anna anna-test-123
+
+### 13. Zamówienie anny po numerze — piotr — oczekiwane: 403 (@PostAuthorize sprawdza zwrócony obiekt)
+GET {{host}}/api/orders/by-id/ZAM-001
+Authorization: Basic piotr piotr-test-123
+
+### 14. PUŁAPKA: podsumowanie zamówień anny — piotr — oczekiwane: 200 (wywołanie wewnątrz klasy omija proxy!)
+GET {{host}}/api/orders/anna/summary
+Authorization: Basic piotr piotr-test-123
+
+### 15. Zapomniany punkt końcowy /api/stats jako anna — oczekiwane: 403 (anyRequest().denyAll())
+GET {{host}}/api/stats
+Authorization: Basic anna anna-test-123

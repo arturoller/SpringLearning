@@ -1,0 +1,39 @@
+# Lekcja s12_security / Sec06SecurityTesting — plik .http (IntelliJ HTTP Client)
+# Ta lekcja jest o TESTACH (src/test/java/s12_security/sec06_security_testing). Te zapytania pozwalają porównać
+# odpowiedzi PRAWDZIWEGO serwera z tym, co widzą testy MockMvc (np. ciało JSON przy 403, którego MockMvc nie ma).
+# 1. Uruchom Sec06Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# Konta (hasła TESTOWE): anna (ADMIN), piotr (USER).
+
+@host = http://localhost:8080
+
+### 1. Publiczna lista produktów — oczekiwane: 200 (w teście BEZ @Import: 401!)
+GET {{host}}/api/products
+
+### 2. Kim jestem — anna przez HTTP Basic — oczekiwane: 200,
+#    {"username":"anna","authorities":["FACTOR_PASSWORD","ROLE_ADMIN"]} — bez hasła
+GET {{host}}/api/me
+Authorization: Basic anna anna-test-123
+
+### 3. Nowy produkt jako anna BEZ tokenu CSRF — oczekiwane: 403 i JSON ze strony /error
+#    (MockMvc w teście adminWithoutCsrfToken widzi to samo 403, ale z PUSTYM ciałem)
+POST {{host}}/api/products
+Authorization: Basic anna anna-test-123
+Content-Type: application/json
+
+{"sku": "ODZ-003", "name": "Czapka zimowa"}
+
+### 4. Swoje zamówienia — piotr — oczekiwane: 200, ["ZAM-002","ZAM-003"]
+GET {{host}}/api/orders/piotr
+Authorization: Basic piotr piotr-test-123
+
+### 5. Cudze zamówienia — piotr pyta o annę — oczekiwane: 403 (@PreAuthorize w OrderService)
+GET {{host}}/api/orders/anna
+Authorization: Basic piotr piotr-test-123
+
+### 6. API partnera bez tokenu — oczekiwane: 401, WWW-Authenticate: Bearer resource_metadata="..."
+#    (w testach token „podkłada” jwt() — bez podpisu)
+GET {{host}}/api/partner/stock
+
+### 7. Adres bez reguły — oczekiwane: 403 nawet dla anny (anyRequest().denyAll())
+GET {{host}}/api/stats
+Authorization: Basic anna anna-test-123

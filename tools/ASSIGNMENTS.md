@@ -395,7 +395,7 @@ według AGENT_KIT i dopisz lekcję.
   (`spring.docker.compose.enabled=false` we wspólnym `application.properties`, włączona tylko w profilu Test07). Plik `.http`
   dla aplikacji lekcji (port 8091 przy sprawdzaniu).
 
-## K. s12_security — Spring Security 7 (6 lekcji) — stan: do napisania
+## K. s12_security — Spring Security 7 (6 lekcji) — stan: gotowe (2026-10-19)
 Startery: `webmvc`, `security`, `oauth2-resource-server` (+ test `-webmvc-test`, `-security-test`). Spring Security 7.1.1.
 Dział TRUDNY — stare tutoriale (Security 5: `WebSecurityConfigurerAdapter`, `antMatchers`, `.and()`) NIE działają; mów o tym
 wprost i SPRAWDŹ każde API w jarach 7.1.1. Hasła i klucze tylko przykładowe, oznaczone jako testowe; klucze JWT generuj w kodzie

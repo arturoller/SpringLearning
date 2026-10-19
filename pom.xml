@@ -38,6 +38,7 @@
         <module>s08-data-jpa</module>
         <module>s09-jpa-relations</module>
         <module>s10-transactions</module>
+        <module>s12-security</module>
         <module>s14-openapi</module>
     </modules>
 

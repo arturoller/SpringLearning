@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+        Moduł s12-security — dział 12: Spring Security 7 — logowanie, autoryzacja, użytkownicy i hasła (BCrypt),
+        API bezstanowe, JWT (Resource Server), testowanie zabezpieczeń.
+        Security jest TYLKO w tym module: w innych działach zablokowałby wszystkie punkty końcowe (CLAUDE.md, sekcja 2).
+    -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>springlearning</groupId>
+        <artifactId>spring-learning</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>s12-security</artifactId>
+    <name>s12-security</name>
+
+    <dependencies>
+        <!-- Spring MVC + Jackson 3 (JSON) + wbudowany Tomcat. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <!-- Spring Security: łańcuch filtrów, uwierzytelnianie, autoryzacja, kodowanie haseł. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <!-- Resource Server: weryfikacja tokenów JWT (JSON Web Token) w nagłówku Authorization: Bearer. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+        <!-- Testy webowe: @WebMvcTest, MockMvc. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Testy zabezpieczeń: @WithMockUser, httpBasic(), jwt(), csrf() dla MockMvc. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

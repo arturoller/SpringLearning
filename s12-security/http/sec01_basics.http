@@ -1,0 +1,66 @@
+# Lekcja s12_security / Sec01Basics — plik .http (IntelliJ HTTP Client)
+# Dwie aplikacje na zmianę (obie na porcie 8080 — uruchamiaj jedną naraz):
+#   CZĘŚĆ A: Sec01StarterOnlyApplication — sam starter, bez własnej konfiguracji.
+#   CZĘŚĆ B: Sec01Application — własny łańcuch filtrów (Sec01SecurityConfig).
+# Nagłówek „Authorization: Basic login hasło” — IntelliJ sam zamieni login i hasło na Base64.
+# Hasła są TESTOWE (tylko do tej lekcji).
+
+@host = http://localhost:8080
+
+########################################################################################################################
+# CZĘŚĆ A — uruchom Sec01StarterOnlyApplication i skopiuj hasło z logu („Using generated security password: ...”)
+########################################################################################################################
+
+### A1. Bez logowania — oczekiwane: 401, nagłówek WWW-Authenticate: Basic realm="Realm", charset="UTF-8", puste ciało
+GET {{host}}/api/public/products
+
+### A2. Jak przeglądarka (Accept: text/html) — oczekiwane: 302, Location: http://localhost:8080/login
+# Uwaga: IntelliJ HTTP Client sam podąża za przekierowaniem — wtedy zobaczysz 200 i HTML formularza.
+# Komentarz „# @no-redirect” nad zapytaniem wyłącza podążanie — zostaw go, żeby zobaczyć samo 302.
+# @no-redirect
+GET {{host}}/api/orders
+Accept: text/html
+
+### A3. Gotowy formularz logowania — oczekiwane: 200, HTML z tytułem „Please sign in”
+GET {{host}}/login
+
+### A4. Użytkownik „user” + hasło z logu — oczekiwane: 200 i lista produktów
+# Wklej hasło z logu w miejsce WKLEJ-HASLO-Z-LOGU.
+GET {{host}}/api/public/products
+Authorization: Basic user WKLEJ-HASLO-Z-LOGU
+
+########################################################################################################################
+# CZĘŚĆ B — zatrzymaj aplikację z części A i uruchom Sec01Application
+########################################################################################################################
+
+### B1. Publiczny katalog bez logowania — oczekiwane: 200
+GET {{host}}/api/public/products
+
+### B2. Zamówienia bez logowania — oczekiwane: 401, ciało JSON {"status":401,"error":"Unauthorized",...}
+GET {{host}}/api/orders
+
+### B3. Zamówienia jako piotr — oczekiwane: 200, {"user":"piotr","orders":["ZAM-001","ZAM-002"]}
+GET {{host}}/api/orders
+Authorization: Basic piotr piotr-test-123
+
+### B4. Raport administratora jako piotr (rola USER) — oczekiwane: 403, bez nagłówka WWW-Authenticate
+GET {{host}}/api/admin/report
+Authorization: Basic piotr piotr-test-123
+
+### B5. Raport administratora jako anna (rola ADMIN) — oczekiwane: 200
+GET {{host}}/api/admin/report
+Authorization: Basic anna anna-test-123
+
+### B6. PUŁAPKA: złe hasło na PUBLICZNYM adresie — oczekiwane: 401 (a bez nagłówka byłoby 200)
+GET {{host}}/api/public/products
+Authorization: Basic anna zle-haslo
+
+### B7. Nieistniejący adres bez logowania — oczekiwane: 401 (nie 404!)
+GET {{host}}/api/nie-ma-takiego
+
+### B8. Nieistniejący adres jako anna — oczekiwane: 404
+GET {{host}}/api/nie-ma-takiego
+Authorization: Basic anna anna-test-123
+
+### B9. Formularza logowania już nie ma (nie włączyliśmy formLogin) — oczekiwane: 401
+GET {{host}}/login

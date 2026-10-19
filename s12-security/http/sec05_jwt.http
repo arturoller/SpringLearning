@@ -1,0 +1,65 @@
+# Lekcja s12_security / Sec05Jwt — plik .http (IntelliJ HTTP Client)
+# 1. Uruchom Sec05Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Najpierw zapytanie 1 albo 2 (logowanie hasłem → token). Skrypt „> {% ... %}” zapamiętuje token w zmiennej
+#    {{token_anna}} / {{token_piotr}} — kolejne zapytania wysyłają go w nagłówku Authorization: Bearer.
+# Konta (hasła TESTOWE): anna (ADMIN → scope products:read products:write), piotr (USER → scope products:read).
+# Klucze podpisu powstają przy starcie aplikacji — po restarcie wykonaj zapytania 1 i 2 jeszcze raz.
+
+@host = http://localhost:8080
+
+### 1. Token dla anny — oczekiwane: 200, {"access_token":"eyJ...","expires_in":3600,"token_type":"Bearer"}
+# Skopiuj access_token i wklej na https://jwt.io (albo zdekoduj Base64URL) — ładunek jest jawny!
+POST {{host}}/api/auth/token
+Authorization: Basic anna anna-test-123
+
+> {% client.global.set("token_anna", response.body.access_token); %}
+
+### 2. Token dla piotra — oczekiwane: 200
+POST {{host}}/api/auth/token
+Authorization: Basic piotr piotr-test-123
+
+> {% client.global.set("token_piotr", response.body.access_token); %}
+
+### 3. Token bez hasła — oczekiwane: 401, WWW-Authenticate: Basic realm="Realm", charset="UTF-8"
+POST {{host}}/api/auth/token
+
+### 4. Produkty BEZ tokenu — oczekiwane: 401, puste ciało,
+#    WWW-Authenticate: Bearer resource_metadata="http://localhost:8080/.well-known/oauth-protected-resource"
+GET {{host}}/api/products
+
+### 5. Produkty z tokenem piotra — oczekiwane: 200
+GET {{host}}/api/products
+Authorization: Bearer {{token_piotr}}
+
+### 6. Kim jestem według tokenu? — oczekiwane: 200, authenticationType = JwtAuthenticationToken,
+#    authorities = ["FACTOR_BEARER","ROLE_ADMIN","SCOPE_products:read","SCOPE_products:write"]
+GET {{host}}/api/me
+Authorization: Bearer {{token_anna}}
+
+### 7. Nowy produkt z tokenem piotra (brak SCOPE_products:write) — oczekiwane: 403,
+#    WWW-Authenticate: Bearer error="insufficient_scope", ...
+POST {{host}}/api/products
+Authorization: Bearer {{token_piotr}}
+Content-Type: application/json
+
+{"sku": "KSI-001", "name": "Czysty kod"}
+
+### 8. Nowy produkt z tokenem anny — oczekiwane: 201
+POST {{host}}/api/products
+Authorization: Bearer {{token_anna}}
+Content-Type: application/json
+
+{"sku": "KSI-001", "name": "Czysty kod"}
+
+### 9. Raport administratora z tokenem piotra — oczekiwane: 403 (brak ROLE_ADMIN)
+GET {{host}}/api/admin/report
+Authorization: Bearer {{token_piotr}}
+
+### 10. Śmieci zamiast tokenu — oczekiwane: 401, WWW-Authenticate: Bearer error="invalid_token",
+#     error_description="An error occurred while attempting to decode the Jwt: Malformed token", ...
+GET {{host}}/api/products
+Authorization: Bearer abc.def.ghi
+
+### 11. Hasło (Basic) zamiast tokenu w API — oczekiwane: 401 (ten łańcuch przyjmuje tylko Bearer)
+GET {{host}}/api/products
+Authorization: Basic anna anna-test-123
