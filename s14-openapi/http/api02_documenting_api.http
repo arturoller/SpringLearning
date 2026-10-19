@@ -1,0 +1,33 @@
+# Lekcja s14_openapi / Api02DocumentingApi — udokumentowane API produktów (IntelliJ HTTP Client)
+# 1. Uruchom Api02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Swagger UI w PRZEGLĄDARCE: http://localhost:8080/swagger-ui.html — zobacz opisy,
+#    przykłady i statusy 201/400/404 z adnotacji.
+
+@host = http://localhost:8080
+
+### 1. Dokument — oczekiwane: 200 OK; tag "Produkty", statusy 201 i 400 przy POST, ograniczenia w schemacie NewProduct
+GET {{host}}/v3/api-docs
+
+### 2. Lista produktów — oczekiwane: 200 OK (Laptop Pro 14 i Czysty kod)
+GET {{host}}/api/products
+
+### 3. Jeden produkt — oczekiwane: 200 OK
+GET {{host}}/api/products/ELE-001
+
+### 4. Produkt, którego nie ma — oczekiwane: 404, Content-Type: application/problem+json, "detail":"Nie ma produktu ZZZ-999"
+GET {{host}}/api/products/ZZZ-999
+
+### 5. Poprawny nowy produkt — oczekiwane: 201 Created i nagłówek Location: /api/products/DOM-002
+POST {{host}}/api/products
+Content-Type: application/json
+
+{"sku": "DOM-002", "name": "Lampka biurkowa", "category": "DOM", "price": 129.00, "stock": 18}
+
+### 6. Niepoprawny produkt (zły sku, pusta nazwa, cena 0, ujemny stan) — oczekiwane: 400, application/problem+json
+POST {{host}}/api/products
+Content-Type: application/json
+
+{"sku": "x", "name": "", "price": 0, "stock": -1}
+
+### 7. Punkt ukryty w dokumencie (@Hidden), a działający — oczekiwane: 200 OK i liczba produktów
+GET {{host}}/api/products/internal/count

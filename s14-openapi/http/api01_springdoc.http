@@ -1,0 +1,35 @@
+# Lekcja s14_openapi / Api01Springdoc — dokument OpenAPI i zwykłe zapytania do API (IntelliJ HTTP Client)
+# 1. Uruchom Api01Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Swagger UI otworzysz w PRZEGLĄDARCE: http://localhost:8080/swagger-ui.html
+
+@host = http://localhost:8080
+
+### 1. Dokument OpenAPI (JSON) — oczekiwane: 200 OK, "openapi":"3.1.0", ścieżki /api/products i /api/products/{sku}
+GET {{host}}/v3/api-docs
+
+### 2. Ten sam dokument jako YAML — oczekiwane: 200 OK, Content-Type: application/vnd.oai.openapi
+GET {{host}}/v3/api-docs.yaml
+
+### 3. Adres strony Swagger UI — oczekiwane: 302 Found, Location: /swagger-ui/index.html (otwórz go w przeglądarce)
+GET {{host}}/swagger-ui.html
+
+### 4. Skąd UI wie, gdzie jest dokument — oczekiwane: 200 OK, "url":"/v3/api-docs"
+GET {{host}}/v3/api-docs/swagger-config
+
+### 5. Lista produktów — oczekiwane: 200 OK i trzy produkty (Laptop Pro 14, Kawa ziarnista 1kg, Czysty kod)
+GET {{host}}/api/products
+
+### 6. Tylko jedna kategoria — oczekiwane: 200 OK i tylko Czysty kod
+GET {{host}}/api/products?category=KSIAZKI
+
+### 7. Produkt, którego nie ma — oczekiwane: 404 (a w dokumencie GET /{sku} ma tylko odpowiedź 200!)
+GET {{host}}/api/products/NIE-MA
+
+### 8. Nowy produkt — oczekiwane: 201 Created i Location (a w dokumencie POST ma tylko 200 — pułapka z lekcji)
+POST {{host}}/api/products
+Content-Type: application/json
+
+{"sku": "DOM-002", "name": "Lampka biurkowa", "category": "DOM", "price": 129.00, "stock": 18}
+
+### 9. Usunięcie produktu — oczekiwane: 204 No Content
+DELETE {{host}}/api/products/DOM-002

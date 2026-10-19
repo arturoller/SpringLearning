@@ -1,0 +1,31 @@
+# Lekcja s14_openapi / Api03GroupsAndVersions — grupy dokumentów i wersje API (IntelliJ HTTP Client)
+# 1. Uruchom Api03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Swagger UI w PRZEGLĄDARCE: http://localhost:8080/swagger-ui.html — lista grup (Administracja,
+#    Publiczne, Wersja 1, Wersja 2) jest w prawym górnym rogu.
+
+@host = http://localhost:8080
+
+### 1. Lista grup dla Swagger UI — oczekiwane: 200 OK, cztery pozycje w "urls"
+GET {{host}}/v3/api-docs/swagger-config
+
+### 2. Dokument grupy publicznej — oczekiwane: tylko ścieżki /api/**, info.title "Sklep — API"
+GET {{host}}/v3/api-docs/public
+
+### 3. Dokument grupy administracyjnej — oczekiwane: tylko /admin/**, operacje z "security": bearerAuth
+GET {{host}}/v3/api-docs/admin
+
+### 4. Dokumenty wersji — oczekiwane: v1 ma ProductV1, v2 ma ProductV2 (osobne, czyste opisy)
+GET {{host}}/v3/api-docs/v1
+
+###
+GET {{host}}/v3/api-docs/v2
+
+### 5. Produkt bez nagłówka wersji — oczekiwane: wersja domyślna 1.0, "price":5499.99 (liczba)
+GET {{host}}/api/products/ELE-001
+
+### 6. Produkt w wersji 2.0 — oczekiwane: "price":{"net":4471.54,"gross":5499.99,"currency":"PLN"}
+GET {{host}}/api/products/ELE-001
+API-Version: 2.0
+
+### 7. Punkt administracyjny BEZ tokenu — oczekiwane: 200 OK (dokument mówi „wymaga tokenu”, ale nic go nie wymusza!)
+GET {{host}}/admin/stats

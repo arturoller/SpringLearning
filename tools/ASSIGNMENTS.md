@@ -457,7 +457,7 @@ zewnętrzne API dostawcy o ceny/stan magazynu.
   idempotentnej (POST zamówienia), ponawianie przez proxy (wywołanie z tej samej klasy — bez ponowień); testy liczące próby
   na udawanym serwerze, bez zależności od czasu (minimalne opóźnienia, asercje na liczbie wywołań).
 
-## M. s14_openapi — dokumentacja API (3 lekcje) — stan: do napisania
+## M. s14_openapi — dokumentacja API (3 lekcje) — stan: gotowe (2026-10-19)
 Startery: `webmvc`, `validation`, `springdoc-openapi-starter-webmvc-ui` (wersja z parent pom: `${springdoc.version}` = 3.1.1),
 test `webmvc-test`. SPRAWDŹ zgodność springdoc 3.1.1 z Boot 4.1.1 (start aplikacji, `/v3/api-docs`, `/swagger-ui.html`).
 - **Api01Springdoc** (`api01_springdoc`): czym jest OpenAPI (opis API jako dane), co springdoc generuje z kontrolerów bez żadnych
