@@ -1,0 +1,101 @@
+# Projekt s21_capstone / Cap02Reservations — SCENARIUSZ: rezerwacje stanowisk serwisowych
+# 1. Uruchom Cap02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Aplikacja ma ZATRZYMANY zegar: „teraz” = 2026-10-19 10:00 (application-cap02.properties) — dlatego daty poniżej
+#    pasują zawsze. Wysyłaj zapytania PO KOLEI (rezerwacja nr 6 powstaje w kroku 4).
+
+@host = http://localhost:8080
+
+### 1. Stanowiska — oczekiwane: 200, SERWIS-1 i SERWIS-2
+GET {{host}}/api/desks
+
+### 2. Plan dnia SERWIS-1 na dziś — oczekiwane: 9:00 i 10:00 MINIONY, 15:00 ZAJETY (rezerwacja Zofii), reszta WOLNY
+GET {{host}}/api/desks/SERWIS-1/availability?date=2026-10-19
+
+### 3. Plan dnia SERWIS-2 na 21.10 — oczekiwane: 9:00 i 10:00 ZAJETY (rezerwacja Marka), reszta WOLNY
+GET {{host}}/api/desks/SERWIS-2/availability?date=2026-10-21
+
+### 4. Rezerwacja SERWIS-2, 21.10 11:00–13:00 (styka się z rezerwacją Marka, nie nakłada) —
+#     oczekiwane: 201, Location .../api/reservations/6, "cancellableUntil":"2026-10-20T11:00:00"
+POST {{host}}/api/reservations
+Content-Type: application/json
+
+{
+  "deskCode": "SERWIS-2",
+  "startsAt": "2026-10-21T11:00:00",
+  "hours": 2,
+  "customerEmail": "jan@example.com"
+}
+
+### 5. Nakładająca się rezerwacja 12:00–13:00 — oczekiwane: 409, "code":"SLOT_TAKEN"
+POST {{host}}/api/reservations
+Content-Type: application/json
+
+{
+  "deskCode": "SERWIS-2",
+  "startsAt": "2026-10-21T12:00:00",
+  "hours": 1,
+  "customerEmail": "ola@example.com"
+}
+
+### 6. Termin w przeszłości (dziś 9:00) — oczekiwane: 422 Unprocessable Content, "code":"IN_THE_PAST"
+POST {{host}}/api/reservations
+Content-Type: application/json
+
+{
+  "deskCode": "SERWIS-2",
+  "startsAt": "2026-10-19T09:00:00",
+  "hours": 1,
+  "customerEmail": "ola@example.com"
+}
+
+### 7. Poza godzinami pracy (16:00 + 2 h = 18:00) — oczekiwane: 422, "code":"OUTSIDE_OPENING_HOURS"
+POST {{host}}/api/reservations
+Content-Type: application/json
+
+{
+  "deskCode": "SERWIS-1",
+  "startsAt": "2026-10-22T16:00:00",
+  "hours": 2,
+  "customerEmail": "ola@example.com"
+}
+
+### 8. Błędne dane (4 godziny, zły email, brak początku) — oczekiwane: 400, mapa errors
+POST {{host}}/api/reservations
+Content-Type: application/json
+
+{
+  "deskCode": "SERWIS-1",
+  "hours": 4,
+  "customerEmail": "nie-email"
+}
+
+### 9. Potwierdzenie rezerwacji z kroku 4 (zapisane PO commicie) — oczekiwane: wiadomość
+#     „Potwierdzamy rezerwację stanowiska SERWIS-2: 2026-10-21 11:00–13:00”
+GET {{host}}/api/notifications
+
+### 10. Anulowanie rezerwacji 6 (jest za 2 dni) — oczekiwane: 200, "status":"ANULOWANA"
+POST {{host}}/api/reservations/6/cancel
+
+### 11. Drugie anulowanie — oczekiwane: 409, "code":"ALREADY_CANCELLED"
+POST {{host}}/api/reservations/6/cancel
+
+### 12. Godzina 12:00 znów wolna — teraz ta sama rezerwacja co w kroku 5 się udaje: 201
+POST {{host}}/api/reservations
+Content-Type: application/json
+
+{
+  "deskCode": "SERWIS-2",
+  "startsAt": "2026-10-21T12:00:00",
+  "hours": 1,
+  "customerEmail": "ola@example.com"
+}
+
+### 13. Anulowanie dzisiejszej rezerwacji Zofii (15:00, za 5 h) — oczekiwane: 409, "code":"TOO_LATE_TO_CANCEL",
+#      "cancellableUntil":"2026-10-18T15:00"
+POST {{host}}/api/reservations/2/cancel
+
+### 14. Plan dnia SERWIS-2 na 21.10 po zmianach — oczekiwane: 9:00, 10:00, 12:00 ZAJETY; 11:00 WOLNY
+GET {{host}}/api/desks/SERWIS-2/availability?date=2026-10-21
+
+### 15. Zła data w parametrze — oczekiwane: 400, "Failed to convert 'date' with value: '21.10.2026'"
+GET {{host}}/api/desks/SERWIS-2/availability?date=21.10.2026

@@ -48,6 +48,7 @@
         <module>s18-aop</module>
         <module>s19-deploy</module>
         <module>s20-modulith</module>
+        <module>s21-capstone</module>
     </modules>
 
     <properties>

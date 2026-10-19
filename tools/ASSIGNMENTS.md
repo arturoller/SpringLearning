@@ -587,7 +587,7 @@ moduły i czy pakiet `solutions` nie zostanie potraktowany jako moduł innej lek
   `target/spring-modulith-docs` w teście (pokaż fragment prawdziwego wyniku), nazwane interfejsy (`@NamedInterface`),
   obserwowalność modułów (tylko wzmianka); kiedy monolit modułowy, a kiedy mikroserwisy.
 
-## T. s21_capstone — projekty końcowe (3 lekcje) — stan: do napisania
+## T. s21_capstone — projekty końcowe (3 lekcje) — stan: gotowe (2026-10-19)
 Zależności: `webmvc`, `validation`, `data-jpa`, `h2`, `flyway`, `security`, `oauth2-resource-server`, testy webmvc/data-jpa/security.
 Projekt = lekcja: specyfikacja (wymagania, przypadki użycia, punkty końcowe, model danych), architektura (warstwy, pakiety, DTO,
 obsługa błędów), PEŁNA implementacja wzorcowa w pakiecie lekcji + testy na każdym poziomie (jednostkowe, wycinki, pełny kontekst),

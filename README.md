@@ -178,7 +178,7 @@ Legenda: ✅ gotowe · 🔶 w trakcie · ⏳ zaplanowane.
 | `s18-aop` | Aspekty (`@Aspect` — kod, który dokleja się do wielu metod naraz, np. logowanie czasu wykonania), jak działają proxy Springa (proxy — obiekt pośredniczący, przez który przechodzi wywołanie metody) (3 lekcje) | ✅ |
 | `s19-deploy` | Budowanie JAR (spakowana, gotowa do uruchomienia aplikacja), Docker (obraz aplikacji), profile produkcyjne, zmienne środowiskowe (environment variables — konfiguracja przekazywana z zewnątrz, poza kodem) (4 lekcje) | ✅ |
 | `s20-modulith` | **Spring Modulith**: podział jednej aplikacji na moduły biznesowe (np. produkty, zamówienia, klienci) z jasnymi granicami, test, który pilnuje, żeby moduły nie sięgały sobie „do środka”, komunikacja modułów przez zdarzenia, dokumentacja architektury generowana z kodu — przygotowanie do projektów końcowych (3 lekcje) | ✅ |
-| `s21-capstone` | Projekty: REST API sklepu (produkty, klienci, zamówienia — ten sam „świat” danych co w JavaLearning), system rezerwacji, biblioteka z uwierzytelnianiem (authentication — sprawdzanie tożsamości użytkownika) | ⏳ |
+| `s21-capstone` | Projekty: REST API sklepu (produkty, klienci, zamówienia — ten sam „świat” danych co w JavaLearning), system rezerwacji, biblioteka z uwierzytelnianiem (authentication — sprawdzanie tożsamości użytkownika) (3 projekty) | ✅ |
 | `s22-extras` | **Dodatki (opcjonalne)**: Spring AI (wywoływanie modelu językowego — LLM — z aplikacji Springa), Kafka/RabbitMQ (kolejki wiadomości naprawdę, w kontenerze), OAuth2 i Keycloak (logowanie przez zewnętrzny serwer tożsamości, Resource Server), tracing (Micrometer Tracing — śledzenie jednego zapytania przez wiele serwisów), przegląd WebFlux (programowanie reaktywne — czym jest i kiedy go NIE potrzebujesz, zwłaszcza przy wątkach wirtualnych), GraalVM native image (kompilacja aplikacji do natywnego pliku wykonywalnego — szybki start, mniej pamięci) | ⏳ |
 
 ## Uruchamianie i ustawienia IntelliJ
@@ -201,6 +201,9 @@ Legenda: ✅ gotowe · 🔶 w trakcie · ⏳ zaplanowane.
   (domyślnie tak).
 - **Zajęty port 8080** (`Port 8080 was already in use`): działa jeszcze poprzednia aplikacja. Zatrzymaj ją (czerwony kwadrat
   w IntelliJ albo Ctrl+C w terminalu, w którym ją uruchomiłeś).
+- **Długie ścieżki w Windows** (`Filename too long` przy klonowaniu albo dziwne błędy kompilacji): Windows domyślnie ogranicza
+  ścieżkę do 260 znaków, a najdłuższe ścieżki kursu mają ok. 145 znaków (plus katalog `target/`). Sklonuj repozytorium do
+  krótkiego katalogu (np. `C:\kurs\SpringLearning`) albo włącz w gicie `git config --global core.longpaths true`.
 - **Docker:** testy z Testcontainers (dział `s11` i dalej) uruchomią się tylko wtedy, gdy działa Docker (np. Docker Desktop).
   Bez niego są pomijane (żółty, a nie czerwony wynik) — reszta kursu działa normalnie.
 - **Błąd kompilacji w innym pliku:** tak jak w JavaLearning, IntelliJ przed uruchomieniem kompiluje moduł. Błąd w jednej

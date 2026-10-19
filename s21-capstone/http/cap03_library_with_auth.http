@@ -1,0 +1,109 @@
+# Projekt s21_capstone / Cap03LibraryWithAuth — SCENARIUSZ: logowanie, role i wypożyczenia
+# 1. Uruchom Cap03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Zegar aplikacji jest ZATRZYMANY: dziś = 2026-10-19 (application-cap03.properties) — kary poniżej pasują zawsze.
+# 3. Zapytania 1 i 2 logują użytkowników i ZAPAMIĘTUJĄ tokeny (skrypt > {% ... %} IntelliJ HTTP Client) w zmiennych
+#    {{anna}} (BIBLIOTEKARZ) i {{jan}} (CZYTELNIK). Klucze JWT powstają przy starcie — po restarcie zaloguj się ponownie.
+#    Hasła są TESTOWE: login-test-123.
+
+@host = http://localhost:8080
+
+### 1. Logowanie bibliotekarki — oczekiwane: 200, access_token, token_type Bearer, expires_in 3600
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "username": "anna", "password": "anna-test-123" }
+
+> {% client.global.set("anna", response.body.access_token); %}
+
+### 2. Logowanie czytelnika — oczekiwane: 200
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "username": "jan", "password": "jan-test-123" }
+
+> {% client.global.set("jan", response.body.access_token); %}
+
+### 3. Złe hasło — oczekiwane: 401, "detail":"Nieprawidłowy login lub hasło" (ten sam opis co dla nieznanego loginu)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "username": "jan", "password": "zgaduje" }
+
+### 4. Katalog bez logowania — oczekiwane: 200, KSI-001..003 available=false, KSI-004..006 available=true
+GET {{host}}/api/books
+
+### 5. Kim jestem — oczekiwane: 200, "username":"jan", authorities ["FACTOR_BEARER","ROLE_CZYTELNIK"]
+GET {{host}}/api/me
+Authorization: Bearer {{jan}}
+
+### 6. Bez tokenu — oczekiwane: 401, puste ciało, nagłówek WWW-Authenticate: Bearer resource_metadata=...
+GET {{host}}/api/me
+
+### 7. Moje wypożyczenia (Jan) — oczekiwane: 200, 2 pozycje; Czysty kod: daysOverdue 4, fine 2.00
+GET {{host}}/api/me/loans
+Authorization: Bearer {{jan}}
+
+### 8. Cudze wypożyczenia (Jan pyta o Marię) — oczekiwane: 403, ProblemDetail "code":"ACCESS_DENIED" (@PreAuthorize)
+GET {{host}}/api/readers/maria/loans
+Authorization: Bearer {{jan}}
+
+### 9. Bibliotekarka widzi wypożyczenia Marii — oczekiwane: 200, Wzorce projektowe: daysOverdue 34, fine 17.00
+GET {{host}}/api/readers/maria/loans
+Authorization: Bearer {{anna}}
+
+### 10. Czytelnik próbuje wypożyczyć — oczekiwane: 403, puste ciało, WWW-Authenticate: Bearer error="insufficient_scope"
+POST {{host}}/api/loans
+Content-Type: application/json
+Authorization: Bearer {{jan}}
+
+{ "bookId": 6, "reader": "adam" }
+
+### 11. Wypożyczenie dla Marii (ma zaległość) — oczekiwane: 409, "code":"READER_HAS_OVERDUE"
+POST {{host}}/api/loans
+Content-Type: application/json
+Authorization: Bearer {{anna}}
+
+{ "bookId": 6, "reader": "maria" }
+
+### 12. Wypożyczenie Domain-Driven Design dla Adama — oczekiwane: 201, loanedOn 2026-10-19, dueOn 2026-11-02, id 5
+POST {{host}}/api/loans
+Content-Type: application/json
+Authorization: Bearer {{anna}}
+
+{ "bookId": 6, "reader": "adam" }
+
+### 13. Ten sam egzemplarz jeszcze raz — oczekiwane: 409, "code":"BOOK_ON_LOAN"
+POST {{host}}/api/loans
+Content-Type: application/json
+Authorization: Bearer {{anna}}
+
+{ "bookId": 6, "reader": "adam" }
+
+### 14. Zwrot książki Marii (34 dni po terminie) — oczekiwane: 200, returnedOn 2026-10-19, fine 17.00
+POST {{host}}/api/loans/3/return
+Authorization: Bearer {{anna}}
+
+### 15. Teraz Maria może wypożyczać: Refaktoryzacja — oczekiwane: 201
+POST {{host}}/api/loans
+Content-Type: application/json
+Authorization: Bearer {{anna}}
+
+{ "bookId": 5, "reader": "maria" }
+
+### 16. Jan pyta o pojedyncze wypożyczenie Marii — oczekiwane: 403 (@PostAuthorize sprawdza wynik)
+GET {{host}}/api/loans/3
+Authorization: Bearer {{jan}}
+
+### 17. Nowa książka jako czytelnik — oczekiwane: 403; jako bibliotekarka (zapytanie 18) — 201
+POST {{host}}/api/books
+Content-Type: application/json
+Authorization: Bearer {{jan}}
+
+{ "callNumber": "KSI-007", "title": "Czysta architektura", "author": "Robert C. Martin" }
+
+### 18. Nowa książka jako bibliotekarka — oczekiwane: 201, Location .../api/books/7, available true
+POST {{host}}/api/books
+Content-Type: application/json
+Authorization: Bearer {{anna}}
+
+{ "callNumber": "KSI-007", "title": "Czysta architektura", "author": "Robert C. Martin" }

@@ -1,0 +1,117 @@
+# Projekt s21_capstone / Cap01ShopApi — SCENARIUSZ: od katalogu do dostarczonego zamówienia
+# 1. Uruchom Cap01Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Wysyłaj zapytania PO KOLEI — późniejsze zakładają stan po wcześniejszych (np. zamówienie ZAM-006).
+#    Chcesz zacząć od nowa? Zatrzymaj i uruchom aplikację ponownie (baza H2 jest w pamięci).
+
+@host = http://localhost:8080
+
+### 1. Katalog: pierwsza strona (3 produkty), najtańsze najpierw — oczekiwane: 200, SPO-002, SPO-003, ODZ-002, totalElements 14
+GET {{host}}/api/products?size=3&sort=price
+
+### 2. Wyszukiwanie po fragmencie nazwy (wielkość liter bez znaczenia) — oczekiwane: 200, DOM-001 i SPO-001
+GET {{host}}/api/products?q=KAW&sort=sku
+
+### 3. Sortowanie spoza białej listy — oczekiwane: 400, "code":"SORT_NOT_ALLOWED" i lista "allowed"
+GET {{host}}/api/products?sort=cena
+
+### 4. Za duża strona — oczekiwane: 400, "errors":{"size":"rozmiar strony: od 1 do 50"}
+GET {{host}}/api/products?size=500
+
+### 5. Nowy produkt z błędami — oczekiwane: 400, mapa errors (sku, name, category, price, stock)
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "sku": "zly",
+  "name": "",
+  "price": -1
+}
+
+### 6. Nowy produkt — oczekiwane: 201 Created, Location: http://localhost:8080/api/products/DOM-003
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "sku": "DOM-003",
+  "name": "Czajnik elektryczny",
+  "category": "DOM",
+  "price": 149.00,
+  "stock": 5
+}
+
+### 7. Ten sam sku jeszcze raz — oczekiwane: 409, "code":"SKU_TAKEN"
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "sku": "DOM-003",
+  "name": "Inny czajnik",
+  "category": "DOM",
+  "price": 99.00,
+  "stock": 1
+}
+
+### 8. Klienci — oczekiwane: 200, 7 klientów posortowanych po id
+GET {{host}}/api/customers
+
+### 9. Zamówienie Marii (id 2): 2 × Wzorce projektowe + 3 × Czekolada gorzka
+#     oczekiwane: 201, Location .../api/orders/6, "number":"ZAM-006", "total":220.47, status NOWE,
+#     "allowedStatusChanges":["OPLACONE","ANULOWANE"]
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customerId": 2,
+  "lines": [
+    { "sku": "KSI-003", "quantity": 2 },
+    { "sku": "SPO-002", "quantity": 3 }
+  ]
+}
+
+### 10. Zamówienie z nieznanym produktem — oczekiwane: 404 "Nie znaleziono: produkt XXX-000"; ŻADNE zamówienie nie powstaje
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "lines": [
+    { "sku": "ELE-001", "quantity": 1 },
+    { "sku": "XXX-000", "quantity": 1 }
+  ]
+}
+
+### 11. Szczegóły ZAM-006 (1 zapytanie SQL z join fetch — zobacz log aplikacji) — oczekiwane: 200, 2 pozycje
+GET {{host}}/api/orders/6
+
+### 12. Lista zamówień, najnowsze pierwsze — oczekiwane: 200, ZAM-006 na początku, totalElements 6
+GET {{host}}/api/orders?size=3
+
+### 13. Opłacenie ZAM-006 — oczekiwane: 200, status OPLACONE, allowedStatusChanges ["WYSLANE","ANULOWANE"]
+PATCH {{host}}/api/orders/6/status
+Content-Type: application/json
+
+{ "status": "OPLACONE" }
+
+### 14. Niedozwolone przejście: ZAM-003 jest WYSLANE — oczekiwane: 409, "currentStatus":"WYSLANE", "allowed":["DOSTARCZONE"]
+PATCH {{host}}/api/orders/3/status
+Content-Type: application/json
+
+{ "status": "OPLACONE" }
+
+### 15. Nieznany status — oczekiwane: 400, "detail":"Failed to read request"
+PATCH {{host}}/api/orders/6/status
+Content-Type: application/json
+
+{ "status": "ZAGUBIONE" }
+
+### 16. Lista tylko zamówień OPLACONE — oczekiwane: ZAM-006 i ZAM-002
+GET {{host}}/api/orders?status=OPLACONE
+
+### 17. Usunięcie produktu z zamówień (słuchawki są w ZAM-001) — oczekiwane: 409, "code":"PRODUCT_IN_USE"
+DELETE {{host}}/api/products/ELE-003
+
+### 18. Usunięcie nowego, nieużytego produktu — oczekiwane: 204 No Content
+DELETE {{host}}/api/products/DOM-003
+
+### 19. I jeszcze raz — oczekiwane: 404
+GET {{host}}/api/products/DOM-003
