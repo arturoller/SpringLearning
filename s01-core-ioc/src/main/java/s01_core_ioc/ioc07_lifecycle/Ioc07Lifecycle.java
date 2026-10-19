@@ -107,13 +107,17 @@ public final class Ioc07Lifecycle {
     // 4. INNE SPOSOBY: InitializingBean, DisposableBean, initMethod, destroyMethod
     // =================================================================================================
     //
-    // a) interfejsy Springa: InitializingBean.afterPropertiesSet() i DisposableBean.destroy().
-    //    Wiążą klasę ze Springiem, więc zwykle gorsze niż adnotacje. Spotkasz je w starszym kodzie.
+    // a) interfejsy Springa: InitializingBean.afterPropertiesSet() (initializing bean = bean inicjalizowany;
+    //    after properties set = po ustawieniu właściwości) i DisposableBean.destroy() (disposable bean = bean do
+    //    zniszczenia; destroy = zniszcz). Wiążą klasę ze Springiem, więc zwykle gorsze niż adnotacje.
+    //    Spotkasz je w starszym kodzie.
     // b) @Bean(initMethod = "customInit", destroyMethod = "customDestroy") — nazwy metod podane w konfiguracji.
     //    Przydatne dla klas, których kodu nie możesz zmienić (z cudzej biblioteki).
     // c) Dla beanów z metod @Bean Spring sam wnioskuje metodę zamykającą: jeśli klasa ma publiczną metodę close()
-    //    albo shutdown() bez parametrów, zostanie wywołana przy zamknięciu kontekstu. Wyłączysz to przez
-    //    @Bean(destroyMethod = "").
+    //    bez parametrów, wywoła ją przy zamknięciu kontekstu; gdy close() nie ma — publiczną shutdown(). Nigdy obu
+    //    naraz: przy obu metodach wołane jest tylko close(). Wyłączysz to przez @Bean(destroyMethod = "").
+    //    Do tego KAŻDY bean (także z @Component albo zarejestrowany wprost), który implementuje AutoCloseable,
+    //    dostaje close() przy zamknięciu kontekstu.
     //
     // Gdy użyjesz wszystkich naraz, kolejność jest stała (sprawdzone testem):
     //   start:  @PostConstruct → afterPropertiesSet → initMethod
@@ -122,7 +126,7 @@ public final class Ioc07Lifecycle {
     // DOBRA PRAKTYKA: wybierz JEDEN mechanizm w klasie — najczęściej @PostConstruct i @PreDestroy.
     //   Dlaczego? Kilka mechanizmów naraz działa, ale czytelnik musi znać kolejność, żeby zrozumieć, co się dzieje.
     //
-    // Test: Ioc07LifecycleTest#allCallbacksOrder, #inferredDestroyMethod
+    // Test: Ioc07LifecycleTest#allCallbacksOrder, #inferredDestroyMethod, #closeWinsOverShutdownAndAutoCloseable
 
     // =================================================================================================
     // 5. PROTOTYPE — Spring nie niszczy tych beanów
@@ -147,7 +151,8 @@ public final class Ioc07Lifecycle {
      *   • Wyjątek w @PostConstruct = kontekst nie startuje (BeanCreationException).
      *   • Bez context.close() nie ma @PreDestroy (Spring Boot zamyka kontekst sam przy zatrzymaniu aplikacji).
      *   • Kolejność mechanizmów: @PostConstruct → afterPropertiesSet → initMethod; @PreDestroy → destroy → destroyMethod.
-     *   • Beany @Bean: publiczne close() i shutdown() są wywoływane automatycznie; destroyMethod="" to wyłącza.
+     *   • Beany @Bean: publiczne close() (a gdy go brak — shutdown()) jest wywoływane automatycznie;
+     *     destroyMethod="" to wyłącza. Każdy bean implementujący AutoCloseable dostaje close().
      *   • Prototype: @PostConstruct przy każdym pobraniu, @PreDestroy nigdy.
      *   • Adnotacje to jakarta.annotation.PostConstruct i PreDestroy.
      *

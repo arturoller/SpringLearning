@@ -27,16 +27,19 @@ import java.util.Map;
  *   Wstrzykiwanie parametru typu NotificationSender, kroki kontenera:
  *     1. zbiera wszystkich kandydatów tego typu (emailSender, smsSender, pushSender)
  *     2. jest @Qualifier? → wybiera beana o tej nazwie (kwalifikator wygrywa ze wszystkim)
- *     3. jest dokładnie jeden bean @Primary? → wybiera jego (dwa @Primary = błąd)
+ *     3. jest dokładnie jeden bean @Primary? → wybiera jego (dwa @Primary = błąd);
+ *        nie ma @Primary, ale po odrzuceniu beanów @Fallback (awaryjnych) zostaje jeden? → wybiera jego
  *     4. awaryjnie: nazwa parametru równa nazwie beana? → wybiera go
- *     5. nic nie pasuje → NoUniqueBeanDefinitionException: "expected single matching bean but found 2: ..."
+ *     5. jeden bean ma najwyższy priorytet @Priority (jakarta.annotation.Priority, mniejsza liczba wygrywa)? → jego
+ *     6. nic nie pasuje → NoUniqueBeanDefinitionException: "expected single matching bean but found 2: ..."
+ *   @Order NIE bierze udziału w tym wyborze — ustawia tylko kolejność w liście.
  *   Dla List<NotificationSender> i Map<String, NotificationSender> kontener nie wybiera — wstrzykuje wszystkich
  *   kandydatów (lista posortowana według @Order, mapa z nazwami beanów jako kluczami).
  *
  * SŁÓWKA:
  *   notification = powiadomienie; sender = nadawca, wysyłacz; unique = jedyny, jednoznaczny; primary = główny;
  *   qualifier = kwalifikator; order = kolejność; broadcast = rozgłoszenie (do wszystkich); fallback = rozwiązanie
- *   awaryjne; by name = po nazwie; ambiguous = niejednoznaczny.
+ *   awaryjne; by name = po nazwie; ambiguous = niejednoznaczny; priority = priorytet.
  *
  * ZOBACZ TEŻ: s01_core_ioc/Ioc02ConstructorInjection (wstrzykiwanie przez konstruktor), s01_core_ioc/Ioc03Stereotypes
  *             (nazwy beanów), s01_core_ioc/Ioc04BeanMethods (@Bean — jak zarejestrować kilka beanów jednego typu),
@@ -122,14 +125,21 @@ public final class Ioc05MultipleCandidates {
     //   e-mail (sprawdzone testem). Zamiast tego użyj jawnego @Qualifier — widać go w kodzie i nie psuje się przy
     //   zmianie nazwy parametru.
     //
-    // Jeszcze jedno narzędzie: @Fallback (awaryjny) — bean, który jest używany tylko wtedy, gdy nie ma innego
-    // kandydata; odwrotność @Primary, przydatna w bibliotekach z domyślną implementacją.
+    // Jeszcze dwa narzędzia (test sekcji 5: fallbackAndPriority):
+    // • @Fallback (awaryjny) — bean, który odpada, gdy jest inny kandydat; używany tylko wtedy, gdy zostaje sam.
+    //   Odwrotność @Primary, przydatna w bibliotekach z domyślną implementacją. Odpada nawet wtedy, gdy parametr
+    //   nazywa się tak jak on — @Fallback jest sprawdzany przed nazwą parametru.
+    // • @Priority (jakarta.annotation.Priority — priorytet) na klasie: gdy nie rozstrzygnął ani @Primary, ani nazwa
+    //   parametru, wygrywa bean z NAJMNIEJSZĄ liczbą.
+    // @Order do wyboru JEDNEGO beana się nie liczy: w teście sekcji 1 SmsSender i PushSender mają @Order, a kontekst
+    // i tak nie startuje (NoUniqueBeanDefinitionException).
 
     /*
      * =================================================================================================
      * ŚCIĄGA:
      *   • Dwóch kandydatów i brak wskazówki → NoUniqueBeanDefinitionException ("expected single matching bean but found 2").
-     *   • Kolejność rozstrzygania: @Qualifier → jedyny @Primary → (awaryjnie) nazwa parametru → błąd.
+     *   • Kolejność rozstrzygania: @Qualifier → jedyny @Primary (albo jedyny kandydat bez @Fallback) → (awaryjnie)
+     *     nazwa parametru → @Priority (mniejsza liczba wygrywa) → błąd. @Order nie wybiera — tylko porządkuje listę.
      *   • @Primary: domyślny bean (tylko JEDEN na typ); @Qualifier("nazwa"): wskazanie w konkretnym miejscu.
      *   • List<Typ>: wszystkie beany, w kolejności @Order (mniejsza liczba = wcześniej); Map<String, Typ>: nazwa → bean.
      *   • Nazwa parametru = nazwa beana działa (parent pom Boota używa -parameters), ale jest kruche — wybierz @Qualifier.
@@ -163,7 +173,9 @@ public final class Ioc05MultipleCandidates {
 
     // ĆWICZENIE 2 (średnie): w klasie Ioc05Exercise2Config są dwie metody @Bean typu NotificationSender (e-mail i SMS).
     // Dodaj @Primary tak, żeby getBean(NotificationSender.class) zwracało wysyłacz e-mail. Podpowiedź: adnotację
-    // stawiasz na metodzie @Bean (adnotacje z klasy EmailSender nie działają, gdy bean tworzy metoda!).
+    // stawiasz na metodzie @Bean. Gdy beana tworzy metoda, kontener bierze @Primary (i @Scope) z METODY — @Primary
+    // z klasy EmailSender jest wtedy pomijany. (Adnotacje działające na gotowym obiekcie, np. @Order albo
+    // @PostConstruct z klasy, działają dalej — test sekcji 4: orderFromClassWorksForBeanMethods.)
     // Test: Ioc05MultipleCandidatesExercisesTest.exercise2.
     //
     // ĆWICZENIE 3 (trudniejsze): w klasie Ioc05Exercise3Config uzupełnij metodę alertService: dodaj parametr

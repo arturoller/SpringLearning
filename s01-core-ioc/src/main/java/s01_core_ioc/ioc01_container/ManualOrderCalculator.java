@@ -5,7 +5,8 @@ import java.util.Map;
 /**
  * ManualOrderCalculator = kalkulator „ręczny” — wersja PRZED: sam tworzy swoją zależność przez new.
  * Działa, ale jest na sztywno związany z konkretną klasą PriceList: nie da się podać innego cennika (np. promocyjnego
- * albo testowego) bez zmiany kodu tej klasy. To NIE jest bean — nie ma adnotacji, Spring go nie zna.
+ * albo testowego) bez zmiany kodu tej klasy. Nie ma adnotacji, więc skanowanie Ioc01Application go pomija — w tej
+ * aplikacji to NIE jest bean (beanem stałby się dopiero po jawnej rejestracji, patrz sekcja 3 lekcji).
  */
 public class ManualOrderCalculator {
 

@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Serwis z DWOMA konstruktorami i adnotacją {@code @Autowired} na jednym z nich — Spring wie, którego użyć.
- * Celowo BEZ {@code @Component}: lekcja rejestruje tę klasę ręcznie w teście (żeby aplikacja lekcji zawsze startowała).
+ * Ta klasa jest POPRAWNA — z {@code @Component} też by działała. Nie ma go tylko dlatego, że test sekcji 4 rejestruje
+ * ją ręcznie, obok błędnych przykładów (AmbiguousConstructorsService, NoArgConstructorTrapService), żeby porównać
+ * wszystkie trzy przypadki w małych kontekstach.
  */
 public class TwoConstructorsService {
 

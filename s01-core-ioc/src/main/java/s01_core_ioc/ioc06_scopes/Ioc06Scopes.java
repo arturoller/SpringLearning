@@ -60,8 +60,9 @@ public final class Ioc06Scopes {
     // z Javy). Dwa konteksty = dwa osobne obiekty. Kontener tworzy singletony przy starcie, więc błąd w konstruktorze
     // wychodzi od razu, a nie dopiero przy pierwszym użyciu.
     //
-    // DOBRA PRAKTYKA: zostaw domyślny singleton dla serwisów, repozytoriów i konfiguracji. Dlaczego? Są bezstanowe,
-    //   więc jedna instancja wystarczy, kosztuje najmniej pamięci i nie trzeba nic tworzyć przy każdym użyciu.
+    // DOBRA PRAKTYKA: zostaw domyślny singleton dla serwisów, repozytoriów i konfiguracji. Dlaczego? Zwykle są
+    //   bezstanowe, więc jedna instancja wystarczy, kosztuje najmniej pamięci i nie trzeba nic tworzyć przy każdym
+    //   użyciu. (Gdy serwis ma zmienny stan — patrz sekcja 4.)
     //
     // Test: Ioc06ScopesTest#singletonIsDefault
 
@@ -77,12 +78,14 @@ public final class Ioc06Scopes {
     //
     // Pod spodem: kontener tworzy prototype dopiero na żądanie i NIE trzyma go u siebie. Po wydaniu obiektu
     // kontener o nim "zapomina" — za sprzątanie odpowiada Twój kod (więcej: Ioc07Lifecycle).
-    // Dla metody @Bean zasięg ustawiasz adnotacją na METODZIE (adnotacja na klasie zwracanego typu nie działa,
-    // bo wtedy kontener nie czyta klasy, tylko metodę) — to jest ćwiczenie 3.
+    // Dla metody @Bean zasięg ustawiasz adnotacją na METODZIE. @Scope z klasy zwracanego typu jest wtedy pomijany:
+    // ustawienia definicji beana (@Scope, @Primary) kontener bierze z metody. (Adnotacje działające na gotowym
+    // obiekcie — np. @PostConstruct z klasy — działają dalej, patrz s01_core_ioc/Ioc07Lifecycle.)
+    // Demo: SingletonCartConfig (metoda bez @Scope); poprawienie tego to ćwiczenie 3 (Ioc06Exercise3Config).
     //
     // Test: Ioc06ScopesTest#prototypeCreatesNewObjects, Ioc06ScopesTest#beanMethodDefaultsToSingleton
     //
-    // PUŁAPKA: zasięg ustawiony tylko na klasie nie obejmuje beana zdefiniowanego metodą @Bean tej klasy.
+    // PUŁAPKA: zasięg ustawiony tylko na klasie nie obejmuje beana tworzonego metodą @Bean, która zwraca tę klasę.
     //   Dlaczego? Dla metody @Bean obowiązuje to, co napisano przy metodzie; bez @Scope na metodzie dostajesz singleton
     //   i wszyscy dzielą jeden koszyk — bez żadnego błędu i bez ostrzeżenia.
 
@@ -198,14 +201,16 @@ public final class Ioc06Scopes {
     /*
      * ODPOWIEDZI:
      *   1. Jedna instancja beana na kontener (ApplicationContext): dwa konteksty mają dwa osobne obiekty. We wzorcu
-     *      Singleton z Javy jest jedna instancja na cały program (na classloader), a klasa pilnuje tego sama.
+     *      Singleton z Javy jest jedna instancja na cały program (dokładniej: na classloader — program ładujący klasy),
+     *      a klasa pilnuje tego sama.
      *   2. Zwrócą 1 i 2. Obie operacje dodają do tego samego koszyka wstrzykniętego raz do konstruktora.
      *      Sprawdzone testem Ioc06ScopesTest#prototypeInSingletonIsInjectedOnlyOnce.
      *   3. Zwrócą 1 i 1: za każdym razem powstaje nowy, pusty koszyk. Sprawdzone tym samym testem.
      *   4. Konstruktor wywołuje się raz (Basket jest singletonem), więc koszyk jest wstrzyknięty raz i wspólny dla
      *      wszystkich klientów. Naprawa: ObjectProvider<ShoppingCart> i getObject() przy każdej operacji.
      *   5. Oba wywołania zwrócą TEN SAM obiekt (singleton), mimo że klasa ShoppingCart ma @Scope("prototype") —
-     *      zasięg z klasy nie obejmuje metody @Bean. Sprawdzone testem Ioc06ScopesTest#beanMethodDefaultsToSingleton.
+     *      zasięg z klasy nie obejmuje metody @Bean. Sprawdzone testem Ioc06ScopesTest#beanMethodDefaultsToSingleton
+     *      (na klasie demonstracyjnej SingletonCartConfig).
      *   6. Bo singleton jest jeden i obsługuje wszystkich; testy z jednym użytkownikiem nie pokażą pomieszania
      *      danych ani wyścigu wątków. Błąd wychodzi dopiero na produkcji, losowo. Wspólny stan widać też w testach:
      *      licznik rośnie między testami korzystającymi z tego samego kontekstu (Ioc06ScopesTest#singletonStateIsShared).

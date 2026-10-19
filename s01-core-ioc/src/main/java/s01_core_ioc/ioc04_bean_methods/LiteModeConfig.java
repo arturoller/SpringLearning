@@ -1,5 +1,6 @@
 package s01_core_ioc.ioc04_bean_methods;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,9 +22,15 @@ public class LiteModeConfig {
         return new PriceCalculator(liteTaxTable()); // zwykłe wywołanie — NOWA TaxTable, nie bean "liteTaxTable"
     }
 
-    /** Poprawny sposób w trybie lekkim: zależność jako PARAMETR metody (kontener poda beana). */
+    /**
+     * Poprawny sposób w trybie lekkim: zależność jako PARAMETR metody (kontener poda beana).
+     * W aplikacji lekcji są DWA beany TaxTable (fullTaxTable z FullModeConfig i liteTaxTable stąd), dlatego
+     * {@code @Qualifier("liteTaxTable")} (kwalifikator — wskazanie beana po nazwie) mówi wprost, którego chcemy.
+     * Bez niego zadziałałoby tylko dopasowanie po NAZWIE parametru (kruche — patrz Ioc05MultipleCandidates):
+     * parametr nazwany np. taxTable wywróciłby start aplikacji (NoUniqueBeanDefinitionException).
+     */
     @Bean
-    public PriceCalculator liteCalculatorFromParameter(TaxTable liteTaxTable) {
-        return new PriceCalculator(liteTaxTable);
+    public PriceCalculator liteCalculatorFromParameter(@Qualifier("liteTaxTable") TaxTable taxTable) {
+        return new PriceCalculator(taxTable);
     }
 }

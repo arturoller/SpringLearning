@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -24,6 +26,9 @@ class Ioc07LifecycleTest {
     @Autowired
     ProductCache productCache;
 
+    @Autowired
+    EventLog eventLog;
+
     @Test
     @DisplayName("1. Kolejność: konstruktor, setter, @PostConstruct, a @PreDestroy dopiero po zamknięciu kontekstu")
     void orderOfEvents() {
@@ -39,15 +44,20 @@ class Ioc07LifecycleTest {
     }
 
     @Test
-    @DisplayName("2. W konstruktorze zależność z settera jest jeszcze null, w @PostConstruct już jest")
+    @DisplayName("2. Setter działa dopiero PO konstruktorze (więc w konstruktorze katalogu nie ma), a w @PostConstruct już jest")
     void constructorSeesNoSetterDependencies() {
-        assertThat(warehouse.catalogWasNullInConstructor()).isTrue();
+        // dziennik aplikacji lekcji: kolejność wpisów pokazuje, kiedy Spring wywołał setter
+        List<String> events = eventLog.events();
+        assertThat(events.indexOf("konstruktor")).isNotNegative()
+                .isLessThan(events.indexOf("setter"));
+        assertThat(events.indexOf("setter")).isLessThan(events.indexOf("@PostConstruct"));
+
         assertThat(warehouse.catalogReadyInPostConstruct()).isTrue();
         assertThat(warehouse.isConnected()).isTrue();
     }
 
     @Test
-    @DisplayName("3. Praca w konstruktorze na polu wstrzykniętym później kończy się NullPointerException")
+    @DisplayName("2. Praca w konstruktorze na polu wstrzykniętym później kończy się NullPointerException")
     void brokenCacheFailsInConstructor() {
         assertThatThrownBy(() -> new AnnotationConfigApplicationContext(ProductCatalog.class,
                 BrokenProductCache.class))
@@ -56,7 +66,7 @@ class Ioc07LifecycleTest {
     }
 
     @Test
-    @DisplayName("3. To samo ładowanie w @PostConstruct działa: cache jest wypełniony po starcie")
+    @DisplayName("2. To samo ładowanie w @PostConstruct działa: cache jest wypełniony po starcie")
     void cacheWarmedUpInPostConstruct() {
         assertThat(productCache.size()).isEqualTo(3);
     }
@@ -73,7 +83,7 @@ class Ioc07LifecycleTest {
     }
 
     @Test
-    @DisplayName("4. Metoda @Bean: Spring sam wywołuje publiczne close() i shutdown(), a destroyMethod=\"\" to wyłącza")
+    @DisplayName("4. Metoda @Bean: Spring sam wywołuje publiczne close() albo shutdown(), a destroyMethod=\"\" to wyłącza")
     void inferredDestroyMethod() {
         var inferred = new AnnotationConfigApplicationContext(EventLog.class, Ioc07DemoConfigs.InferredDestroyConfig.class);
         EventLog inferredLog = inferred.getBean(EventLog.class);
@@ -85,6 +95,23 @@ class Ioc07LifecycleTest {
         EventLog disabledLog = disabled.getBean(EventLog.class);
         disabled.close();
         assertThat(disabledLog.events()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("4. Przy close() i shutdown() naraz wołane jest tylko close(); AutoCloseable dostaje close() także bez @Bean")
+    void closeWinsOverShutdownAndAutoCloseable() {
+        var both = new AnnotationConfigApplicationContext(EventLog.class, Ioc07DemoConfigs.CloseAndShutdownConfig.class);
+        EventLog bothLog = both.getBean(EventLog.class);
+        both.close();
+        assertThat(bothLog.events()).containsExactly("obie metody: close");
+
+        // klasa zarejestrowana wprost (nie metodą @Bean), ale implementuje AutoCloseable
+        var autoCloseable = new AnnotationConfigApplicationContext(EventLog.class,
+                Ioc07DemoConfigs.AutoCloseableResource.class);
+        EventLog autoCloseableLog = autoCloseable.getBean(EventLog.class);
+        assertThat(autoCloseableLog.events()).isEmpty();
+        autoCloseable.close();
+        assertThat(autoCloseableLog.events()).containsExactly("AutoCloseable: close");
     }
 
     @Test
@@ -100,7 +127,7 @@ class Ioc07LifecycleTest {
     }
 
     @Test
-    @DisplayName("6. Wyjątek w @PostConstruct przerywa start kontekstu (BeanCreationException)")
+    @DisplayName("3. Wyjątek w @PostConstruct przerywa start kontekstu (BeanCreationException)")
     void failingPostConstructStopsStartup() {
         assertThatThrownBy(() -> new AnnotationConfigApplicationContext(Ioc07DemoConfigs.FailingBean.class))
                 .isInstanceOf(BeanCreationException.class)

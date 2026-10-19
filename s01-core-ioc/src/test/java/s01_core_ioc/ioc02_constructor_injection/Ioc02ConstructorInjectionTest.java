@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.lang.reflect.Modifier;
 import java.util.Optional;
@@ -82,6 +83,18 @@ class Ioc02ConstructorInjectionTest {
     }
 
     @Test
+    @DisplayName("4. PUŁAPKA: przy dodatkowym konstruktorze bez parametrów Spring po cichu wybiera właśnie jego")
+    void noArgConstructorWinsSilently() {
+        new ApplicationContextRunner()
+                .withBean(InMemoryCustomerRepository.class)
+                .withBean(NoArgConstructorTrapService.class)
+                .run(ctx -> {
+                    assertThat(ctx).hasNotFailed();
+                    assertThat(ctx.getBean(NoArgConstructorTrapService.class).hasRepository()).isFalse();
+                });
+    }
+
+    @Test
     @DisplayName("5. Cykl przez konstruktory kończy się BeanCurrentlyInCreationException")
     void circularConstructors() {
         new ApplicationContextRunner()
@@ -94,7 +107,7 @@ class Ioc02ConstructorInjectionTest {
     }
 
     @Test
-    @DisplayName("5. Cykl przez pola: przechodzi tylko po jawnym zezwoleniu na cykle (domyślnie, jak w Bootcie, są zabronione)")
+    @DisplayName("5. Cykl przez pola: w stylu Boota przechodzi tylko po jawnym zezwoleniu, goły Spring go dopuszcza")
     void circularFields() {
         new ApplicationContextRunner()
                 .withAllowCircularReferences(true)
@@ -109,6 +122,11 @@ class Ioc02ConstructorInjectionTest {
                     assertThat(ctx).hasFailed();
                     assertThat(hasCause(ctx.getStartupFailure(), BeanCurrentlyInCreationException.class)).isTrue();
                 });
+
+        // goły Spring (bez Boota): cykle przez pola są domyślnie dozwolone
+        try (var plain = new AnnotationConfigApplicationContext(FieldCycleA.class, FieldCycleB.class)) {
+            assertThat(plain.getBean(FieldCycleA.class).b).isSameAs(plain.getBean(FieldCycleB.class));
+        }
     }
 
     private static Throwable rootCause(Throwable t) {

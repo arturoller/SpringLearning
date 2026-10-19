@@ -2,6 +2,7 @@ package s01_core_ioc.ioc03_stereotypes;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.beans.Introspector;
 import java.util.List;
@@ -36,6 +38,14 @@ class Ioc03StereotypesTest {
     }
 
     @Test
+    @DisplayName("1. Bez postprocesora tłumaczącego wyjątki @Repository nic nie dodaje: bean nie dostaje pośrednika (proxy)")
+    void repositoryWithoutTranslationPostProcessorIsPlainBean() {
+        Object repository = context.getBean(CatalogRepository.class);
+        assertThat(AopUtils.isAopProxy(repository)).isFalse();
+        assertThat(repository.getClass()).isEqualTo(CatalogRepository.class);
+    }
+
+    @Test
     @DisplayName("2. Warstwy: kontroler → serwis → repozytorium są beanami i współpracują")
     void layers() {
         assertThat(context.getBean(CatalogController.class).list())
@@ -50,6 +60,9 @@ class Ioc03StereotypesTest {
         assertThat(context.getBeanNamesForType(CatalogService.class)).containsExactly("catalogService");
         assertThat(context.getBeanNamesForType(URLShortener.class)).containsExactly("URLShortener");
         assertThat(Introspector.decapitalize("URLShortener")).isEqualTo("URLShortener");
+        // Spring 7 liczy nazwę własną metodą — reguła ta sama
+        assertThat(StringUtils.uncapitalizeAsProperty("URLShortener")).isEqualTo("URLShortener");
+        assertThat(StringUtils.uncapitalizeAsProperty("CatalogService")).isEqualTo("catalogService");
 
         assertThatThrownBy(() -> context.getBean("uRLShortener"))
                 .isInstanceOf(NoSuchBeanDefinitionException.class);

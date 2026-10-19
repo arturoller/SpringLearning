@@ -94,9 +94,13 @@ public final class Ioc02ConstructorInjection {
     // • Kilka, jeden z @Autowired (TwoConstructorsService): ten z adnotacją.
     // • Kilka, żaden z @Autowired i brak konstruktora bez parametrów (AmbiguousConstructorsService): Spring nie zgaduje,
     //   rzuca wyjątek (szukał domyślnego konstruktora i go nie znalazł).
+    // • Kilka, żaden z @Autowired, ale JEST konstruktor bez parametrów (NoArgConstructorTrapService): Spring po cichu
+    //   używa właśnie jego — zależność z drugiego konstruktora nie zostaje wstrzyknięta.
     //
     // PUŁAPKA: dodajesz drugi konstruktor „na potrzeby testu” i aplikacja przestaje startować. Dlaczego? Wcześniej
     //   adnotacja była zbędna, bo konstruktor był jedyny; po dodaniu drugiego musisz wskazać, który ma użyć Spring.
+    //   Gorzej, gdy dodany konstruktor jest BEZ parametrów: aplikacja startuje, ale Spring wybiera pusty konstruktor,
+    //   więc pole zależności zostaje null, a NullPointerException wychodzi dopiero przy pierwszym użyciu.
 
     // =================================================================================================
     // 5. ZALEŻNOŚĆ CYKLICZNA (CycleA ↔ CycleB)
@@ -109,6 +113,8 @@ public final class Ioc02ConstructorInjection {
     // są pola — ale tylko po zezwoleniu na to. Spring Boot domyślnie ZABRANIA cykli:
     // spring.main.allow-circular-references=false (allow circular references = zezwalaj na referencje cykliczne).
     // Test sekcji 5 pokazuje obie wersje (w testach: withAllowCircularReferences(true/false)).
+    // Uwaga: to ustawienie BOOTA. Goły Spring (new AnnotationConfigApplicationContext(...)) domyślnie na cykle przez
+    // pola POZWALA — ten sam kod przejdzie w gołym kontekście, a w aplikacji Boota nie wystartuje.
     //
     // PUŁAPKA: włączenie allow-circular-references=true „żeby przestało się sypać”. Dlaczego to zła droga?
     //   Cykl zostaje, tylko go ukrywasz: obiekty są wtedy tworzone w dziwnej kolejności, w połowie gotowe.
@@ -122,8 +128,10 @@ public final class Ioc02ConstructorInjection {
      *   • Konstruktor (zalecany): pola final, zależności widoczne, test przez new. Jeden konstruktor → bez @Autowired.
      *   • Pole z @Autowired: ukryta zależność, nie da się final, new w teście → pole null → NullPointerException.
      *   • Setter: tylko zależności opcjonalne, @Autowired(required = false).
-     *   • Kilka konstruktorów: oznacz jeden @Autowired, inaczej Spring nie wybierze (błąd przy tworzeniu kontekstu).
-     *   • Cykl przez konstruktory → BeanCurrentlyInCreationException; Boot zabrania też cykli przez pola.
+     *   • Kilka konstruktorów: oznacz jeden @Autowired. Bez tego: jest bezparametrowy → Spring po cichu bierze jego;
+     *     nie ma → błąd przy tworzeniu kontekstu.
+     *   • Cykl przez konstruktory → BeanCurrentlyInCreationException; Boot domyślnie zabrania też cykli przez pola
+     *     (goły Spring na nie pozwala).
      *   • Dubler testowy: interfejs z jedną metodą zastąp lambdą — Mockito niepotrzebne.
      *
      * PYTANIA KONTROLNE:
@@ -189,7 +197,8 @@ public final class Ioc02ConstructorInjection {
      *      przyczynie jest BeanCurrentlyInCreationException. Sprawdzone testem.
      *   5. Z zezwoleniem na cykle (withAllowCircularReferences(true)) kontekst startuje: Spring tworzy puste obiekty
      *      i uzupełnia pola. Przy zabronionych cyklach (domyślnie, tak jak w Bootcie) kontekst się nie uruchamia
-     *      (przyczyna: BeanCurrentlyInCreationException). Sprawdzone testem.
+     *      (przyczyna: BeanCurrentlyInCreationException). Goły AnnotationConfigApplicationContext domyślnie cykle
+     *      przez pola dopuszcza. Sprawdzone testem.
      *   6. Bo kontener może pominąć setter albo ktoś może zapomnieć go wywołać w teście — obiekt zostaje „w połowie
      *      gotowy”, a błąd wychodzi dopiero w czasie działania.
      *   7. Gdy beana VipPolicy nie ma, pole zostaje null, więc takie wywołanie rzuci NullPointerException. Dlatego

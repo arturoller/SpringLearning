@@ -21,14 +21,13 @@ public class WarehouseConnection {
     private final EventLog log;
     private ProductCatalog catalog;
 
-    private final boolean catalogWasNullInConstructor;
     private boolean catalogReadyInPostConstruct;
     private boolean connected;
 
     public WarehouseConnection(EventLog log) {
         this.log = log;
         // katalog jest wstrzykiwany setterem, czyli PÓŹNIEJ niż działa konstruktor: tutaj jeszcze go nie ma
-        this.catalogWasNullInConstructor = (this.catalog == null);
+        // (dowód: w dzienniku wpis "konstruktor" stoi przed wpisem "setter")
         log.add("konstruktor");
     }
 
@@ -50,10 +49,6 @@ public class WarehouseConnection {
     void disconnect() {
         this.connected = false;
         log.add("@PreDestroy");
-    }
-
-    public boolean catalogWasNullInConstructor() {
-        return catalogWasNullInConstructor;
     }
 
     public boolean catalogReadyInPostConstruct() {

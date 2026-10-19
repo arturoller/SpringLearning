@@ -63,7 +63,7 @@ public final class Ioc01Container {
     // W teście: new OrderCalculator(new PriceList()). To już jest wstrzykiwanie zależności — ręczne. Spring tylko
     // zautomatyzuje to podawanie.
     //
-    // DOBRA PRAKTYKA: zależności przez konstruktor. Dlaczego? Widać je od razu, pola mogą być final, a obiekt nie
+    // DOBRA PRAKTYKA: zależności przez konstruktor. Dlaczego? Widać je od razu, pola mogą być final, a obiektu nie
     //   da się utworzyć „w połowie” (bez wymaganej zależności).
 
     // =================================================================================================
@@ -75,6 +75,10 @@ public final class Ioc01Container {
     // }
     // To „goły” Spring: tylko klasy, które podasz. Kontekst trzeba zamknąć (close) — try-with-resources robi to sam
     // (t10_exceptions/Exceptions04TryWithResources).
+    //
+    // Klasa podana tu WPROST staje się beanem nawet BEZ adnotacji @Component — to jawna rejestracja (register =
+    // zarejestruj), a nie skanowanie. Np. new AnnotationConfigApplicationContext(ManualOrderCalculator.class) zadziała.
+    // Tak właśnie testy kursu dodają do małych kontekstów klasy-przykłady bez adnotacji.
 
     // =================================================================================================
     // 4. TO SAMO ze Spring Bootem — Ioc01Application
@@ -86,7 +90,8 @@ public final class Ioc01Container {
     //
     // PUŁAPKA: klasa bez adnotacji (ManualOrderCalculator) NIE jest beanem, nawet jeśli leży w skanowanym pakiecie.
     //   Dlaczego? Skanowanie szuka adnotacji @Component (i jej odmian), a nie wszystkich klas. getBean dla takiej klasy
-    //   kończy się wyjątkiem NoSuchBeanDefinitionException (nie ma definicji takiego beana).
+    //   kończy się wyjątkiem NoSuchBeanDefinitionException (nie ma definicji takiego beana). Beanem stałaby się
+    //   dopiero po jawnej rejestracji (sekcja 3).
 
     // =================================================================================================
     // 5. POBIERANIE BEANÓW — getBean po typie i po nazwie
@@ -97,7 +102,8 @@ public final class Ioc01Container {
     //   context.getBeanNamesForType(PriceList.class)        nazwy beanów danego typu (pusta tablica, gdy brak)
     //
     // DOBRA PRAKTYKA: w kodzie aplikacji NIE wołaj getBean — poproś o zależność w konstruktorze. Dlaczego? getBean
-    //   to „sięganie do kontenera” (wzorzec service locator), który znowu ukrywa zależności. getBean jest dobre
+    //   to „sięganie do kontenera” (wzorzec service locator — lokalizator usług: obiekt sam wyszukuje swoje zależności
+    //   w rejestrze), który znowu ukrywa zależności. getBean jest dobre
     //   w testach i w nauce — żeby zajrzeć do kontenera.
 
     /*
@@ -107,7 +113,8 @@ public final class Ioc01Container {
      *   • DI: zależności przychodzą z zewnątrz — najlepiej przez konstruktor (pola final).
      *   • Goły Spring: new AnnotationConfigApplicationContext(Klasa1.class, Klasa2.class) — tylko podane klasy; zamknij go.
      *   • Boot: @SpringBootApplication = skanowanie pakietu + autokonfiguracja (dużo więcej beanów).
-     *   • Beanem jest klasa z @Component/@Service/... (albo z metody @Bean); zwykła klasa — nie.
+     *   • Skanowanie robi beany z klas z @Component/@Service/...; zwykłą klasę pomija. Beanem jest też wynik metody
+     *     @Bean i każda klasa zarejestrowana jawnie (new AnnotationConfigApplicationContext(Klasa.class)).
      *   • getBean(Typ.class), getBean("nazwa", Typ.class); brak beana → NoSuchBeanDefinitionException.
      *   • W aplikacji nie używaj getBean — proś o zależności w konstruktorze.
      *

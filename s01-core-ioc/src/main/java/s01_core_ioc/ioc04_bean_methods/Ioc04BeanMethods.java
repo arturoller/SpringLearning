@@ -9,8 +9,8 @@ import java.time.Clock;
  *         proxy = pośrednik, obiekt udający inny obiekt; singleton = jeden wspólny egzemplarz na cały kontener)
  *
  * W SKRÓCIE:
- *   @Component stawiasz na SWOJEJ klasie. Ale co z klasami, których nie napisałeś: Clock, NumberFormat, DataSource
- *   z biblioteki? Nie dopiszesz im adnotacji. Wtedy piszesz metodę oznaczoną @Bean w klasie @Configuration:
+ *   @Component stawiasz na SWOJEJ klasie. Ale co z klasami, których nie napisałeś: Clock, NumberFormat (format liczb
+ *   i kwot), DataSource (źródło danych — połączenia z bazą) z biblioteki? Nie dopiszesz im adnotacji. Wtedy piszesz metodę oznaczoną @Bean w klasie @Configuration:
  *   metoda tworzy obiekt (new ...), a Spring zapamiętuje go jako beana. Nazwa beana = nazwa metody (albo @Bean("nazwa")).
  *   Zależności metody przychodzą jako jej PARAMETRY. Ta sama technika służy, gdy tworzenie obiektu wymaga logiki
  *   (if, pętla, odczyt ustawień).
@@ -85,8 +85,9 @@ public final class Ioc04BeanMethods {
     //   @Bean: klasa cudza (JDK: Clock, NumberFormat; biblioteki), albo tworzenie wymaga logiki (warunki,
     //          ustawienia, kilka beanów tego samego typu o różnych parametrach).
     //
-    // NumberFormat.getCurrencyInstance(...) nie ma publicznego konstruktora do wywołania przez Springa — obiekt
-    // powstaje fabryką, więc @Component nie wchodzi w grę. @Bean tak.
+    // Clock i NumberFormat to klasy ABSTRAKCYJNE z JDK, bez żadnego publicznego konstruktora. Obiekty dają metody
+    // fabryczne (factory method = metoda tworząca obiekt): Clock.systemDefaultZone(), NumberFormat.getCurrencyInstance(...).
+    // Spring nie ma czego wywołać przez new, a do kodu JDK nie dopiszesz @Component — zostaje @Bean (test sekcji 3).
     //
     // PUŁAPKA: NumberFormat NIE jest bezpieczny wielowątkowo, a bean jest singletonem wspólnym dla wszystkich wątków.
     //   Dlaczego to problem? Równoległe wywołania format(...) mogą się wzajemnie psuć. W prawdziwej aplikacji
@@ -122,6 +123,13 @@ public final class Ioc04BeanMethods {
     //   tego samego typu, które się rozjeżdżają (np. dwa liczniki). Rozwiązanie: zależność jako PARAMETR metody
     //   (liteCalculatorFromParameter) — kontener poda prawdziwego beana.
     //
+    // PUŁAPKA: w aplikacji lekcji są DWA beany TaxTable (fullTaxTable i liteTaxTable). Parametr typu TaxTable bez
+    //   wskazówki byłby niejednoznaczny. Dlaczego więc liteCalculatorFromParameter działa? Ma @Qualifier("liteTaxTable")
+    //   (qualifier = kwalifikator, wskazanie beana po nazwie). Bez niego zadziałałby tylko dlatego, że parametr NAZYWA
+    //   SIĘ liteTaxTable (dopasowanie po nazwie parametru — kruche, s01_core_ioc/Ioc05MultipleCandidates). Zmiana nazwy
+    //   na taxTable kończy się wtedy NoUniqueBeanDefinitionException: "expected single matching bean but found 2:
+    //   fullTaxTable,liteTaxTable" (sprawdzone testem sekcji 5).
+    //
     // DOBRA PRAKTYKA: domyślnie zostaw tryb pełny; przełącz na proxyBeanMethods = false dopiero, gdy żadna metoda
     //   @Bean nie woła innej i zależy Ci na szybszym starcie. Dlaczego? Tryb pełny chroni przed cichym
     //   utworzeniem drugiego obiektu.
@@ -130,7 +138,8 @@ public final class Ioc04BeanMethods {
      * =================================================================================================
      * ŚCIĄGA:
      *   • @Bean na metodzie w klasie @Configuration: wynik metody jest beanem. Nazwa = nazwa metody lub @Bean("nazwa").
-     *   • Zależności metody @Bean = jej parametry (kontener je uzupełnia, jak w konstruktorze).
+     *   • Zależności metody @Bean = jej parametry (kontener je uzupełnia, jak w konstruktorze). Kilka beanów tego
+     *     typu → wskaż właściwy przez @Qualifier("nazwa").
      *   • @Component — Twoje klasy; @Bean — klasy cudze (JDK, biblioteki) lub tworzenie z logiką.
      *   • Clock jako bean: LocalDate.now(clock); w teście Clock.fixed(Instant, ZoneId) — czas zatrzymany.
      *   • Tryb pełny (domyślny): proxy CGLIB, wywołanie metody @Bean z innej metody daje TEGO SAMEGO singletona.
@@ -178,8 +187,9 @@ public final class Ioc04BeanMethods {
     // <editor-fold desc="ODPOWIEDZI NA PYTANIA KONTROLNE" defaultstate="collapsed">
     /*
      * ODPOWIEDZI:
-     *   1. Bo Clock jest klasą JDK — nie możemy dopisać jej adnotacji @Component. Metoda @Bean pozwala utworzyć obiekt
-     *      samemu i oddać go kontenerowi.
+     *   1. Bo Clock jest klasą JDK — nie możemy dopisać jej adnotacji @Component. Do tego jest abstrakcyjna i nie ma
+     *      publicznego konstruktora, więc obiekt daje tylko metoda fabryczna (Clock.systemDefaultZone()). Metoda @Bean
+     *      pozwala utworzyć obiekt samemu i oddać go kontenerowi. Sprawdzone testem sekcji 3.
      *   2. "plnFormat". Nazwa z @Bean("...") zastępuje nazwę metody; getBeanNamesForType(NumberFormat.class) nie zawiera
      *      "currencyFormat". Sprawdzone testem w Ioc04BeanMethodsTest.
      *   3. Nie — to inny obiekt (assertThat(...).isNotSameAs(...)). Wywołanie liteTaxTable() w trybie lekkim to zwykła

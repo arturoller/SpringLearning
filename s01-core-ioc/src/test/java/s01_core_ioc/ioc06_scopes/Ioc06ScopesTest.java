@@ -17,7 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Testy lekcji Ioc06Scopes. {@code @SpringBootTest} startuje kontekst Ioc06Application (potrzebujemy prawdziwych
- * beanów z wstrzykiwaniem); sekcja 2b używa małego ApplicationContextRunner (runner = uruchamiacz małych kontekstów).
+ * beanów z wstrzykiwaniem); test metody @Bean (sekcja 2) używa małego ApplicationContextRunner (runner = uruchamiacz
+ * małych kontekstów) z klasą demonstracyjną SingletonCartConfig.
  * Uwaga: kontekst jest wspólny dla testów w klasie, więc singletony mają stan z poprzednich testów —
  * dlatego porównujemy przyrosty, a nie wartości bezwzględne.
  */
@@ -67,10 +68,11 @@ class Ioc06ScopesTest {
     }
 
     @Test
-    @DisplayName("2b. Metoda @Bean bez @Scope jest singletonem, mimo @Scope(prototype) na klasie koszyka")
+    @DisplayName("2. Metoda @Bean bez @Scope jest singletonem, mimo @Scope(prototype) na klasie koszyka")
     void beanMethodDefaultsToSingleton() {
+        // własna klasa demonstracyjna, NIE szkielet ćwiczenia 3 — po rozwiązaniu ćwiczenia ten test dalej przechodzi
         new ApplicationContextRunner()
-                .withUserConfiguration(Ioc06Exercise3Config.class)
+                .withUserConfiguration(SingletonCartConfig.class)
                 .run(ctx -> assertThat(ctx.getBean(ShoppingCart.class)).isSameAs(ctx.getBean(ShoppingCart.class)));
     }
 
@@ -101,7 +103,7 @@ class Ioc06ScopesTest {
     }
 
     @Test
-    @DisplayName("5. Licznik oparty o AtomicInteger nie gubi zliczeń przy wielu wątkach")
+    @DisplayName("4. Licznik oparty o AtomicInteger nie gubi zliczeń przy wielu wątkach")
     void atomicCounterSurvivesManyThreads() throws Exception {
         int before = safeVisitCounter.count();
         ExecutorService pool = Executors.newFixedThreadPool(4);

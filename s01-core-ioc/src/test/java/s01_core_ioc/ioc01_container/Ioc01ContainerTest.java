@@ -47,6 +47,14 @@ class Ioc01ContainerTest {
     }
 
     @Test
+    @DisplayName("3. Klasa podana wprost staje się beanem nawet bez adnotacji (jawna rejestracja)")
+    void explicitRegistrationWithoutAnnotation() {
+        try (var context = new AnnotationConfigApplicationContext(ManualOrderCalculator.class)) {
+            assertThat(context.getBean(ManualOrderCalculator.class).total(Map.of("Herbata", 1))).isEqualTo(1599);
+        }
+    }
+
+    @Test
     @DisplayName("3. Bez zarejestrowanego PriceList kontener nie wystartuje (pytanie kontrolne 4)")
     void missingDependency() {
         assertThatThrownBy(() -> new AnnotationConfigApplicationContext(OrderCalculator.class))

@@ -9,7 +9,8 @@ import org.springframework.context.annotation.Bean;
 public class Ioc05Exercise2Config {
 
     // TODO: dodaj adnotację @Primary na jednej z poniższych metod tak, żeby getBean(NotificationSender.class)
-    //       zwracało wysyłacz e-mail (bez @Primary kontener zgłosi NoUniqueBeanDefinitionException).
+    //       zwracało wysyłacz e-mail (bez @Primary kontener zgłosi NoUniqueBeanDefinitionException — @Primary stojące
+    //       na klasie EmailSender tu nie pomaga, bo dla metody @Bean liczy się adnotacja na metodzie).
     @Bean
     public NotificationSender emailSender() {
         return new EmailSender();

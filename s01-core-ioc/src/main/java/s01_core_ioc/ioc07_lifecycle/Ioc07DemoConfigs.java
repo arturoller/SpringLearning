@@ -41,6 +41,40 @@ public final class Ioc07DemoConfigs {
         }
     }
 
+    /** Klasa z OBIEMA metodami: close() i shutdown(). Spring wywoła tylko close() (close ma pierwszeństwo). */
+    public static class CloseAndShutdownResource {
+        private final EventLog log;
+
+        public CloseAndShutdownResource(EventLog log) {
+            this.log = log;
+        }
+
+        public void close() {
+            log.add("obie metody: close");
+        }
+
+        public void shutdown() {
+            log.add("obie metody: shutdown");
+        }
+    }
+
+    /**
+     * Klasa implementująca {@code AutoCloseable} (automatycznie zamykalna). Rejestrowana WPROST (nie metodą
+     * {@code @Bean}) — a i tak dostaje close() przy zamknięciu kontekstu.
+     */
+    public static class AutoCloseableResource implements AutoCloseable {
+        private final EventLog log;
+
+        public AutoCloseableResource(EventLog log) {
+            this.log = log;
+        }
+
+        @Override
+        public void close() {
+            log.add("AutoCloseable: close");
+        }
+    }
+
     /** Bean prototype z @PostConstruct i @PreDestroy. */
     public static class TempBasket {
         private final EventLog log;
@@ -76,7 +110,10 @@ public final class Ioc07DemoConfigs {
         }
     }
 
-    /** Bez destroyMethod: Spring sam wykrywa publiczne close() i shutdown() (destroyMethod wnioskowane). */
+    /**
+     * Bez destroyMethod: Spring sam wykrywa metodę zamykającą (destroyMethod wnioskowane) — publiczne close(),
+     * a gdy go brak, publiczne shutdown(). Każda z tych dwóch klas ma tylko jedną z tych metod.
+     */
     public static class InferredDestroyConfig {
         @Bean
         CloseResource closeResource(EventLog log) {
@@ -86,6 +123,14 @@ public final class Ioc07DemoConfigs {
         @Bean
         ShutdownResource shutdownResource(EventLog log) {
             return new ShutdownResource(log);
+        }
+    }
+
+    /** Klasa z close() i shutdown() naraz — wywnioskowane zostanie tylko close(). */
+    public static class CloseAndShutdownConfig {
+        @Bean
+        CloseAndShutdownResource closeAndShutdownResource(EventLog log) {
+            return new CloseAndShutdownResource(log);
         }
     }
 

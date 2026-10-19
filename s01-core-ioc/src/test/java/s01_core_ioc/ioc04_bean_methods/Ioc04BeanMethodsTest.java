@@ -2,12 +2,14 @@ package s01_core_ioc.ioc04_bean_methods;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
+import java.lang.reflect.Modifier;
 import java.text.NumberFormat;
 import java.time.Clock;
 import java.time.Instant;
@@ -47,11 +49,17 @@ class Ioc04BeanMethodsTest {
     }
 
     @Test
-    @DisplayName("3. Clock to klasa JDK: bez metody @Bean nie ma beana, z ShopConfig jest")
+    @DisplayName("3. Clock i NumberFormat to klasy abstrakcyjne bez publicznego konstruktora: bean daje tylko metoda @Bean")
     void clockNeedsBeanMethod() {
-        new ApplicationContextRunner().run(ctx -> assertThat(ctx).doesNotHaveBean(Clock.class));
-        new ApplicationContextRunner().withUserConfiguration(ShopConfig.class)
-                .run(ctx -> assertThat(ctx).hasSingleBean(Clock.class));
+        assertThat(Modifier.isAbstract(Clock.class.getModifiers())).isTrue();
+        assertThat(Clock.class.getConstructors()).isEmpty();          // brak publicznych konstruktorów
+        assertThat(Modifier.isAbstract(NumberFormat.class.getModifiers())).isTrue();
+        assertThat(NumberFormat.class.getConstructors()).isEmpty();
+
+        new ApplicationContextRunner().withUserConfiguration(ShopConfig.class).run(ctx -> {
+            assertThat(ctx).hasSingleBean(Clock.class);
+            assertThat(ctx).hasSingleBean(NumberFormat.class);
+        });
     }
 
     @Test
@@ -86,6 +94,30 @@ class Ioc04BeanMethodsTest {
     }
 
     @Test
+    @DisplayName("5. Dwa beany TaxTable w aplikacji: @Qualifier wskazuje właściwy, sama nazwa parametru jest krucha")
+    void twoTaxTablesNeedQualifier() {
+        // aplikacja lekcji: kalkulator z @Qualifier("liteTaxTable") dostał właściwego beana
+        assertThat(context.getBeanNamesForType(TaxTable.class)).containsExactlyInAnyOrder("fullTaxTable", "liteTaxTable");
+        assertThat(context.getBean("liteCalculatorFromParameter", PriceCalculator.class).taxTable())
+                .isSameAs(context.getBean("liteTaxTable"));
+
+        // bez @Qualifier: parametr nazwany jak bean (liteTaxTable) działa tylko dzięki nazwie...
+        new ApplicationContextRunner()
+                .withUserConfiguration(FullModeConfig.class, LiteModeConfig.class, ParameterNamedLikeBeanConfig.class)
+                .run(ctx -> assertThat(ctx.getBean("byParameterName", PriceCalculator.class).taxTable())
+                        .isSameAs(ctx.getBean("liteTaxTable")));
+        // ...a po zmianie nazwy parametru na taxTable aplikacja nie startuje
+        new ApplicationContextRunner()
+                .withUserConfiguration(FullModeConfig.class, LiteModeConfig.class, RenamedParameterConfig.class)
+                .run(ctx -> {
+                    assertThat(ctx).hasFailed();
+                    assertThat(ctx.getStartupFailure()).rootCause()
+                            .isInstanceOf(NoUniqueBeanDefinitionException.class)
+                            .hasMessageContaining("expected single matching bean but found 2: fullTaxTable,liteTaxTable");
+                });
+    }
+
+    @Test
     @DisplayName("5. Pytanie kontrolne 4: clock() na beanie ShopConfig (proxy) zwraca singletona z kontenera")
     void callingBeanMethodOnProxyReturnsSingleton() {
         ShopConfig config = context.getBean(ShopConfig.class);
@@ -106,6 +138,22 @@ class Ioc04BeanMethodsTest {
         @Bean
         TaxTable plainTaxTable() {
             return new TaxTable();
+        }
+    }
+
+    /** Bez @Qualifier: parametr nazwany tak samo jak bean "liteTaxTable" — dopasowanie po nazwie parametru. */
+    static class ParameterNamedLikeBeanConfig {
+        @Bean
+        PriceCalculator byParameterName(TaxTable liteTaxTable) {
+            return new PriceCalculator(liteTaxTable);
+        }
+    }
+
+    /** Bez @Qualifier i z inną nazwą parametru — przy dwóch beanach TaxTable kontener nie ma jak wybrać. */
+    static class RenamedParameterConfig {
+        @Bean
+        PriceCalculator renamedParameter(TaxTable taxTable) {
+            return new PriceCalculator(taxTable);
         }
     }
 }
