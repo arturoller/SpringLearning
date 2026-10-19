@@ -114,6 +114,29 @@ public final class Start02MultiModule {
     // DOBRA PRAKTYKA: używaj mvnw zamiast „gołego” mvn. Dlaczego? Każdy (Ty, kolega, serwer CI) buduje tą samą wersją
     //   Mavena zapisaną w .mvn/wrapper/maven-wrapper.properties — koniec z „u mnie działa”.
 
+    // =================================================================================================
+    // 5. JAVALEARNING A SPRINGLEARNING, INTELLIJ I WERSJA JAVY
+    // =================================================================================================
+    //
+    // RÓŻNICA WZGLĘDEM JAVALEARNING: tam wszystkie lekcje leżą w JEDNYM katalogu src/ (pom.xml ustawia sourceDirectory=src).
+    // Tu każdy dział to osobny moduł z własnym src/main/java i src/test/java (standardowy układ Mavena, jak ze Spring
+    // Initializra). Dlaczego? Startery zmieniają autokonfigurację całego classpathu — Spring Security w jednym wspólnym
+    // src zamknąłby na hasło wszystkie lekcje webowe. Osobny moduł = osobny classpath (sekcja 2).
+    //
+    // JAK OTWORZYĆ PROJEKT W INTELLIJ, gdy moduły nie są widoczne jako źródła (brak niebieskich katalogów src/main/java):
+    //   • prawy przycisk na głównym pom.xml (w korzeniu repozytorium) → Add as Maven Project (dodaj jako projekt Mavena),
+    //   • albo File → Open → wskaż główny pom.xml → Open as Project (otwórz jako projekt).
+    // IntelliJ wczyta wtedy listę modules z rodzica i każdy dział stanie się modułem ze źródłami i testami.
+    //
+    // SDK PROJEKTU (SDK = zestaw narzędzi Javy, czyli JDK): File → Project Structure → Project → SDK — wybierz JDK 21 albo
+    // nowsze (zalecane 25). Z JDK 17 kod się nie skompiluje, bo kurs wymaga Javy 21 (java.version=21 w rodzicu).
+    //
+    // PUŁAPKA: ./mvnw w terminalu NIE używa SDK wybranego w IntelliJ. Bierze JDK ze zmiennej środowiskowej JAVA_HOME, a gdy
+    //   jej nie ma — polecenie java z PATH. Dlaczego to ważne? Możesz mieć w IntelliJ JDK 25, a w terminalu wciąż starą 17 —
+    //   wtedy ▶ w IntelliJ działa, a ./mvnw kończy się błędem „Fatal error compiling: error: release version 21 not
+    //   supported” (wersja 21 nie jest obsługiwana — kompilator JDK 17 nie umie kompilować do Javy 21).
+    //   Naprawa: ustaw JAVA_HOME na JDK 21+ (np. ścieżkę z IntelliJ: katalog .jdks w profilu użytkownika) i uruchom terminal ponownie.
+
     /*
      * =================================================================================================
      * ŚCIĄGA:
@@ -123,6 +146,8 @@ public final class Start02MultiModule {
      *   • Starter = zestaw bibliotek; Boot 4: spring-boot-starter-webmvc (dawniej -web), testy: -webmvc-test.
      *   • Autokonfiguracja: Boot tworzy beany zależnie od classpath (jest Spring MVC → dispatcherServlet).
      *   • ./mvnw -pl s00-start test — testy jednego działu; mvnw.cmd w Windows.
+     *   • JavaLearning: jedno src/; tu: moduł na dział. IntelliJ: pom.xml → Add as Maven Project; SDK projektu = JDK 21+.
+     *   • ./mvnw używa JAVA_HOME (albo java z PATH), nie SDK z IntelliJ; JDK 17 → „release version 21 not supported”.
      *
      * PYTANIA KONTROLNE:
      *   1. Dlaczego kurs ma osobny moduł na każdy dział, zamiast jednego dużego projektu?
@@ -132,6 +157,8 @@ public final class Start02MultiModule {
      *      {@code @WebMvcTest} się nie kompiluje (kompilator nie zna tej adnotacji). Czego brakuje w Boot 4?
      *   5. Skąd moduł bierze wersję spring-boot-starter-webmvc, skoro w jego pom.xml jej nie ma?
      *   6. Czym różni się ./mvnw test od ./mvnw -pl s00-start test?
+     *   7. Co się stanie? W IntelliJ masz SDK projektu JDK 25, ale w terminalu JAVA_HOME wskazuje JDK 17. Uruchamiasz
+     *      ./mvnw -pl s00-start test. Jaki będzie komunikat i dlaczego ▶ w IntelliJ mimo to działa?
      *   (odpowiedzi w zwiniętym bloku na samym końcu pliku)
      * =================================================================================================
      */
@@ -188,6 +215,9 @@ public final class Start02MultiModule {
      *      bibliotek Springa. Moduł dziedziczy po głównym pom.xml.
      *   6. ./mvnw test buduje i testuje wszystkie moduły z listy modules; -pl s00-start ogranicza pracę do jednego modułu
      *      (szybciej, a błąd w innym dziale nie przeszkadza).
+     *   7. Maven przerwie budowanie: „Fatal error compiling: error: release version 21 not supported”. ./mvnw używa JDK
+     *      z JAVA_HOME (tu 17), a ten kompilator nie umie kompilować do Javy 21. ▶ w IntelliJ używa SDK projektu (JDK 25),
+     *      dlatego tam działa. Naprawa: JAVA_HOME na JDK 21+. Sprawdzone uruchomieniem (JDK 17, oraz bez JAVA_HOME z java 17 w PATH).
      */
     // </editor-fold>
 }

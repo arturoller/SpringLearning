@@ -31,7 +31,8 @@ package s00_start.start03_first_application;
  *   service = serwis (logika biznesowa); rest controller = kontroler REST; mapping = mapowanie (adres → metoda);
  *   request parameter = parametr zapytania (?name=Ala); default value = wartość domyślna; port = port (numer „drzwi”
  *   serwera); embedded server = wbudowany serwer; log = dziennik zdarzeń aplikacji; dependency injection = wstrzykiwanie
- *   zależności; constructor injection = wstrzykiwanie przez konstruktor.
+ *   zależności; constructor injection = wstrzykiwanie przez konstruktor; bean = ziarno (obiekt zarządzany przez Springa);
+ *   singleton = jedyny egzemplarz (Spring tworzy jeden obiekt danego beana i współdzieli go).
  *
  * ZOBACZ TEŻ: t34_toward_spring/Spring01IocContainer (własny kontener IoC — to samo „ręcznie”),
  *             t34_toward_spring/Spring02Layers (warstwy kontroler–serwis–repozytorium),

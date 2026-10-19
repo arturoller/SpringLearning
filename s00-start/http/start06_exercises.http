@@ -1,0 +1,23 @@
+# Lekcja s00_start / Start06Exercises — ćwiczenie 3 (DiscountController)
+# 1. Uruchom Start06Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Odpowiedź (status, nagłówki, ciało) pojawi się w oknie Services.
+#
+# UWAGA: dopóki nie rozwiążesz ćwiczenia 3, metoda DiscountController.discount rzuca UnsupportedOperationException("TODO").
+# Spring odpowiada wtedy statusem 500 Internal Server Error (błąd serwera) z ogólnym JSON-em
+# {"timestamp":...,"status":500,"error":"Internal Server Error","path":"/api/discount"} — słowa TODO nie ma w odpowiedzi,
+# zobaczysz je w logu aplikacji (okno Run). Zapytanie z nieobecnym parametrem percent (zapytanie 4) dostaje 400 już teraz,
+# bo Spring sam odrzuca zapytanie bez wymaganego parametru — to nie jest Twoje rozwiązanie.
+
+@host = http://localhost:8080
+
+### 1. Rabat 15% — po rozwiązaniu: 200 OK, {"price":10000,"percent":15,"discounted":8500}
+GET {{host}}/api/discount?price=10000&percent=15
+
+### 2. Rabat 0% — po rozwiązaniu: 200 OK, {"price":10000,"percent":0,"discounted":10000}
+GET {{host}}/api/discount?price=10000&percent=0
+
+### 3. Zły procent — po rozwiązaniu: 400 Bad Request (obsługa IllegalArgumentException)
+GET {{host}}/api/discount?price=10000&percent=150
+
+### 4. Brak parametru percent — zawsze 400 Bad Request (Spring odrzuca zapytanie sam)
+GET {{host}}/api/discount?price=10000

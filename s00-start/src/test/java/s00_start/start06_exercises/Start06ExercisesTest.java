@@ -21,7 +21,7 @@ class Start06ExercisesTest {
     ApplicationContext context;
 
     @Test
-    @DisplayName("2. Klasa testów ćwiczeń ma etykietę „cwiczenie” — dlatego ./mvnw test ją pomija")
+    @DisplayName("2. Klasa testów ćwiczeń ma etykietę „cwiczenie” (pomijanie takich testów robi Surefire według pom.xml)")
     void exerciseTestsAreTagged() {
         // getAnnotation = pobierz adnotację klasy (refleksja, t19_annotations_reflection/Annotations03ReflectionBasics)
         Tag tag = Start06ExercisesExercisesTest.class.getAnnotation(Tag.class);
@@ -29,7 +29,7 @@ class Start06ExercisesTest {
     }
 
     @Test
-    @DisplayName("3. Klasa testów rozwiązań ma etykietę „wzorzec” — biegnie przy każdym ./mvnw test")
+    @DisplayName("3. Klasa testów rozwiązań ma etykietę „wzorzec” (a tej etykiety pom.xml nie wyklucza)")
     void solutionTestsAreTagged() throws ClassNotFoundException {
         Class<?> solutionsTest = Class.forName("s00_start.solutions.start06_exercises.Start06ExercisesSolutionsTest");
         assertThat(solutionsTest.getAnnotation(Tag.class).value()).isEqualTo("wzorzec");

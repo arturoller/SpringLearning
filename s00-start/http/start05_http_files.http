@@ -35,5 +35,7 @@ Content-Type: application/json
 }
 
 ### 6. To samo co zapytanie 1, ale z nagłówkiem Accept — prosimy wprost o JSON
+# Uwaga: produkty są w pamięci aplikacji. Jeśli wcześniej wysłałeś zapytanie 4 (POST), lista będzie dłuższa
+# o dodane produkty (np. Ciastka). Po zatrzymaniu i ponownym uruchomieniu aplikacji wraca stan startowy (3 produkty).
 GET {{host}}/api/products
 Accept: application/json

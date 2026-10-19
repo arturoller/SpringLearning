@@ -95,8 +95,9 @@ public final class Start06Exercises {
      * PYTANIA KONTROLNE:
      *   1. Dlaczego szkielet rzuca UnsupportedOperationException, zamiast np. zwracać 0?
      *   2. Co się stanie? Uruchomisz ./mvnw -pl s00-start test -Dgroups=cwiczenie (bez -DexcludedGroups).
-     *   3. Co się stanie? Przeniesiesz SolutionDiscountController do pakietu s00_start.start06_exercises.solutions
-     *      (podpakiet lekcji) i uruchomisz Start06Application.
+     *   3. Co się stanie? Skopiujesz SolutionDiscountController do pakietu s00_start.start06_exercises.solutions
+     *      (podpakiet lekcji), zrobisz metodę solution1 publiczną (bez tego kod się nie skompiluje) i uruchomisz
+     *      Start06Application.
      *   4. ZNAJDŹ BŁĄD: klasa testów ćwiczeń nie ma @Tag("cwiczenie"). Co się stanie z ./mvnw test, zanim rozwiążesz ćwiczenia?
      *   5. Po co testy rozwiązań wzorcowych biegną przy każdym ./mvnw test?
      *   (odpowiedzi w zwiniętym bloku na samym końcu pliku)
@@ -143,7 +144,9 @@ public final class Start06Exercises {
      *      wypisze „Tests run: 0” i... BUILD SUCCESS. Zielone budowanie, choć nic nie zostało sprawdzone — dlatego
      *      zawsze patrz na liczbę testów, nie tylko na kolor. Sprawdzone uruchomieniem.
      *   3. Aplikacja nie wystartuje: oba kontrolery mapują GET /api/discount i Spring zgłasza błąd „Ambiguous mapping”
-     *      (niejednoznaczne mapowanie). Dlatego rozwiązania leżą w pakiecie-rodzeństwie. Sprawdzone uruchomieniem.
+     *      (niejednoznaczne mapowanie). Dlatego rozwiązania leżą w pakiecie-rodzeństwie.
+     *      (Gdybyś kontroler tylko przeniósł, bez zmiany solution1 na public, kompilator zgłosi błąd wcześniej:
+     *      „solution1(int,int) is not public”.) Oba kroki sprawdzone uruchomieniem.
      *   4. Testy ćwiczeń biegłyby przy każdym ./mvnw test i — dopóki ćwiczenia są nierozwiązane — kończyłyby się błędem,
      *      więc cały build byłby czerwony. Tag cwiczenie chroni budowanie.
      *   5. Dowodzą, że ćwiczenie jest rozwiązywalne, a jego test poprawny. Gdyby test ćwiczenia miał błąd, ten sam błąd

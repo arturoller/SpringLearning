@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 
 /**
- * ProductStore = magazyn produktów w pamięci. {@code @Component} (komponent) — zwykły bean Springa.
+ * ProductStore = magazyn produktów w pamięci. {@code @Component} (komponent) — zwykły bean (ziarno — obiekt zarządzany przez Springa).
  * Na start ma trzy produkty. Dane znikają po zatrzymaniu aplikacji (prawdziwa baza — od działu s07_data_jdbc).
  * Metody są synchronized (synchronizowane), bo serwer obsługuje zapytania równolegle, w wielu wątkach
  * (t21_concurrency/Concurrency02RaceConditions).

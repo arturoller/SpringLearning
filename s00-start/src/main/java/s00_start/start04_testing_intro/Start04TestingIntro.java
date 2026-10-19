@@ -32,7 +32,7 @@ import java.util.List;
  *   unit test = test jednostkowy; given/when/then = mając/gdy/wtedy (układ testu); expected = oczekiwane;
  *   actual = faktyczne; mock = atrapa (udawany obiekt); stub = zaślepka (atrapa z ustaloną odpowiedzią);
  *   verify = sprawdź (czy metoda atrapy została wywołana); slice test = test wycinka; perform = wykonaj (zapytanie);
- *   status = status odpowiedzi HTTP; json path = ścieżka w JSON-ie ($.gross = pole gross w głównym obiekcie).
+ *   bean = ziarno (obiekt zarządzany przez Springa); status = status odpowiedzi HTTP; json path = ścieżka w JSON-ie ($.gross = pole gross w głównym obiekcie).
  *
  * ZOBACZ TEŻ: t32_junit_mockito/JUnit01Basics (JUnit od podstaw), t32_junit_mockito/JUnit03AssertJ (asercje AssertJ),
  *             t32_junit_mockito/JUnit04Mockito (atrapy Mockito), t25_testing/Testing02TestDoubles (rodzaje atrap),
@@ -176,8 +176,8 @@ public final class Start04TestingIntro {
      *   1. Jednostkowy tworzy obiekt przez new i nie startuje Springa — szybki, sprawdza logikę jednej klasy.
      *      @SpringBootTest startuje cały kontekst — wolniejszy, sprawdza, czy beany i konfiguracja działają razem.
      *      Logika → jednostkowy; „czy aplikacja działa jako całość” → @SpringBootTest.
-     *   2. 1229. 999 * 123 = 122 877; + 50 = 122 927; dzielenie całkowite przez 100 = 1229 (czyli 1228,77 zł/100
-     *      zaokrąglone do najbliższego grosza). Sprawdzone testem w Start04TestingIntroUnitTest.
+     *   2. 1229. 999 * 123 = 122 877; + 50 = 122 927; dzielenie całkowite przez 100 = 1229 (dokładnie
+     *      wychodzi 1228,77 gr, zaokrąglone do najbliższego grosza daje 1229 gr). Sprawdzone testem w Start04TestingIntroUnitTest.
      *   3. Kontekst testu się nie uruchomi: PriceController wymaga beana PriceCalculator, a @WebMvcTest nie tworzy
      *      serwisów. Błąd: „No qualifying bean of type ...PriceCalculator available” (brak pasującego beana).
      *      Sprawdzone uruchomieniem.

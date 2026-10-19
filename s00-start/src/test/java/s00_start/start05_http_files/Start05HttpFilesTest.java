@@ -113,4 +113,19 @@ class Start05HttpFilesTest {
                 .satisfies(e -> assertThat(((HttpClientErrorException) e).getStatusCode())
                         .isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE));
     }
+
+    @Test
+    @DisplayName("3. JSON wysłany całkiem BEZ nagłówka Content-Type → też 415 (pytanie 4 dosłownie)")
+    void noContentType() throws Exception {
+        // RestClient zawsze ustawia jakiś Content-Type, więc tu używamy klienta z JDK (java.net.http), który nic sam nie dodaje
+        java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder(
+                        java.net.URI.create("http://localhost:" + port + "/api/products"))
+                .POST(java.net.http.HttpRequest.BodyPublishers.ofString("{\"name\": \"Ciastka\", \"priceGrosze\": 1299}"))
+                .build();
+
+        java.net.http.HttpResponse<String> response = java.net.http.HttpClient.newHttpClient()
+                .send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+        assertThat(response.statusCode()).isEqualTo(415);
+    }
 }

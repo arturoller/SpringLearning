@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * 8080” i otwórz http://localhost:8080/api/hello?name=Ala albo plik s00-start/http/start03_first_application.http.
  *
  * {@code @SpringBootApplication} = trzy adnotacje w jednej:
- *   {@code @Configuration} (ta klasa może definiować beany), {@code @EnableAutoConfiguration} (włącz autokonfigurację),
+ *   {@code @Configuration} (ta klasa może definiować beany, czyli ziarna — obiekty zarządzane przez Springa), {@code @EnableAutoConfiguration} (włącz autokonfigurację),
  *   {@code @ComponentScan} (skanuj TEN pakiet i jego podpakiety w poszukiwaniu klas z {@code @Component}, {@code @Service}...).
  */
 @SpringBootApplication

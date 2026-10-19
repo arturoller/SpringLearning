@@ -163,7 +163,7 @@ public final class Start05HttpFiles {
      *   3. 404 Not Found. Kontroler sam zwraca ResponseEntity.notFound() dla pustego Optional — nie ma wyjątku, więc nie
      *      ma 500. Sprawdzone testem.
      *   4. 415 Unsupported Media Type — bez Content-Type serwer nie wie, że ciało to JSON, i nie wybierze konwertera
-     *      Jacksona. Sprawdzone testem (Start05HttpFilesTest wysyła ciało jako text/plain).
+     *      Jacksona. Sprawdzone testami (Start05HttpFilesTest: raz bez żadnego Content-Type, raz z text/plain).
      *   5. MockMvc woła DispatcherServlet bezpośrednio, bez serwera i sieci — szybciej. RANDOM_PORT startuje prawdziwy
      *      Tomcat, a RestClient łączy się siecią — sprawdza też to, czego MockMvc nie widzi (prawdziwy serwer, port).
      *   6. Port 8080 może być zajęty (np. przez aplikację uruchomioną w IntelliJ), a równoległe testy kłóciłyby się o niego.
