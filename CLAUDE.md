@@ -70,7 +70,9 @@ temp/                      lokalne pliki robocze Claude (notatki, eksperymenty) 
   w Boot 4 — sprawdzone w źródłach 4.1.1; LessonLint zgłasza `@MockBean`).
 - Spis starterów istniejących w danej wersji Boota: `~/.m2/repository/org/springframework/boot/spring-boot-dependencies/<wersja>/*.pom`.
   W Boot 4.1.1 NIE ma `spring-boot-starter-aop` (jest `spring-boot-starter-aspectj` — dla `s18-aop`); `spring-boot-starter-web`
-  istnieje, ale jest przestarzały na rzecz `-webmvc`; startery `-classic` służą do migracji — kurs ich nie używa.
+  istnieje, ale jest przestarzały na rzecz `-webmvc`; startery `-classic` służą do migracji — kurs ich nie używa;
+  `spring-boot-starter-oauth2-resource-server` jest przestarzały na rzecz `spring-boot-starter-security-oauth2-resource-server`.
+  Przed użyciem startera sprawdź `<description>` w jego pom — Boot 4 tam oznacza przestarzałe nazwy.
 - Mockito działa jako agent Javy skonfigurowany w surefire w parent pom (`-javaagent:…mockito-core…jar`). Bez tego na komputerze
   ucznia testy z `@MockitoBean` padają („Could not self-attach to current VM”) — nie usuwaj tej konfiguracji.
 
@@ -175,3 +177,13 @@ W treści: `PUŁAPKA:` i `DOBRA PRAKTYKA:` (zawsze z „dlaczego”), na końcu 
 | `tools/lessons.txt` | Rejestr lekcji (`sNN_dzial/KlasaLekcji`; linia z `/*` na końcu = sam dział). Uzupełniany razem z konspektem. |
 | `tools/javalearning-lessons.txt` | Rejestr lekcji JavaLearning — do odesłań `tNN_pakiet/Klasa`. Aktualizuj, gdy w JavaLearning dojdą lekcje. |
 | `tools/tags.txt` | Wymagane tagi i tagi sprawdzane pod kątem formatu (wspólne z JavaLearning). |
+
+## 10. Stan kursu (aktualizuj po każdej większej zmianie)
+- **2026-10-19:** napisane wszystkie działy s00–s22 (115 lekcji). Pełne `./mvnw test` w czystym worktree: zielone
+  (s00–s20: 1405 testów; s21: 96, s22: 83), LessonLint `PROBLEMS: 0`. Każdy dział zweryfikowany przez główną sesję
+  (testy, testy ćwiczeń padają z zamierzonego powodu, lint, wyrywkowo merytoryka).
+- Działy s00–s02 przeszły pełną recenzję merytoryczną (6 agentów, 2026-10-18) i poprawki. **Do zrobienia:** taka sama
+  recenzja działów s03–s22 (agent-recenzent na dział, jak w 2026-10-18: weryfikacja PUŁAPEK i odpowiedzi uruchomieniem),
+  indeks haseł A–Z w README (jak w JavaLearning).
+- Na GitHubie wiszą stare, nigdy nie scalone gałęzie z sesji w chmurze z 2026-10-11 (`s03-boot-basics`,
+  `claude/funny-bell-pmq611` z WIP) — zastąpione przez obecne działy; do usunięcia decyzją użytkownika.

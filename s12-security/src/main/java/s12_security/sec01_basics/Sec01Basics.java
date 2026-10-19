@@ -87,7 +87,7 @@ public final class Sec01Basics {
     // charset="UTF-8" pojawił się w Security 7.1 — starsze poradniki pokazują samo Basic realm="Realm".
     //
     // PUŁAPKA: w TYM module wygenerowanego hasła NIE MA, dopóki nie ustawisz spring.security.user.name (dlatego
-    //   Sec01StarterOnlyApplication je ustawia). Dlaczego? Moduł ma też starter oauth2-resource-server (do lekcji o JWT),
+    //   Sec01StarterOnlyApplication je ustawia). Dlaczego? Moduł ma też starter security-oauth2-resource-server (do lekcji o JWT),
     //   a Boot tworzy użytkownika „user” tylko wtedy, gdy na classpath NIE ma alternatywnego sposobu logowania
     //   (klasy OpaqueTokenIntrospector, ClientRegistrationRepository albo RelyingPartyRegistrationRepository) — chyba
     //   że sam podasz spring.security.user.name lub spring.security.user.password. Bez tego: nie ma żadnego
@@ -204,7 +204,7 @@ public final class Sec01Basics {
      * ŚCIĄGA:
      *   • Starter security = wszystko zamknięte; użytkownik „user”, hasło w logu (WARN, nowe przy każdym starcie);
      *     przeglądarka → 302 na /login, program → 401 + WWW-Authenticate: Basic realm="Realm", charset="UTF-8".
-     *   • Brak hasła w logu? Na classpath jest inny sposób logowania (np. oauth2-resource-server) — ustaw
+     *   • Brak hasła w logu? Na classpath jest inny sposób logowania (np. security-oauth2-resource-server) — ustaw
      *     spring.security.user.name albo zdefiniuj własny UserDetailsService.
      *   • Tomcat → DelegatingFilterProxy → FilterChainProxy (bean springSecurityFilterChain) → pierwszy pasujący
      *     SecurityFilterChain → filtry → DispatcherServlet.
@@ -280,7 +280,7 @@ public final class Sec01Basics {
      * ODPOWIEDZI:
      *   1. Starter włącza domyślny łańcuch anyRequest().authenticated() — nie wie, które adresy uważasz za publiczne.
      *      Odpowiedź 401 ma nagłówek WWW-Authenticate: Basic realm="Realm", charset="UTF-8" — „zaloguj się przez Basic”.
-     *   2. Nie pojawi się. Moduł ma na classpath starter oauth2-resource-server (klasa OpaqueTokenIntrospector), więc
+     *   2. Nie pojawi się. Moduł ma na classpath starter security-oauth2-resource-server (klasa OpaqueTokenIntrospector), więc
      *      Boot uznaje, że logowanie będzie przez tokeny, i nie tworzy użytkownika „user”. Hasło wraca po ustawieniu
      *      spring.security.user.name albo spring.security.user.password. Sprawdzone testem
      *      Sec01BasicsResourceServerPitfallTest (brak beana UserDetailsService, brak linii w logu, logowanie → 401).

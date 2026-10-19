@@ -19,7 +19,7 @@ import java.util.Base64;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Test PUŁAPKI z sekcji 1 lekcji Sec01Basics: drugi starter (oauth2-resource-server) wyłącza wygenerowanego
+ * Test PUŁAPKI z sekcji 1 lekcji Sec01Basics: drugi starter (security-oauth2-resource-server) wyłącza wygenerowanego
  * użytkownika. Osobna klasa, bo przechwycone wyjście ({@code CapturedOutput}) zbiera log ze WSZYSTKICH testów klasy —
  * tu nie może się w nim znaleźć hasło z innego testu.
  */
@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class Sec01BasicsResourceServerPitfallTest {
 
     @Test
-    @DisplayName("1. PUŁAPKA: ze starterem oauth2-resource-server na classpath Boot NIE tworzy użytkownika „user” ani hasła")
+    @DisplayName("1. PUŁAPKA: ze starterem security-oauth2-resource-server na classpath Boot NIE tworzy użytkownika „user” ani hasła")
     void noGeneratedUserWhenResourceServerIsOnClasspath(CapturedOutput output) throws Exception {
         // ta sama aplikacja co w Sec01BasicsStarterOnlyTest, ale BEZ spring.security.user.name
         try (ConfigurableApplicationContext context = new SpringApplication(Sec01StarterOnlyApplication.class)

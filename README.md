@@ -4,7 +4,8 @@ Samodzielny kurs Spring Boot po polsku — kontynuacja kursu [JavaLearning](http
 
 > **Najpierw Java:** [https://github.com/arturoller/JavaLearning](https://github.com/arturoller/JavaLearning). Ten kurs zakłada znajomość Javy z tamtego repozytorium — zobacz sekcję „Wymagania” niżej.
 
-Kurs jest w budowie: gotowe działy mają w spisie treści znak ✅, kolejne pojawiają się po kolei (⏳ = zaplanowany).
+Wszystkie 23 działy (s00–s22, 115 lekcji, ok. 1600 testów) są gotowe — w spisie treści mają znak ✅. Kurs będzie dalej
+poprawiany (recenzje merytoryczne, nowe wersje Spring Boota).
 
 ## Dla kogo jest ten kurs
 
