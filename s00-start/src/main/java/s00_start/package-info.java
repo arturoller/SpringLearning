@@ -10,6 +10,8 @@
  *       {@code @SpringBootTest}, {@code @WebMvcTest}, {@code @MockitoBean}).</li>
  *   <li>{@code start05_http_files} — Start05HttpFiles: pliki .http i prawdziwe zapytania HTTP do działającej aplikacji.</li>
  *   <li>{@code start06_exercises} — Start06Exercises: jak działają ćwiczenia, tagi testów i rozwiązania wzorcowe.</li>
+ *   <li>{@code start07_glossary} — Start07Glossary: słowniczek pojęć całego kursu, tabela terminologii i pojęcia, które łatwo pomylić.</li>
+ *   <li>{@code start08_debugging} — Start08Debugging: czytanie błędów startu i kontekstu, debugger, logi, błędy środowiska.</li>
  * </ol>
  *
  * <p>Czym jest ten plik? package-info.java opisuje CAŁY pakiet (package = pakiet, info = informacja). Nie zawiera
