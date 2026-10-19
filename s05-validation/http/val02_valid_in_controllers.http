@@ -1,0 +1,80 @@
+# Lekcja s05_validation / Val02ValidInControllers — walidacja w kontrolerach (IntelliJ HTTP Client)
+# 1. Uruchom Val02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Odpowiedź (status, nagłówki, ciało) pojawi się w oknie Services.
+# Uwaga: domyślne 400 w Spring Boot NIE mówi, które pole jest złe. W logu aplikacji (linia WARN „Resolved [...]”) są
+# szczegóły tylko dla części wyjątków (MethodArgumentNotValidException, błąd konwersji) — dla HandlerMethodValidationException
+# nie ma nawet wpisu (przy domyślnych ustawieniach). To celowe: czytelne błędy to temat działu s06_error_handling.
+
+@host = http://localhost:8080
+
+### 1. Poprawny produkt — oczekiwane: 201 Created, nagłówek Location: /api/products/SPO-001
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "name": "Kawa ziarnista 1kg",
+  "sku": "SPO-001",
+  "price": 64.99
+}
+
+### 2. Zły produkt (pusta nazwa, zły SKU, ujemna cena) — oczekiwane: 400; w logu MethodArgumentNotValidException z 3 błędami
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "name": " ",
+  "sku": "x",
+  "price": -1
+}
+
+### 3. To samo ciało, ale endpoint BEZ @Valid — oczekiwane: 200 OK (zły formularz przeszedł!)
+POST {{host}}/api/products/unchecked
+Content-Type: application/json
+
+{
+  "name": " ",
+  "sku": "x",
+  "price": -1
+}
+
+### 4. Limit w granicach — oczekiwane: 200, {"limit":5}
+GET {{host}}/api/products?limit=5
+
+### 5. Limit poza zakresem (@Min(1) @Max(100)) — oczekiwane: 400; wyjątek HandlerMethodValidationException (w logu go nie ma)
+GET {{host}}/api/products?limit=0
+
+### 6. Limit nie jest liczbą — oczekiwane: 400; w logu MethodArgumentTypeMismatchException (błąd konwersji, nie walidacji)
+GET {{host}}/api/products?limit=abc
+
+### 7. Zły SKU w ścieżce — oczekiwane: 400; wyjątek HandlerMethodValidationException (w logu go nie ma)
+GET {{host}}/api/products/abc
+
+### 8. Dobry SKU w ścieżce — oczekiwane: 200, {"sku":"ELE-001"}
+GET {{host}}/api/products/ELE-001
+
+### 9. Złe ciało + dodatkowe ograniczenie na parametrze — oczekiwane: 400; wyjątek HandlerMethodValidationException (w logu go nie ma)
+# (a nie MethodArgumentNotValidException jak w zapytaniu 2!)
+POST {{host}}/api/products/copies?copies=1
+Content-Type: application/json
+
+{
+  "name": " ",
+  "sku": "x",
+  "price": -1
+}
+
+### 10. @Valid + BindingResult — oczekiwane: 400 i ciało z mapą pole → komunikat (kontroler odpowiada sam)
+POST {{host}}/api/products/manual
+Content-Type: application/json
+
+{
+  "name": " ",
+  "sku": "x",
+  "price": -1
+}
+
+### 11. Filtr z parametrów adresu (@Valid na rekordzie) — oczekiwane: 400 (kategoria krótsza niż 3 znaki)
+GET {{host}}/api/products/search?category=ab&page=1
+
+### 12. Kontroler z @Validated na klasie — oczekiwane: 500 Internal Server Error (pułapka z sekcji 5; w logu ERROR)
+GET {{host}}/api/validated?limit=0

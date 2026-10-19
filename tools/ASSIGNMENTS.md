@@ -218,7 +218,7 @@ Startery: `spring-boot-starter-webmvc` (+ test `-webmvc-test`). Model: produkty 
   mediów; właściwości Boota `spring.mvc.apiversion.*`; wersja bazowa „1.2+”, wersja domyślna, wspierane wersje, brak wersji
   i nieznana wersja (kody i wyjątki), oznaczanie wersji jako przestarzałej (deprecation). Porównanie z ręcznym `/api/v1/...`.
 
-## D. s05_validation — walidacja (5 lekcji) — stan: do napisania
+## D. s05_validation — walidacja (5 lekcji) — stan: gotowe (2026-10-19)
 Startery: `webmvc`, `validation` (+ test `-webmvc-test`). PUŁAPKA ogólna: domyślne komunikaty Hibernate Validatora zależą od
 Locale JVM (są polskie tłumaczenia) — testy NIE porównują treści domyślnych komunikatów bez ustalonego Locale; sprawdzają pole
 (property path) i typ ograniczenia albo własny komunikat (`message = "…"`).
@@ -302,3 +302,54 @@ SPRAWDŹ pakiety Boot 4 (`@DataJpaTest`, `TestEntityManager`) w jarach.
 - **Jpa06FlywayWithJpa** (`jpa06_flyway_with_jpa`): schemat z migracji Flyway + `ddl-auto=validate` (Hibernate tylko sprawdza);
   niezgodność encji i tabeli → błąd startu (SPRAWDŹ wyjątek i komunikat) — „Co się stanie?”; dlaczego nie `update` na
   produkcji. Zapowiedź relacji: `s09_jpa_relations/Rel01ManyToOne`.
+
+---
+
+## Zasady dla sekcji H–I (działy z częściową pracą z WIP)
+Sesja w chmurze (2026-10-11) zostawiła niescalony WIP na gałęzi `claude/funny-bell-pmq611`. Jego moduły s09 i s10 są już
+skopiowane do drzewa roboczego (`s09-jpa-relations/`, `s10-transactions/`), budują się i przechodzą LessonLint. Ocena: lekcje
+Rel01, Rel02, Tx01, Tx02 są kompletne i dobrej jakości, Rel03 i Tx03 to szkice (klasy/encje bez lekcji), reszty brak.
+Kolejność pracy agenta:
+1. PRZEGLĄD gotowych lekcji z WIP według `tools/AGENT_KIT.md` (szczególnie „Mistakes found in reviews”): każda PUŁAPKA i
+   odpowiedź „Co się stanie?” ma być sprawdzona uruchomieniem/testem — popraw albo usuń twierdzenia bez dowodu (np. w Tx02
+   komentarz o `NESTED` przy JPA nie ma testu — SPRAWDŹ). Testy lekcji nie mogą używać szkieletów ćwiczeń.
+2. Dokończenie szkiców (Rel03, Tx03) do pełnych lekcji.
+3. Nowe lekcje według konspektu.
+Zasady wspólne z sekcji C–G obowiązują (Maven tylko `-pl <moduł>`, H2 i Flyway per lekcja, bez portu 8080).
+
+## H. s09_jpa_relations — relacje JPA (6 lekcji) — stan: do napisania (Rel01, Rel02 z WIP — do przeglądu)
+Startery: `data-jpa`, `flyway`, `h2` (runtime), test `data-jpa-test`; dodatkowo `webmvc` (+ test `-webmvc-test`) tylko dla Rel06.
+- **Rel01ManyToOne**, **Rel02OneToMany** — z WIP: przegląd i weryfikacja (patrz zasady H–I).
+- **Rel03ManyToMany** (`rel03_many_to_many`, szkic w WIP): `@ManyToMany` (produkty ↔ tagi), tabela łącząca, strona właściciela,
+  `Set` zamiast `List` (SPRAWDŹ, co robi Hibernate 7 przy `List` — usuwanie i ponowne wstawianie wierszy), metody pomocnicze
+  utrzymujące obie strony, kiedy zamienić `@ManyToMany` na encję pośrednią z własnymi polami (pozycja zamówienia z ilością).
+- **Rel04LazyLoading** (`rel04_lazy_loading`): `FetchType.LAZY`/`EAGER`, wartości domyślne (`@ManyToOne`/`@OneToOne` EAGER,
+  kolekcje LAZY — SPRAWDŹ w JPA 3.2), proxy Hibernate (klasa obiektu), `LazyInitializationException` poza transakcją
+  (dokładny komunikat z uruchomienia), `spring.jpa.open-in-view` (domyślnie włączone + ostrzeżenie w logu — SPRAWDŹ treść
+  w Boot 4.1) i dlaczego warto je wyłączać; DOBRA PRAKTYKA: wszystko LAZY, a dociąganie jawne.
+- **Rel05NPlusOne** (`rel05_n_plus_one`): problem N+1 pokazany LICZBĄ zapytań (statystyki Hibernate:
+  `hibernate.generate_statistics` + `Statistics.getPrepareStatementCount()` — SPRAWDŹ nazwy w Hibernate 7.4), rozwiązania:
+  `JOIN FETCH`, `@EntityGraph`, `@BatchSize`/`default_batch_fetch_size`, projekcja DTO; PUŁAPKA: `JOIN FETCH` kolekcji +
+  stronicowanie (ostrzeżenie/wyjątek Hibernate 7 — SPRAWDŹ dokładnie) i duplikaty wierszy.
+- **Rel06EntityToDto** (`rel06_entity_to_dto`): dlaczego kontroler NIE zwraca encji (cykle w JSON przy relacjach
+  dwukierunkowych, leniwe pola → wyjątek albo zapytania przy serializacji, wyciek pól wewnętrznych, sprzężenie API ze
+  schematem bazy) — pokaż na prawdziwym kontrolerze (MockMvc) z encją, potem z rekordem DTO; mapowanie ręczne (metoda `from`,
+  osobna klasa mapper), gdzie mapować (serwis w transakcji); Lombok i MapStruct — tylko odesłanie
+  (`t20_lombok/Lombok03DataValueBuilder` jeśli istnieje w rejestrze JavaLearning). Plik `.http` dla aplikacji lekcji
+  (sprawdzanie ręczne na porcie 8089).
+
+## I. s10_transactions — transakcje (5 lekcji) — stan: do napisania (Tx01, Tx02 z WIP — do przeglądu)
+Startery: `data-jpa`, `flyway`, `h2` (runtime), test `data-jpa-test`. Dział TRUDNY — każde twierdzenie z testem.
+- **Tx01Transactional**, **Tx02Propagation** — z WIP: przegląd i weryfikacja (patrz zasady H–I).
+- **Tx03ProxyPitfalls** (`tx03_proxy_pitfalls`, klasy pomocnicze w WIP): wywołanie metody `@Transactional` z tej samej klasy
+  (self-invocation) — brak transakcji, metoda prywatna/`final` (SPRAWDŹ, co Spring 7 robi z `@Transactional` na metodzie
+  niepublicznej — od Framework 6.0 działa dla protected/package-private przy proxy klasowym?), wyjątek kontrolowany vs
+  niekontrolowany (rollback), złapany wyjątek w środku, `rollbackFor`; jak to naprawić (osobny bean, `TransactionTemplate`);
+  sprawdzanie `TransactionSynchronizationManager.isActualTransactionActive()` w testach.
+- **Tx04ReadOnlyIsolation** (`tx04_read_only_isolation`): `readOnly = true` — co naprawdę robi z Hibernate (tryb flush, brak
+  dirty checking — SPRAWDŹ), poziomy izolacji (`Isolation.*`) i zjawiska (brudny odczyt, niepowtarzalny odczyt, fantomy) —
+  pokaż tylko to, co da się DETERMINISTYCZNIE odtworzyć na H2 (dwie transakcje sterowane krok po kroku, bez `sleep`);
+  `timeout`.
+- **Tx05ProgrammaticTransactions** (`tx05_programmatic_transactions`): `TransactionTemplate` (`execute`,
+  `executeWithoutResult`, `setRollbackOnly`), `PlatformTransactionManager` niskopoziomowo, kiedy programowo zamiast adnotacji;
+  `@TransactionalEventListener` — tylko zapowiedź `s17_events`.

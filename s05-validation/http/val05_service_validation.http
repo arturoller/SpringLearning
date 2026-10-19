@@ -1,0 +1,27 @@
+# Lekcja s05_validation / Val05ServiceValidation — walidacja w serwisie (IntelliJ HTTP Client)
+# 1. Uruchom Val05Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Szczegóły błędów zobaczysz w logu aplikacji.
+
+@host = http://localhost:8080
+
+### 1. Poprawny produkt — oczekiwane: 201 Created
+POST {{host}}/api/products
+Content-Type: application/json
+
+{"name": "Kawa ziarnista 1kg", "sku": "SPO-001", "price": 64.99}
+
+### 2. Zły produkt — oczekiwane: 400 (zatrzymał go @Valid w KONTROLERZE; serwis nie został nawet wywołany)
+POST {{host}}/api/products
+Content-Type: application/json
+
+{"name": " ", "sku": "x", "price": -1}
+
+### 3. Stan magazynowy poprawnego SKU — oczekiwane: 200, {"sku":"ELE-001","stock":7}
+GET {{host}}/api/products/ELE-001/stock
+
+### 4. Zły SKU w adresie — kontroler go nie sprawdza, sprawdza serwis (@Validated) → ConstraintViolationException.
+# Oczekiwane: 500 Internal Server Error (bez obsługi wyjątku MVC nie zamienia go na 400 — to temat działu s06); w logu stos z ERROR.
+GET {{host}}/api/products/zle/stock
+
+### 5. „Uszkodzone dane”: BAD-001 ma ujemny stan magazynowy — walidacja WYNIKU metody → oczekiwane: 500 (ConstraintViolationException, ścieżka stockOf.<return value>)
+GET {{host}}/api/products/BAD-001/stock

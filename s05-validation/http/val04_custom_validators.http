@@ -1,0 +1,35 @@
+# Lekcja s05_validation / Val04CustomValidators — własne walidatory (IntelliJ HTTP Client)
+# 1. Uruchom Val04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Które pola są złe — zobaczysz w logu aplikacji (linia WARN „Resolved [...]”).
+
+@host = http://localhost:8080
+
+### 1. Poprawny produkt — oczekiwane: 201, {"sku":"SPO-001","category":"SPOZYWCZE"}
+POST {{host}}/api/products
+Content-Type: application/json
+
+{"name": "Kawa ziarnista 1kg", "sku": "SPO-001", "category": "SPOZYWCZE"}
+
+### 2. Zły SKU (@Sku) i nieznana kategoria (@KnownCategory z beanem CategoryCatalog) — oczekiwane: 400
+POST {{host}}/api/products
+Content-Type: application/json
+
+{"name": "Kawa", "sku": "spo-1", "category": "ZABAWKI", "altCode": "zle"}
+
+### 3. Poprawna promocja — oczekiwane: 201
+POST {{host}}/api/promotions
+Content-Type: application/json
+
+{"name": "Black Friday", "from": "2026-11-01", "to": "2026-11-30"}
+
+### 4. Odwrócony zakres dat (@ValidDateRange) — oczekiwane: 400; w logu błąd pola "to" (FieldError)
+POST {{host}}/api/promotions
+Content-Type: application/json
+
+{"name": "Odwrotnie", "from": "2026-11-30", "to": "2026-11-01"}
+
+### 5. Ten sam błąd w wyprzedaży z reportOnField = false — oczekiwane: 400; w logu błąd GLOBALNY (bez pola)
+POST {{host}}/api/flash-sales
+Content-Type: application/json
+
+{"name": "Odwrotnie", "from": "2026-11-30", "to": "2026-11-01"}

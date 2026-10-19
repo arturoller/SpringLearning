@@ -1,0 +1,66 @@
+# Lekcja s05_validation / Val03NestedAndGroups — obiekty zagnieżdżone i grupy (IntelliJ HTTP Client)
+# 1. Uruchom Val03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Szczegóły błędów walidacji (ścieżki pól) zobaczysz w logu aplikacji —
+#    linia WARN „Resolved [org.springframework.web.bind.MethodArgumentNotValidException ...]”.
+
+@host = http://localhost:8080
+
+### 1. Poprawne zamówienie — oczekiwane: 201 Created, {"id":"ZAM-001","lines":1}
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customerEmail": "jan@example.com",
+  "address": {"street": "Długa 5", "city": "Gdańsk", "zip": "80-001"},
+  "lines": [{"sku": "ELE-001", "quantity": 1}]
+}
+
+### 2. Błędy w adresie i w pozycji — oczekiwane: 400; w logu pola address.city i lines[0].quantity
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customerEmail": "jan@example.com",
+  "address": {"street": "Długa 5", "city": " ", "zip": "80-001"},
+  "lines": [{"sku": "ELE-001", "quantity": 0}]
+}
+
+### 3. To samo ciało w rekordzie BEZ kaskady — oczekiwane: 201 (błędy zagnieżdżone nie zostały wykryte!)
+POST {{host}}/api/orders/no-cascade
+Content-Type: application/json
+
+{
+  "customerEmail": "jan@example.com",
+  "address": {"street": "Długa 5", "city": " ", "zip": "80-001"},
+  "lines": [{"sku": "ELE-001", "quantity": 0}]
+}
+
+### 4. Tworzenie produktu bez id — oczekiwane: 201 (grupa OnCreate)
+POST {{host}}/api/products
+Content-Type: application/json
+
+{"name": "Kawa ziarnista 1kg", "price": 64.99}
+
+### 5. Tworzenie produktu Z id — oczekiwane: 400 (OnCreate: id nadaje serwer)
+POST {{host}}/api/products
+Content-Type: application/json
+
+{"id": 5, "name": "Kawa ziarnista 1kg", "price": 64.99}
+
+### 6. Aktualizacja z id w ciele — oczekiwane: 200 (OnUpdate: id wymagane)
+PUT {{host}}/api/products/5
+Content-Type: application/json
+
+{"id": 5, "name": "Kawa ziarnista 1kg", "price": 69.99}
+
+### 7. Aktualizacja bez id w ciele — oczekiwane: 400
+PUT {{host}}/api/products/5
+Content-Type: application/json
+
+{"name": "Kawa ziarnista 1kg", "price": 69.99}
+
+### 8. Samo @Valid (tylko grupa Default) — oczekiwane: 200, mimo że podano id
+POST {{host}}/api/products/default
+Content-Type: application/json
+
+{"id": 5, "name": "Kawa ziarnista 1kg", "price": 64.99}

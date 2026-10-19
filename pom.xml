@@ -31,6 +31,7 @@
         <module>s01-core-ioc</module>
         <module>s02-configuration</module>
         <module>s03-boot-basics</module>
+        <module>s05-validation</module>
         <module>s07-data-jdbc</module>
     </modules>
 
