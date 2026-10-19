@@ -128,6 +128,8 @@ W treści: `PUŁAPKA:` i `DOBRA PRAKTYKA:` (zawsze z „dlaczego”), na końcu 
   link `…/pull/new/<gałąź>` z wyniku push). **Merge robi użytkownik w GitHubie.** Nigdy nie wypychaj bezpośrednio na `main`.
   Gdy gałąź zależy od innej, jeszcze nie scalonej (np. potrzebuje zmian w parent pom), zbuduj ją na tamtej i powiedz
   użytkownikowi, w jakiej kolejności scalać.
+- **Przed rozpoczęciem działu sprawdź gałęzie zdalne** (`git fetch` + `git branch -r`) — sesje w chmurze mogły zostawić jego
+  wersję albo WIP, który nie trafił do `main` (tak było z s03–s12 na gałęzi `claude/funny-bell-pmq611`).
 - Komunikaty commitów po polsku, np. `s04_web_rest: REST w Springu (6 lekcji)`, zakończone liniami Co-Authored-By modeli.
 - Przed commitem działu: pełne `mvnw test` (zielone) + `java tools/LessonLint.java` z `PROBLEMS: 0` (tagi, encje HTML,
   niewidoczne znaki, odesłania do lekcji obu kursów, rejestr, tagi testów ćwiczeń/rozwiązań), brak plików w `temp/`.

@@ -260,7 +260,7 @@ Startery: `webmvc`, `validation` (+ test `-webmvc-test`).
   szczegółów (SQL, stos) klientowi, identyfikator błędu w logu i odpowiedzi; odesłanie do `t10_exceptions/…` (tylko nazwy
   z rejestru JavaLearning).
 
-## F. s07_data_jdbc — JDBC w Springu (5 lekcji) — stan: do napisania
+## F. s07_data_jdbc — JDBC w Springu (5 lekcji) — stan: gotowe (2026-10-19)
 Startery: `jdbc`, `h2` (runtime), `flyway` (+ test `-jdbc-test`). Bez weba, bez plików `.http`. Odesłania do
 `t29_jdbc_databases/…` (czysty JDBC w JavaLearning — tylko nazwy z rejestru).
 - **Jdbc01JdbcClient** (`jdbc01_jdbc_client`): `JdbcClient` (od Framework 6.1): `sql(...).param(...).query(Product.class).list()`,
