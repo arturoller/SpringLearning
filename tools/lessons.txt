@@ -6,6 +6,8 @@ s00_start/Start03FirstApplication
 s00_start/Start04TestingIntro
 s00_start/Start05HttpFiles
 s00_start/Start06Exercises
+s00_start/Start07Glossary
+s00_start/Start08Debugging
 s01_core_ioc/Ioc01Container
 s01_core_ioc/Ioc02ConstructorInjection
 s01_core_ioc/Ioc03Stereotypes

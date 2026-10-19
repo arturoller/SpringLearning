@@ -2,8 +2,9 @@
 
 | Plik | Do czego |
 |---|---|
-| `AGENT_KIT.md` | Zasady pisania lekcji dla podagentów Claude (język, tagi, testy jako „WYNIK”, ćwiczenia, determinizm, weryfikacja). |
-| `LessonLint.java` | Sprawdzacz formatu lekcji: tagi, encje HTML, niewidoczne znaki, odwołania do lekcji, rejestr, tagi testów ćwiczeń. |
+| `AGENT_KIT.md` | Zasady pisania lekcji dla podagentów Claude (język, tagi, testy jako „WYNIK”, ćwiczenia, determinizm, weryfikacja, dane sklepu, błędy z recenzji). |
+| `ASSIGNMENTS.md` | Konspekty działów — jedna sekcja = paczka lekcji dla jednego agenta. |
+| `LessonLint.java` | Sprawdzacz formatu lekcji: tagi, encje HTML, niewidoczne znaki, odwołania do lekcji, rejestr, tagi testów ćwiczeń, test każdej lekcji, zakaz `@MockBean`. |
 | `tags.txt` | Lista wymaganych tagów (REQ), tag ćwiczeń (EX) i tagi sprawdzane pod kątem formatu (LINT). |
 | `lessons.txt` | Rejestr wszystkich lekcji kursu (`sNN_pakiet/KlasaLekcji`) — tworzony po zatwierdzeniu planu działów. |
 | `javalearning-lessons.txt` | Rejestr lekcji kursu JavaLearning — do sprawdzania odesłań `tNN_pakiet/Klasa`. |

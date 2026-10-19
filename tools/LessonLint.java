@@ -21,7 +21,8 @@ import java.util.stream.Stream;
  * Checks: HTML entities, invisible characters, tag form (TAG must be followed by ':'), required tags in lesson classes,
  * collapsed answers fold, references sNN_pkg/Class (tools/lessons.txt) and tNN_pkg/Class (tools/javalearning-lessons.txt),
  * registry (lesson class listed in tools/lessons.txt, when the file exists), exercise tests tagged "cwiczenie" and
- * reference-solution tests tagged "wzorzec" in every lesson package that contains ĆWICZENIE.
+ * reference-solution tests tagged "wzorzec" in every lesson package that contains ĆWICZENIE, every lesson class has a test
+ * class <Lesson>…Test in the same package under src/test/java, no @MockBean (removed in Boot 4 — use @MockitoBean).
  * Exit code: 0 = no problems, 1 = problems.
  */
 public class LessonLint {
@@ -54,7 +55,7 @@ public class LessonLint {
         try (Stream<Path> w = Files.walk(ROOT)) {
             files = w.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
-                    .filter(p -> !rel(p).matches("(?:.*/)?(target|temp|tools|\\.git|\\.idea|\\.mvn)/.*") && !rel(p).startsWith("tools/"))
+                    .filter(p -> !rel(p).matches("(?:.*/)?(target|temp|tools|\\.git|\\.idea|\\.mvn|\\.claude)/.*") && !rel(p).startsWith("tools/"))
                     .filter(p -> scope.isEmpty() || scope.stream().anyMatch(m -> m.matches(Path.of(rel(p)))))
                     .sorted().collect(Collectors.toList());
         }
@@ -90,6 +91,9 @@ public class LessonLint {
             checkRefs(rel, text, javaRef, java, "javalearning-lessons.txt");
             String[] lines = text.split("\n");
             for (int i = 0; i < lines.length; i++) {
+                if (lines[i].matches("^\\s*@MockBean\\b.*")) {
+                    problems.add("FORBIDDEN " + rel + ":" + (i + 1) + " : @MockBean (removed in Boot 4) — use @MockitoBean");
+                }
                 for (String t : lint) {
                     String q = Pattern.quote(t);
                     if (lines[i].matches("^\\s*(//|\\*)\\s*" + q + "(?!:)(\\s.*|$|[^A-Za-z].*)")
@@ -115,6 +119,7 @@ public class LessonLint {
                 if (!text.contains("defaultstate=\"collapsed\"")) problems.add("MISSING   " + rel + " : collapsed ODPOWIEDZI fold");
                 String key = section + "/" + fileName.replace(".java", "");
                 if (spring.loaded && !spring.classes.contains(key)) problems.add("REGISTRY  " + rel + " : " + key + " not in tools/lessons.txt");
+                if (!hasLessonTest(p)) problems.add("NOTEST    " + rel + " : no test class " + fileName.replace(".java", "") + "…Test.java in src/test/java (same package)");
             }
         }
         exercisePackages.forEach((pkg, f) -> {
@@ -126,6 +131,19 @@ public class LessonLint {
         System.out.println("PROBLEMS: " + problems.size());
         new TreeSet<>(problems).forEach(pr -> System.out.println("  " + pr));
         System.exit(problems.isEmpty() ? 0 : 1);
+    }
+
+    /** A lesson test: <Lesson>…Test.java (not the exercises test) in the mirror package under src/test/java. */
+    static boolean hasLessonTest(Path lessonFile) throws IOException {
+        String lesson = lessonFile.getFileName().toString().replace(".java", "");
+        String sep = java.io.File.separator;
+        Path testDir = Path.of(lessonFile.getParent().toString().replace(
+                sep + "src" + sep + "main" + sep + "java" + sep, sep + "src" + sep + "test" + sep + "java" + sep));
+        if (!Files.isDirectory(testDir)) return false;
+        try (Stream<Path> s = Files.list(testDir)) {
+            return s.map(t -> t.getFileName().toString())
+                    .anyMatch(n -> n.startsWith(lesson) && n.endsWith("Test.java") && !n.equals(lesson + "ExercisesTest.java"));
+        }
     }
 
     static void checkRefs(String rel, String text, Pattern ref, Registry reg, String name) {

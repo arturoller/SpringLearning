@@ -1,6 +1,6 @@
 # AGENT KIT (SpringLearning) — everything a sub-agent needs to write lessons (read ONLY this file + your outline)
 
-The main session gives you: this kit + ONE outline section from `temp/ASSIGNMENTS.md` (or its text in the prompt).
+The main session gives you: this kit + ONE outline section from `tools/ASSIGNMENTS.md` (or its text in the prompt).
 Do not explore the repository beyond what your outline names. Never run environment-check commands (`java -version`, `ls`...).
 Versions and starter names: `CLAUDE.md` sections 2–3 (Spring Boot 4.1.x, Java 21 baseline). Read them if your outline does not
 repeat them.
@@ -60,6 +60,21 @@ sNN-topic/                                   module (hyphens)
   ("Kontener wstrzykuje jedyną implementację interfejsu"). AssertJ assertions; failure messages in Polish where helpful.
 - Choose the narrowest slice: plain unit test → `@WebMvcTest` + MockMvc → `@DataJpaTest` → `@SpringBootTest`; say in a comment why.
 - Answers to „Co się stanie?” questions must be VERIFIED by running code (a test or a scratch run), never computed in your head.
+- Every lesson class has at least one test class named `<Lesson>…Test` (e.g. `Ioc02ConstructorInjectionTest`,
+  `Start04TestingIntroUnitTest`) in the same package under `src/test/java` — LessonLint checks it.
+
+### Mistakes found in reviews (do NOT repeat them)
+- A test that "proves" a PUŁAPKA must reproduce the REAL situation. Example: a fake `SystemEnvironmentPropertySource` named
+  `"sztuczne-env"` behaves differently from the real one (Boot maps env-variable names only in a source named
+  `systemEnvironment`) — the test passed and "proved" a false statement. Use the real names/types
+  (`StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME`) or run the real application.
+- A „Co się stanie?” question must be executable LITERALLY as written; the answer describes the FIRST thing that happens
+  (e.g. a compile error comes before a startup error).
+- A lesson test must never use an exercise skeleton: when the learner solves the exercise, the default `mvnw test` must stay green.
+  Give the lesson test its own demo class.
+- Do not over-generalise ("annotations on the class never work for @Bean", "@Controller is technically the same as
+  @Component", "@Repository translates exceptions"). Say exactly WHEN it holds (in which module, with which starter).
+- Quote exception messages and log levels exactly as the running code produces them (copy from a real run).
 
 ## 4. Exercises (must not break the build)
 - Skeleton in the lesson package: methods with `// TODO` that `throw new UnsupportedOperationException("TODO")`.
@@ -75,7 +90,27 @@ sNN-topic/                                   module (hyphens)
 - Time via an injected `Clock`; randomness with a seed; no assertions on durations; sort before comparing unordered data.
 - No real network in tests (MockRestServiceServer / local stub). No secrets: only obviously fake test keys/passwords.
 
+## 5a. Sample data — the shop "world" (same as JavaLearning `helpers/SampleData`)
+Lessons do NOT share model classes (each lesson declares the small records it needs — isolation of lessons and of modules),
+but use the SAME names and values, so the learner recognises them. Prices in PLN as `BigDecimal`, or in grosze as `long`/`int`
+when the lesson needs simple arithmetic (say which in a comment).
+- Products (sku, name, category, price, stock): ELE-001 Laptop Pro 14 ELEKTRONIKA 5499.99 7 · ELE-002 Smartfon X ELEKTRONIKA
+  2999.00 0 · ELE-003 Słuchawki BT ELEKTRONIKA 349.90 25 · ELE-004 Monitor 27 cali ELEKTRONIKA 1299.00 4 · SPO-001 Kawa
+  ziarnista 1kg SPOZYWCZE 64.99 120 · SPO-002 Czekolada gorzka SPOZYWCZE 7.49 300 · SPO-003 Oliwa z oliwek SPOZYWCZE 42.00 0 ·
+  KSI-001 Czysty kod KSIAZKI 79.00 15 · KSI-002 Java. Podstawy KSIAZKI 129.00 9 · KSI-003 Wzorce projektowe KSIAZKI 99.00 3 ·
+  ODZ-001 Kurtka zimowa ODZIEZ 459.00 12 · ODZ-002 T-shirt bawełniany ODZIEZ 49.99 80 · DOM-001 Ekspres do kawy DOM 1899.00 2 ·
+  DOM-002 Lampka biurkowa DOM 129.00 18.
+- Customers (id, name, city, email, vip): 1 Jan Kowalski Warszawa jan@example.com VIP · 2 Maria Nowak Kraków (no email) ·
+  3 Adam Mazur Gdańsk adam.mazur@example.com · 4 Zofia Krawczyk Warszawa zofia@example.com VIP · 5 Ola Pawlak Poznań (no email) ·
+  6 Marek Król Kraków marek@example.com · 7 Ewa Lis Wrocław ewa.lis@example.com.
+- Employees (name, dept, salary): Anna Nowak IT 14500 · Piotr Kowalski IT 9800 · Katarzyna Wiśniewska HR 7200 · Tomasz Wójcik
+  SPRZEDAZ 8900 · Magdalena Kamińska KSIEGOWOSC 8100 · Michał Lewandowski IT 17200 · Agnieszka Zielińska MARKETING 7600.
+- Orders: ids `ZAM-001`…, statuses NOWE, OPLACONE, WYSLANE, DOSTARCZONE, ANULOWANE.
+
 ## 6. Verification (mandatory, after EACH lesson)
+0. Java 21+ is required (the default `java` on the learner's PC is 17 and fails with „release version 21 not supported”).
+   In Git Bash: `export JAVA_HOME="/c/Users/Artur-DEV/.jdks/temurin-25.0.4.1"` before `./mvnw`. Mockito runs as a java agent
+   configured in the parent `pom.xml` — never add `-DargLine` yourself.
 1. `./mvnw -q -pl <your-module> test` (Windows: `mvnw.cmd`) — green.
 2. `java -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 tools/LessonLint.java "<your-module>/**"` — `PROBLEMS: 0`
    (tags, entities, invisible characters, references, registry `tools/lessons.txt`, exercise/solution test tags).

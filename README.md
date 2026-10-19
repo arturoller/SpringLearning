@@ -4,7 +4,7 @@ Samodzielny kurs Spring Boot po polsku — kontynuacja kursu [JavaLearning](http
 
 > **Najpierw Java:** [https://github.com/arturoller/JavaLearning](https://github.com/arturoller/JavaLearning). Ten kurs zakłada znajomość Javy z tamtego repozytorium — zobacz sekcję „Wymagania” niżej.
 
-Kurs jest w budowie (status ⏳ przy każdej lekcji). Działy będą pojawiać się kolejno, zaczynając od `s00-start`.
+Kurs jest w budowie: gotowe działy mają w spisie treści znak ✅, kolejne pojawiają się po kolei (⏳ = zaplanowany).
 
 ## Dla kogo jest ten kurs
 
@@ -74,11 +74,23 @@ Zanim zaczniesz, przerób (albo przynajmniej dobrze znaj) te działy z [JavaLear
    Download JDK → wersja 25 (dowolny dostawca, np. Eclipse Temurin). Wybierz ją potem jako SDK projektu.
 2. Sklonuj repozytorium i otwórz w IntelliJ IDEA **główny** `pom.xml` (File → Open → wskaż `pom.xml` w korzeniu → Open as
    Project). IntelliJ sam rozpozna wszystkie moduły (działy).
+   - Jeśli katalogi `src/main/java` w działach nie są niebieskie (IntelliJ otworzył projekt jako zwykły folder, a nie
+     projekt Mavena): prawy przycisk na głównym `pom.xml` → **Add as Maven Project**.
+   - Nie szukaj katalogu `src/` w korzeniu — w odróżnieniu od JavaLearning każdy dział ma własny `src/` (wyjaśnienie:
+     `s00_start/Start02MultiModule`, sekcja 5).
 3. Poczekaj, aż Maven pobierze zależności (przy pierwszym otwarciu potrzebne jest połączenie z internetem).
 4. Uruchom testy:
+   - zielony trójkąt ▶ obok klasy/metody testowej w IntelliJ (najprościej — używa SDK projektu),
    - cały kurs: `./mvnw test` (Windows: `mvnw.cmd test`),
    - jeden dział: `./mvnw -pl s04-web-rest test`,
-   - albo zielony trójkąt ▶ obok klasy/metody testowej w IntelliJ.
+   - jedna klasa testowa: `./mvnw -pl s00-start test -Dtest=Start04TestingIntroUnitTest` (bez `-pl` dodaj
+     `-Dsurefire.failIfNoSpecifiedTests=false`, inaczej moduły bez tej klasy kończą się błędem „No tests matching pattern”).
+
+   **Uwaga — Java w terminalu:** `./mvnw` i `mvnw.cmd` NIE używają SDK wybranego w IntelliJ, tylko Javy ze zmiennej
+   `JAVA_HOME` (a gdy jej nie ma — polecenia `java` z PATH). Jeśli widzisz błąd
+   `Fatal error compiling: error: release version 21 not supported`, terminal używa starszego JDK (np. 17). Ustaw `JAVA_HOME`
+   na JDK 21+ — JDK pobrane przez IntelliJ leżą w katalogu `.jdks` w Twoim profilu, np. w PowerShell:
+   `$env:JAVA_HOME = "$HOME\.jdks\temurin-25.0.4.1"` (na stałe: Ustawienia systemu → Zmienne środowiskowe).
 5. Dla lekcji uruchamiających aplikację: kliknij ▶ obok `main` klasy z `@SpringBootApplication` w pakiecie lekcji, poczekaj
    na start na porcie 8080, a potem wykonaj gotowe zapytania z pliku `.http` w katalogu `http/` modułu.
 
@@ -97,9 +109,11 @@ s00-start/                      moduł = dział
 s01-core-ioc/
 ├── …
 └── src/main/java/s01_core_ioc/
-    ├── ioc01_first_bean/               lekcja 1 (plik lekcji + klasy pomocnicze + ewentualnie własna klasa startowa)
+    ├── ioc01_container/                lekcja 1 (plik lekcji + klasy pomocnicze + ewentualnie własna klasa startowa)
     ├── ioc02_constructor_injection/    lekcja 2
-    └── solutions/                      rozwiązania wzorcowe ćwiczeń
+    └── solutions/                      rozwiązania wzorcowe ćwiczeń — podpakiet na lekcję:
+        ├── ioc01_container/
+        └── …
 …
 s22-extras/                     ostatni dział — dodatki
 ```
@@ -114,7 +128,8 @@ Numer `sNN` ustawia kolejność nauki. Lekcja, która potrzebuje działającego 
 3. Jeśli lekcja uruchamia aplikację na porcie 8080, wykonaj gotowe zapytania z pliku `.http` i porównaj odpowiedź z opisem w komentarzu.
 4. Zmień coś w kodzie i sprawdź, czy rozumiesz, dlaczego test się psuje albo dalej przechodzi.
 5. Odpowiedz na PYTANIA KONTROLNE bez patrzenia w kod. Odpowiedzi są w zwiniętym bloku na końcu pliku.
-6. Rozwiąż ćwiczenia (`exerciseN`). Checker (test) pokazuje czerwony pasek, dopóki rozwiązanie nie jest poprawne.
+6. Rozwiąż ćwiczenia (`ĆWICZENIE 1:`, `ĆWICZENIE 2:`… — szkielety metod z `TODO` w pakiecie lekcji). Sprawdza je klasa
+   `…ExercisesTest`: pokazuje czerwony pasek, dopóki rozwiązanie nie jest poprawne. Jak to działa: `s00_start/Start06Exercises`.
 7. Rób powtórki po 1, 3, 7, 14 i 30 dniach: najpierw pytania z pamięci, dopiero potem ściąga — tak jak w JavaLearning.
 
 ## Tagi do wyszukiwania (Ctrl+Shift+F)
@@ -131,7 +146,7 @@ Tagi zawsze mają dokładnie tę postać (wielkie litery + dwukropek), więc wys
 | `ZOBACZ TEŻ:` | powiązania między lekcjami |
 | `PUŁAPKA:` | typowe błędy |
 | `DOBRA PRAKTYKA:` | zasady „jak robić dobrze” i dlaczego |
-| `WYNIK:` | co wypisze/zwróci dany fragment kodu |
+| `WYNIK:` | w JavaLearning: co wypisze dany fragment kodu; w tym kursie zamiast niego są testy (`@DisplayName` mówi, co sprawdzają) |
 | `ŚCIĄGA:` | podsumowania do powtórek |
 | `PYTANIA KONTROLNE:` | pytania do samosprawdzenia (także „co się stanie?” i „znajdź błąd”) |
 | `ĆWICZENIE` | zadania; bez dwukropka, bo mają numery: `ĆWICZENIE 1:` |
@@ -144,7 +159,7 @@ Legenda: ✅ gotowe · 🔶 w trakcie · ⏳ zaplanowane.
 |---|---|---|
 | `s00-start` | Jak korzystać z kursu, Spring Initializr (generator szkieletu projektu Spring Boot), budowa projektu wielomodułowego, uruchamianie aplikacji i testów, **wprowadzenie do testów** (jak czytać checkery: `@SpringBootTest`, MockMvc, asercje AssertJ), pliki `.http`, jak działają ćwiczenia i rozwiązania wzorcowe (6 lekcji) | ✅ |
 | `s01-core-ioc` | Kontener IoC (odwrócenie sterowania — Inversion of Control: to Spring, nie Ty, tworzy obiekty i zarządza zależnościami), beany (bean — ziarno, czyli obiekt zarządzany przez Springa), `@Component`/`@Service`/`@Repository`, `@Bean`, wstrzykiwanie przez konstruktor, zasięgi (scope: singleton — jeden obiekt na całą aplikację, prototype — nowy obiekt przy każdym pobraniu), cykl życia beana (7 lekcji) | ✅ |
-| `s02-configuration` | `@Configuration`, `@Value`, `@ConfigurationProperties`, profile (profile — zestawy konfiguracji na różne środowiska, np. dev/test/prod), `application.properties`/`.yml` (5 lekcji) | ✅ |
+| `s02-configuration` | `application.properties`/`.yml`, `@Value`, `@ConfigurationProperties` (ustawienia w rekordzie), profile (profile — zestawy konfiguracji na różne środowiska, np. dev/test/prod), `Environment`, `@ConditionalOnProperty` (przełączniki funkcji), zmienne środowiska (5 lekcji); `@Configuration` i `@Bean` — w `s01-core-ioc` | ✅ |
 | `s03-boot-basics` | Autokonfiguracja (auto-configuration — Spring Boot sam dobiera konfigurację na podstawie zależności w projekcie), startery (starter — gotowy zestaw zależności Maven pod jedną nazwą; w Boot 4 podzielone na mniejsze moduły), `SpringApplication`, DevTools (automatyczne przeładowanie aplikacji po zmianie kodu), jak Boot „zgaduje” konfigurację | ⏳ |
 | `s04-web-rest` | `@RestController`, mapowania (mapping — przypisanie adresu URL i metody HTTP do metody Javy), `@PathVariable`/`@RequestParam`/`@RequestBody`, `ResponseEntity` (typ opakowujący odpowiedź HTTP razem z kodem statusu i nagłówkami), kody HTTP, JSON (format wymiany danych, konwertowany automatycznie biblioteką Jackson), **CORS** (Cross-Origin Resource Sharing — zasady, które pozwalają stronie z innej domeny, np. frontendowi, wołać Twoje API), **wersjonowanie API** (wbudowane w Spring Framework 7 — np. `/api/v1` kontra `/api/v2` albo nagłówek z wersją) | ⏳ |
 | `s05-validation` | Bean Validation (walidacja danych przez adnotacje: `@NotBlank`, `@Size`, `@Valid`), własne walidatory (validator — klasa sprawdzająca poprawność danych) | ⏳ |
@@ -176,6 +191,16 @@ Legenda: ✅ gotowe · 🔶 w trakcie · ⏳ zaplanowane.
 - **Ćwiczenia:** testy ćwiczeń (z tagiem `cwiczenie`) są wyłączone z `./mvnw test`, żeby nierozwiązane zadania nie
   psuły budowania. Uruchamiasz je sam: ▶ w IntelliJ albo `./mvnw -pl <moduł> test -Dgroups=cwiczenie -DexcludedGroups=none`
   (samo `-Dgroups=cwiczenie` uruchomi zero testów, bo `pom.xml` i tak wyklucza ten tag — szczegóły w `s00_start/Start06Exercises`).
+  Dla wielu działów naraz dodaj `-fae` (fail at end — dokończ mimo błędów), inaczej Maven zatrzyma się na pierwszym dziale
+  z nierozwiązanymi ćwiczeniami.
+- **WARN i wyjątki w logu testów:** wiele testów celowo sprawdza błędy (np. zła stawka VAT, brak beana), więc w logu widać
+  ostrzeżenia i stosy wywołań. Liczy się wynik testu (zielony/czerwony), nie sam log.
+- **Mockito jako agent:** `pom.xml` uruchamia testy z Mockito podanym jako agent Javy (`-javaagent`). Bez tego na Windows
+  z antywirusem testy z `@MockitoBean` padają z błędem `Could not self-attach to current VM`. IntelliJ przekazuje to ustawienie
+  przy ▶, jeśli zaznaczone jest Settings → Build, Execution, Deployment → Build Tools → Maven → Running Tests → `argLine`
+  (domyślnie tak).
+- **Zajęty port 8080** (`Port 8080 was already in use`): działa jeszcze poprzednia aplikacja. Zatrzymaj ją (czerwony kwadrat
+  w IntelliJ albo Ctrl+C w terminalu, w którym ją uruchomiłeś).
 - **Docker:** testy z Testcontainers (dział `s11` i dalej) uruchomią się tylko wtedy, gdy działa Docker (np. Docker Desktop).
   Bez niego są pomijane (żółty, a nie czerwony wynik) — reszta kursu działa normalnie.
 - **Błąd kompilacji w innym pliku:** tak jak w JavaLearning, IntelliJ przed uruchomieniem kompiluje moduł. Błąd w jednej

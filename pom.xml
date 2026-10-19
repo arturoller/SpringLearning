@@ -59,4 +59,25 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!--
+                        Mockito jako agent Javy (java agent — program doładowany do JVM przed testami, który może zmieniać klasy).
+                        Bez tego Mockito próbuje SAM podłączyć się do działającej JVM (self-attach). Nowe JDK to ograniczają,
+                        a na Windows z antywirusem kończy się to błędem „Could not self-attach to current VM” — i każdy test
+                        z @MockitoBean pada. Tak zaleca dokumentacja Mockito. Wersja pochodzi z BOM Spring Boota (mockito.version).
+                        -Xshare:off wyłącza ostrzeżenie JVM „Sharing is only supported for boot loader classes…”, które agent
+                        powoduje (nieszkodliwe, ale myli przy czytaniu logów).
+                        IntelliJ przekazuje argLine także przy ▶ (Settings → Build Tools → Maven → Running Tests → argLine).
+                    -->
+                    <argLine>"-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar" -Xshare:off</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

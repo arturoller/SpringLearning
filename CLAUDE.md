@@ -27,7 +27,8 @@ s00-start/                 moduł działu (nazwa modułu: sNN-temat, z myślnika
     ├── main/resources/              application.properties, migracje Flyway (db/migration/…)
     └── test/java/s00_start/…        testy lekcji i ćwiczeń (te same pakiety co w main)
 s01-core-ioc/ … s22-extras/        kolejne działy, ten sam układ
-temp/                      lokalne pliki robocze Claude (konspekty, notatki, narzędzia) — w .gitignore, NIGDY w commicie
+temp/                      lokalne pliki robocze Claude (notatki, eksperymenty) — w .gitignore, NIGDY w commicie
+                           (konspekty działów są w gicie: tools/ASSIGNMENTS.md)
 ```
 - Moduły dopisujemy do `<modules>` w parent `pom.xml` dopiero, gdy dział powstaje (pusty moduł nie istnieje).
 - Standardowy układ Mavena (`src/main/java`, `src/main/resources`, `src/test/java`) — taki jak ze Spring Initializr,
@@ -44,7 +45,9 @@ temp/                      lokalne pliki robocze Claude (konspekty, notatki, nar
   (`spring.flyway.locations=classpath:db/migration/<lekcja>`).
 - Nazwy klas: `<Temat><NN><Aspekt>` (jak w JavaLearning), np. `Ioc02ConstructorInjection`, test: `Ioc02ConstructorInjectionTest`.
 - Nie używaj nazw kolidujących z klasami JDK/Springa (np. nie twórz własnej klasy `Component`, `Service`, `List`).
-- „Świat” danych jak w JavaLearning: sklep — produkty, klienci, zamówienia, pracownicy (ten sam klimat przykładów).
+- „Świat” danych jak w JavaLearning: sklep — produkty, klienci, zamówienia, pracownicy. Lekcje NIE współdzielą klas modelu
+  (izolacja lekcji i modułów; ten sam „produkt” bywa rekordem, DTO albo encją JPA), każda deklaruje własne małe rekordy, ale
+  z tymi samymi nazwami i wartościami co JavaLearning `helpers/SampleData` (tabela: `tools/AGENT_KIT.md` sekcja 5a).
 
 ## 3. Wersje
 - **Zapisane decyzje: Java = 21 (minimum, `<java.version>21</java.version>` w parent pom), zalecana 25 (LTS);
@@ -64,7 +67,12 @@ temp/                      lokalne pliki robocze Claude (konspekty, notatki, nar
 - Biblioteki spoza BOM Boota (springdoc-openapi, Spring Modulith, Spring AI) — wersje w `<properties>` parent pom, zgodne
   z Boot 4 (stan na 2026-10: springdoc 3.1.x, Spring Modulith 2.1.x, Spring AI 2.0.x).
 - W testach podmieniamy beany wyłącznie przez **`@MockitoBean`/`@MockitoSpyBean`** — nigdy `@MockBean` (przestarzałe od Boot 3.4, usunięte
-  w Boot 4 — sprawdzone w źródłach 4.1.1).
+  w Boot 4 — sprawdzone w źródłach 4.1.1; LessonLint zgłasza `@MockBean`).
+- Spis starterów istniejących w danej wersji Boota: `~/.m2/repository/org/springframework/boot/spring-boot-dependencies/<wersja>/*.pom`.
+  W Boot 4.1.1 NIE ma `spring-boot-starter-aop` (jest `spring-boot-starter-aspectj` — dla `s18-aop`); `spring-boot-starter-web`
+  istnieje, ale jest przestarzały na rzecz `-webmvc`; startery `-classic` służą do migracji — kurs ich nie używa.
+- Mockito działa jako agent Javy skonfigurowany w surefire w parent pom (`-javaagent:…mockito-core…jar`). Bez tego na komputerze
+  ucznia testy z `@MockitoBean` padają („Could not self-attach to current VM”) — nie usuwaj tej konfiguracji.
 
 ## 4. Format lekcji
 Każda lekcja to mała, samodzielna rzecz w swoim podpakiecie modułu działu (klasy z przykładami + test, który je sprawdza;
@@ -87,7 +95,11 @@ W treści: `PUŁAPKA:` i `DOBRA PRAKTYKA:` (zawsze z „dlaczego”), na końcu 
 - Lekcje, które uruchamiają aplikację, dostają plik `sNN-temat/http/<lekcja>.http` z gotowymi zapytaniami (IntelliJ HTTP Client).
 - Uruchamianie: cały kurs `./mvnw test`, jeden dział `./mvnw -pl s04-web-rest test`, jedna lekcja-aplikacja ▶ przy `main` jej
   klasy `@SpringBootApplication` albo `./mvnw -pl s04-web-rest spring-boot:run -Dspring-boot.run.main-class=…`.
-- Format lekcji sprawdza `tools/LessonLint.java` (sekcja 9) — wymagane `PROBLEMS: 0`.
+- Format lekcji sprawdza `tools/LessonLint.java` (sekcja 9) — wymagane `PROBLEMS: 0` (sprawdza też, że każda lekcja ma klasę
+  testową `<Lekcja>…Test`).
+- Test lekcji NIGDY nie korzysta ze szkieletu ćwiczenia — po rozwiązaniu ćwiczenia `mvnw test` musi zostać zielony.
+- Test, który „dowodzi” PUŁAPKI, odtwarza PRAWDZIWĄ sytuację (prawdziwe nazwy źródeł, prawdziwa aplikacja), a nie sztuczną,
+  która zachowuje się inaczej. Lista błędów znalezionych w recenzjach: `tools/AGENT_KIT.md` („Mistakes found in reviews”).
 
 **Ćwiczenia — nie mogą psuć budowania:**
 - Szkielet ćwiczenia w `src/` (metody z `// TODO` i `throw new UnsupportedOperationException("TODO")`).
@@ -116,8 +128,8 @@ W treści: `PUŁAPKA:` i `DOBRA PRAKTYKA:` (zawsze z „dlaczego”), na końcu 
 - Komunikaty commitów po polsku, np. `s04_web_rest: REST w Springu (6 lekcji)`, zakończone liniami Co-Authored-By modeli.
 - Przed commitem działu: pełne `mvnw test` (zielone) + `java tools/LessonLint.java` z `PROBLEMS: 0` (tagi, encje HTML,
   niewidoczne znaki, odesłania do lekcji obu kursów, rejestr, tagi testów ćwiczeń/rozwiązań), brak plików w `temp/`.
-- Agenci (subagenci): najwyżej 2 naraz (3 tylko za zgodą użytkownika). Proste działy → model Sonnet, trudne (Security, transakcje,
-  AOP, JPA od środka) → Opus. Agent dostaje `tools/AGENT_KIT.md` + KONKRETNY konspekt (plik w `temp/`), nie skanuje projektu,
+- Agenci (subagenci): najwyżej 2 naraz (więcej tylko za zgodą użytkownika; każdy w innym module). Proste działy → model Sonnet, trudne (Security, transakcje,
+  AOP, JPA od środka) → Opus. Agent dostaje `tools/AGENT_KIT.md` + KONKRETNY konspekt (sekcja `tools/ASSIGNMENTS.md`), nie skanuje projektu,
   weryfikuje każdą lekcję od razu po napisaniu. Nowa paczka lekcji = nowy agent; poprawki do jego paczki = wiadomość do tego samego agenta.
 - Każdą paczkę po agencie weryfikuje główna sesja: testy + wyrywkowo merytoryka (PUŁAPKA, ŚCIĄGA, ODPOWIEDZI).
 - Odpowiedzi „Co się stanie?” sprawdzaj uruchomieniem, nie liczeniem w głowie.
@@ -129,6 +141,9 @@ W treści: `PUŁAPKA:` i `DOBRA PRAKTYKA:` (zawsze z „dlaczego”), na końcu 
 - Narzędzie Write/Edit zamienia `\uXXXX` na prawdziwe znaki — unikaj takich escape'ów w kodzie.
 - Pliki: UTF-8 bez BOM. PowerShell 5.1 czyta pliki bez BOM jako ANSI — przy odczycie podawaj kodowanie UTF-8.
 - Maven nie jest w PATH — używaj `mvnw`/`mvnw.cmd`.
+- `java` w PATH to JDK 17, a kurs wymaga 21+ → `./mvnw` pada na „release version 21 not supported”. JDK 25 jest tylko w IntelliJ:
+  `C:\Users\Artur-DEV\.jdks\temurin-25.0.4.1`. W Git Bash przed `./mvnw`: `export JAVA_HOME="/c/Users/Artur-DEV/.jdks/temurin-25.0.4.1"`.
+- Antywirus blokuje dynamiczne podłączanie agentów do JVM — stąd agent Mockito w parent pom (sekcja 3).
 
 ## 8. Pierwsze kroki (checklista, jeśli projekt jest jeszcze pusty)
 1. Sprawdź, czy wersje z sekcji 3 są nadal aktualne (najnowsza stabilna 4.x), popraw je tutaj.
@@ -141,13 +156,16 @@ W treści: `PUŁAPKA:` i `DOBRA PRAKTYKA:` (zawsze z „dlaczego”), na końcu 
    rozumiał checkery od pierwszej lekcji), pliki `.http`, ćwiczenia z tagiem. `./mvnw test` zielony.
 4. Sprawdź w IntelliJ (opis w README), że projekt otwiera się jako wielomodułowy i ▶ działa przy teście i przy `main`.
 5. Commit `s00_start: …` i aktualizacja spisu treści w README (⏳ → ✅).
-6. Konspekty kolejnych działów zapisuj w `temp/ASSIGNMENTS.md` przed zleceniem ich agentom i od razu dopisz nazwy lekcji do
+6. Konspekty kolejnych działów zapisuj w `tools/ASSIGNMENTS.md` (w gicie — dostępne też w chmurze i po świeżym klonie)
+   przed zleceniem ich agentom i od razu dopisz nazwy lekcji do
    `tools/lessons.txt` (`sNN_dzial/KlasaLekcji`). Nowy dział = nowy moduł (`sNN-temat/pom.xml` + wpis w `<modules>`).
 
 ## 9. Narzędzia (`tools/`, w repozytorium)
 | Plik | Do czego |
 |---|---|
 | `tools/AGENT_KIT.md` | Zasady pisania lekcji dla podagentów — przekazuj go każdemu agentowi razem z konspektem. |
+| `tools/ASSIGNMENTS.md` | Konspekty działów (jedna sekcja = paczka lekcji dla jednego agenta); gotowe sekcje zostają jako historia. |
+| `tools/README.md` | Krótki opis narzędzi dla czytelnika repozytorium. |
 | `tools/LessonLint.java` | Sprawdzacz formatu: `java -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 tools/LessonLint.java ["sNN-moduł/**"]`. |
 | `tools/lessons.txt` | Rejestr lekcji (`sNN_dzial/KlasaLekcji`; linia z `/*` na końcu = sam dział). Uzupełniany razem z konspektem. |
 | `tools/javalearning-lessons.txt` | Rejestr lekcji JavaLearning — do odesłań `tNN_pakiet/Klasa`. Aktualizuj, gdy w JavaLearning dojdą lekcje. |
