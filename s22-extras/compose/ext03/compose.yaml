@@ -1,0 +1,27 @@
+# Lekcja s22_extras / Ext03OAuth2Keycloak — Keycloak (serwer tożsamości) do RĘCZNEGO uruchomienia.
+# Testy go nie potrzebują (jwt() i klucz testowy generowany w teście).
+#
+#   docker compose -f s22-extras/compose/ext03/compose.yaml up -d      ← start (ok. 20–40 s), http://localhost:8180
+#   docker compose -f s22-extras/compose/ext03/compose.yaml logs -f    ← czekaj na „Keycloak ... started in”
+#   docker compose -f s22-extras/compose/ext03/compose.yaml down       ← stop i usunięcie (dane wracają do pliku realm)
+#
+# Przy starcie Keycloak importuje dziedzinę (realm) „sklep” z pliku realm-sklep.json:
+#   role: klient, pracownik; klient OAuth2 „sklep-cli” (publiczny, z logowaniem hasłem — TYLKO do lokalnych testów);
+#   użytkownicy: jan / jan-haslo-testowe (klient), anna / anna-haslo-testowe (pracownik, klient).
+# Konsola administratora: http://localhost:8180/admin — admin / admin.
+# Wszystkie hasła są TESTOWE i jawne — nigdy nie używaj takiej konfiguracji poza swoim komputerem.
+#
+# start-dev = tryb deweloperski: HTTP bez TLS, baza w pliku w kontenerze, brak cache klastra. Na produkcji: „start”
+# z HTTPS, prawdziwą bazą i ustawionym KC_HOSTNAME.
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.0
+    container_name: ext03-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8180:8080"   # Keycloak w kontenerze słucha na 8080; na komputerze — 8180 (8080 zajmuje aplikacja)
+    volumes:
+      - ./realm-sklep.json:/opt/keycloak/data/import/realm-sklep.json:ro

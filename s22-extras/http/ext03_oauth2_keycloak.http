@@ -1,0 +1,55 @@
+# Lekcja s22_extras / Ext03OAuth2Keycloak — Keycloak + Resource Server (IntelliJ HTTP Client)
+# 1. Uruchom Keycloaka:  docker compose -f s22-extras/compose/ext03/compose.yaml up -d
+#    i poczekaj ok. 30 s (docker compose -f s22-extras/compose/ext03/compose.yaml logs -f → „Keycloak 26.4.0 ... started in”).
+# 2. Uruchom Ext03Application (▶ obok main) — profil ext03 włącza się sam.
+# 3. Wyślij zapytania 1 i 2 (tokeny trafią do zmiennych {{token_jan}} i {{token_anna}}), potem pozostałe.
+#    Token jest ważny 5 minut — po tym czasie wyślij 1 i 2 jeszcze raz.
+# Logowanie hasłem (grant_type=password) to przepływ TYLKO do lokalnych testów — patrz sekcja 1 lekcji.
+
+@host = http://localhost:8080
+@keycloak = http://localhost:8180/realms/sklep
+
+### 1. Token dla jana (rola klient) — oczekiwane: 200 OK, {"access_token":"eyJ...","expires_in":300,...}
+POST {{keycloak}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id=sklep-cli&username=jan&password=jan-haslo-testowe
+
+> {% client.global.set("token_jan", response.body.access_token); %}
+
+### 2. Token dla anny (role pracownik, klient)
+POST {{keycloak}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id=sklep-cli&username=anna&password=anna-haslo-testowe
+
+> {% client.global.set("token_anna", response.body.access_token); %}
+
+### 3. Publiczne produkty bez tokenu — oczekiwane: 200 OK
+GET {{host}}/api/public/products
+
+### 4. Kim jestem — bez tokenu — oczekiwane: 401, WWW-Authenticate: Bearer resource_metadata="..."
+GET {{host}}/api/me
+
+### 5. Kim jestem — jan — oczekiwane: 200, {"name":"jan","email":"jan@example.com",
+#    "authorities":["FACTOR_BEARER","ROLE_KLIENT","SCOPE_email","SCOPE_profile"]}
+GET {{host}}/api/me
+Authorization: Bearer {{token_jan}}
+
+### 6. Moje zamówienia — jan — oczekiwane: 200, ["ZAM-001 (jan)"]
+GET {{host}}/api/orders/my
+Authorization: Bearer {{token_jan}}
+
+### 7. Wszystkie zamówienia — jan — oczekiwane: 403, WWW-Authenticate: Bearer error="insufficient_scope", ...
+GET {{host}}/api/admin/orders
+Authorization: Bearer {{token_jan}}
+
+### 8. Wszystkie zamówienia — anna (pracownik) — oczekiwane: 200, ["ZAM-001 NOWE","ZAM-002 OPLACONE","ZAM-003 WYSLANE"]
+GET {{host}}/api/admin/orders
+Authorization: Bearer {{token_anna}}
+
+### 9. Konfiguracja wystawcy (discovery) — to pobiera aplikacja przy pierwszym tokenie. Szukaj "issuer" i "jwks_uri".
+GET {{keycloak}}/.well-known/openid-configuration
+
+### 10. Opis API jako serwera zasobów (Spring Security 7, RFC 9728) — oczekiwane: 200, {"resource":"http://localhost:8080",...}
+GET {{host}}/.well-known/oauth-protected-resource

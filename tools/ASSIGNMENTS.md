@@ -609,7 +609,7 @@ H2 i Flyway osobno na projekt (`db/migration/cap0N`). Port do ręcznego sprawdza
   generowany w kodzie), `@PreAuthorize` (czytelnik widzi tylko swoje wypożyczenia), hasła BCrypt, testy 401/403/200.
   Ćwiczenia: rezerwacja książki wypożyczonej, przedłużenie terminu (maks. 1 raz), raport zaległości tylko dla bibliotekarza.
 
-## U. s22_extras — dodatki (6 lekcji, opcjonalne) — stan: do napisania
+## U. s22_extras — dodatki (6 lekcji, opcjonalne) — stan: gotowe (2026-10-19)
 Zależności (pom gotowy, agent tego działu MOŻE go zmieniać, jeśli coś nie działa — z uzasadnieniem w raporcie): `webmvc`,
 `spring-ai-starter-model-ollama` (BOM Spring AI 2.0.1), `kafka`, `oauth2-resource-server` (Security!), `opentelemetry`, `webflux`,
 testy: webmvc/webflux/security, `spring-boot-testcontainers`, `testcontainers-junit-jupiter`, `testcontainers-kafka`.

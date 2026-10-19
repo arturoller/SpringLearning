@@ -1,0 +1,15 @@
+# Lekcja s22_extras / Ext04Tracing — Jaeger (przeglądarka śladów) do RĘCZNEGO uruchomienia. Testy go nie potrzebują.
+#
+#   docker compose -f s22-extras/compose/ext04/compose.yaml up -d      ← start
+#   http://localhost:16686                                               ← interfejs: Service = sklep-ext04 → Find Traces
+#   docker compose -f s22-extras/compose/ext04/compose.yaml down       ← stop (ślady trzymane w pamięci — znikają)
+#
+# Jaeger 2 (zbudowany na OpenTelemetry Collector) przyjmuje ślady w protokole OTLP: 4318 = HTTP (tego używa Boot),
+# 4317 = gRPC. Alternatywa „wszystko w jednym” (ślady + metryki + logi): obraz grafana/otel-lgtm.
+services:
+  jaeger:
+    image: jaegertracing/jaeger:2.11.0
+    container_name: ext04-jaeger
+    ports:
+      - "16686:16686"   # interfejs WWW
+      - "4318:4318"     # OTLP przez HTTP

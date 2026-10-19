@@ -1,0 +1,45 @@
+{
+  "realm": "sklep",
+  "displayName": "Sklep (dane TESTOWE kursu SpringLearning)",
+  "enabled": true,
+  "accessTokenLifespan": 300,
+  "roles": {
+    "realm": [
+      { "name": "klient", "description": "Klient sklepu: własne zamówienia" },
+      { "name": "pracownik", "description": "Pracownik sklepu: wszystkie zamówienia" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "sklep-cli",
+      "name": "Klient do ręcznych testów (pliki .http) — TYLKO lokalnie",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "jan",
+      "enabled": true,
+      "email": "jan@example.com",
+      "emailVerified": true,
+      "firstName": "Jan",
+      "lastName": "Kowalski",
+      "credentials": [ { "type": "password", "value": "jan-haslo-testowe", "temporary": false } ],
+      "realmRoles": [ "klient" ]
+    },
+    {
+      "username": "anna",
+      "enabled": true,
+      "email": "anna@example.com",
+      "emailVerified": true,
+      "firstName": "Anna",
+      "lastName": "Nowak",
+      "credentials": [ { "type": "password", "value": "anna-haslo-testowe", "temporary": false } ],
+      "realmRoles": [ "pracownik", "klient" ]
+    }
+  ]
+}

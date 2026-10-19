@@ -1,0 +1,25 @@
+# Lekcja s22_extras / Ext04Tracing — śledzenie rozproszone (IntelliJ HTTP Client)
+# 1. Uruchom Jaegera:  docker compose -f s22-extras/compose/ext04/compose.yaml up -d
+# 2. Uruchom Ext04Application (▶ obok main) — profil ext04: próbkowanie 100%, eksport OTLP na localhost:4318.
+# 3. Wyślij zapytania, odczekaj ok. 5 s (eksport paczkami) i otwórz http://localhost:16686 → Service: sklep-ext04
+#    → Find Traces. Porównaj traceId z odpowiedzi z identyfikatorem śladu w Jaegerze i w logu aplikacji.
+# Bez Jaegera aplikacja działa normalnie — tylko eksporter loguje ERROR „Failed to export spans. The request could
+# not be executed.” (po kilkunastu sekundach, bo najpierw ponawia wysyłkę).
+
+@host = http://localhost:8080
+
+### 1. Dostępność ELE-001 — oczekiwane: 200 OK, {"sku":"ELE-001","available":true,"stock":7,"traceId":"...",
+#    "stockSawTraceparent":"00-<ten sam traceId>-<spanId odcinka CLIENT>-03"}
+GET {{host}}/api/shop/ELE-001/availability
+
+### 2. Produkt niedostępny ELE-002 — oczekiwane: 200 OK, "available":false, "stock":0 (nowy ślad = nowy traceId)
+GET {{host}}/api/shop/ELE-002/availability
+
+### 3. Własny traceparent (jak od innej usługi) — oczekiwane: 200 OK, a traceId w odpowiedzi TAKI JAK PONIŻEJ
+#    (0af7651916cd43dd8448eb211c80319c): aplikacja nie zaczęła nowego śladu, tylko dołączyła do naszego, i przekazała
+#    dalej naszą decyzję „zapisz” — magazyn dostał flagę 01 (sprawdzone uruchomieniem).
+GET {{host}}/api/shop/SPO-001/availability
+traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01
+
+### 4. Magazyn wołany bezpośrednio — oczekiwane: 200 OK, "receivedTraceparent":null (nikt nie wysłał nagłówka)
+GET {{host}}/api/stock/ELE-001

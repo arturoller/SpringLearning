@@ -1,0 +1,44 @@
+# Lekcja s22_extras / Ext02Messaging — Kafka (IntelliJ HTTP Client)
+# 1. Uruchom Kafkę:   docker compose -f s22-extras/compose/ext02/compose.yaml up -d
+# 2. Uruchom Ext02Application (▶ obok main) — profil ext02 włącza się sam. W logu: „magazyn: partitions assigned: [...]”.
+# 3. Kliknij ▶ obok zapytania. Obsługa wiadomości dzieje się PO odpowiedzi (asynchronicznie) — patrz log i zapytanie 4.
+# Bez Kafki: start trwa ok. 45 s, a POST czeka 60 s i kończy się 500 (sekcja 7 lekcji) — sprawdź to!
+
+@host = http://localhost:8080
+
+### 1. Zamówienie ZAM-001 — oczekiwane: 202 Accepted (przyjęte; magazyn i faktury obsłużą je za chwilę)
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "orderId": "ZAM-001",
+  "customerId": 1,
+  "skus": ["ELE-003"],
+  "total": 349.90
+}
+
+### 2. Zamówienie ZAM-002 — oczekiwane: 202 Accepted (inny klucz → zwykle inna partycja)
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "orderId": "ZAM-002",
+  "customerId": 4,
+  "skus": ["SPO-001", "SPO-002"],
+  "total": 72.48
+}
+
+### 3. To samo ZAM-002 jeszcze raz — oczekiwane: 202; ta sama partycja co zapytanie 2, offset o 1 większy
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "orderId": "ZAM-002",
+  "customerId": 4,
+  "skus": ["SPO-001", "SPO-002"],
+  "total": 72.48
+}
+
+### 4. Co odebrały grupy — oczekiwane: 200 OK; każde zamówienie DWA razy (grupa magazyn i grupa faktury),
+# z numerem partycji i offsetem. Kolejność między partycjami może być inna niż kolejność wysłania!
+GET {{host}}/api/orders/received

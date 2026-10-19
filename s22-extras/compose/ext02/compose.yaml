@@ -1,0 +1,15 @@
+# Lekcja s22_extras / Ext02Messaging — jeden broker Kafki (tryb KRaft, bez ZooKeepera) do RĘCZNEGO uruchomienia.
+# Testy go nie potrzebują — test z kontekstem startuje własny kontener (Testcontainers) i jest pomijany bez Dockera.
+#
+#   docker compose -f s22-extras/compose/ext02/compose.yaml up -d      ← start (localhost:9092)
+#   docker compose -f s22-extras/compose/ext02/compose.yaml down       ← stop i usunięcie kontenera (z wiadomościami)
+#
+# Bez zmiennych środowiskowych obraz startuje z ustawieniami domyślnymi: jeden węzeł, adres localhost:9092.
+# Szybszy i lżejszy wariant: apache/kafka-native:4.2.0 (Kafka skompilowana GraalVM-em — lekcja Ext06NativeImage),
+# ale jest eksperymentalny — u nas raz padł przy starcie, dlatego domyślnie zwykły obraz na JVM.
+services:
+  kafka:
+    image: apache/kafka:4.2.0
+    container_name: ext02-kafka
+    ports:
+      - "9092:9092"

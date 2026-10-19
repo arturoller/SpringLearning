@@ -1,0 +1,5 @@
+# Lekcja Ext06NativeImage: aktywne promocje — pełne nazwy klas implementujących PromotionRule (jedna w linii).
+# Plik czyta PromotionLoader, a klasy tworzy refleksją. W obrazie natywnym i plik, i klasy wymagają podpowiedzi
+# (Ext06RuntimeHints) — inaczej nie znalazłyby się w programie.
+s22_extras.ext06_native_image.PercentDiscountRule
+s22_extras.ext06_native_image.FixedDiscountRule

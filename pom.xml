@@ -49,6 +49,7 @@
         <module>s19-deploy</module>
         <module>s20-modulith</module>
         <module>s21-capstone</module>
+        <module>s22-extras</module>
     </modules>
 
     <properties>

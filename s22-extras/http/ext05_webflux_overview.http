@@ -1,0 +1,24 @@
+# Lekcja s22_extras / Ext05WebFluxOverview — WebFlux (IntelliJ HTTP Client)
+# 1. Uruchom Ext05Application (▶ obok main). W logu: „Netty started on port 8080” (nie Tomcat!).
+# 2. Kliknij ▶ obok zapytania.
+
+@host = http://localhost:8080
+
+### 1. Flux → tablica JSON — oczekiwane: 200 OK, 4 produkty
+GET {{host}}/api/reactive/products
+
+### 2. Mono → obiekt JSON — oczekiwane: 200 OK, {"sku":"SPO-001","name":"Kawa ziarnista 1kg","price":64.99,"stock":120}
+GET {{host}}/api/reactive/products/SPO-001
+
+### 3. Puste Mono → 404 — oczekiwane: 404 Not Found, JSON z "status":404 i "requestId"
+GET {{host}}/api/reactive/products/XXX-999
+
+### 4. Styl funkcyjny (RouterFunction) — oczekiwane: 200 OK, text/plain „Cześć z WebFlux!”
+GET {{host}}/api/reactive/hello
+
+### 5. PUŁAPKA: block() na wątku Netty — oczekiwane: 500 Internal Server Error; w logu aplikacji
+#    IllegalStateException: block()/blockFirst()/blockLast() are blocking, which is not supported in thread reactor-http-nio-N
+GET {{host}}/api/reactive/products/ELE-001/blocking-stock
+
+### 6. Blokujący kod przeniesiony na boundedElastic — oczekiwane: 200 OK, {"sku":"ELE-001","price":4399.99,"thread":"boundedElastic-1"}
+GET {{host}}/api/reactive/products/ELE-001/wholesale-price
