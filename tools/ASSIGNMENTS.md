@@ -569,7 +569,7 @@ Dockera ani zbudowanego JAR-a (faza test jest przed package).
   `s15_actuator_logging/Obs02HealthIndicators`), czas startu, leniwa inicjalizacja (wady), CDS / pamięć podręczna AOT w JDK 25
   (tylko opis + SPRAWDŹ, co Boot 4.1 wspiera), zapowiedź GraalVM (`s22_extras/Ext06NativeImage`).
 
-## S. s20_modulith — Spring Modulith (3 lekcje) — stan: do napisania
+## S. s20_modulith — Spring Modulith (3 lekcje) — stan: gotowe (2026-10-19)
 Zależności: `spring-modulith-starter-core`, `-starter-jdbc`, `spring-modulith-docs` (BOM Modulith 2.1.1 z parent pom), `jdbc`,
 `h2`, `flyway`, test `spring-modulith-starter-test`. UWAGA na izolację: Modulith traktuje pakiety pod klasą
 `@SpringBootApplication` jako moduły — każda lekcja ma WŁASNĄ aplikację w swoim pakiecie, a moduły biznesowe są jej podpakietami

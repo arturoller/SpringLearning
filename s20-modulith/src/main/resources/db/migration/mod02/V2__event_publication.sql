@@ -1,0 +1,18 @@
+-- Lekcja Mod02ModuleEvents: tabela rejestru publikacji zdarzeń Spring Modulith (Event Publication Registry).
+-- Skopiowana z jar-a spring-modulith-events-jdbc 2.1.1: org/springframework/modulith/events/jdbc/schemas/v2/schema-h2.sql
+-- (dla PostgreSQL, MySQL itd. są tam osobne pliki). Jeden wiersz = jedno zdarzenie dla JEDNEGO słuchacza.
+CREATE TABLE IF NOT EXISTS EVENT_PUBLICATION
+(
+  ID                     UUID NOT NULL,
+  COMPLETION_DATE        TIMESTAMP(9) WITH TIME ZONE,
+  EVENT_TYPE             VARCHAR(512) NOT NULL,
+  LISTENER_ID            VARCHAR(512) NOT NULL,
+  PUBLICATION_DATE       TIMESTAMP(9) WITH TIME ZONE NOT NULL,
+  SERIALIZED_EVENT       VARCHAR(4000) NOT NULL,
+  STATUS                 VARCHAR(20),
+  COMPLETION_ATTEMPTS    INT,
+  LAST_RESUBMISSION_DATE TIMESTAMP(9) WITH TIME ZONE,
+  PRIMARY KEY (ID)
+);
+CREATE INDEX IF NOT EXISTS EVENT_PUBLICATION_BY_LISTENER_ID_AND_SERIALIZED_EVENT_IDX ON EVENT_PUBLICATION (LISTENER_ID, SERIALIZED_EVENT);
+CREATE INDEX IF NOT EXISTS EVENT_PUBLICATION_BY_COMPLETION_DATE_IDX ON EVENT_PUBLICATION (COMPLETION_DATE);
