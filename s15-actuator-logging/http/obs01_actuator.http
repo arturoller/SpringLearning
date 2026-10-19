@@ -1,0 +1,39 @@
+# Lekcja s15_actuator_logging / Obs01Actuator — punkty końcowe Actuatora (IntelliJ HTTP Client)
+# 1. Uruchom Obs01Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Aplikacja włącza profil "obs01" (application-obs01.properties): health, info, metrics, loggers, env, beans, conditions.
+# 2. Kliknij ▶ obok zapytania.
+
+@host = http://localhost:8080
+
+### 1. Strona odkrywania — lista dostępnych punktów końcowych (linki)
+GET {{host}}/actuator
+
+### 2. Zdrowie — oczekiwane: 200 i "status":"UP" (w tej lekcji ze szczegółami: show-details=always)
+GET {{host}}/actuator/health
+
+### 3. Info — oczekiwane: {"app":{"name":"Sklep SpringLearning",...}} (dzięki management.info.env.enabled=true)
+GET {{host}}/actuator/info
+
+### 4. Lista metryk
+GET {{host}}/actuator/metrics
+
+### 5. Jedna metryka — liczba zapytań HTTP (COUNT rośnie z każdym zapytaniem)
+GET {{host}}/actuator/metrics/http.server.requests
+
+### 6. Poziom logowania głównego rejestratora — oczekiwane: "configuredLevel":"INFO"
+GET {{host}}/actuator/loggers/ROOT
+
+### 7. Jedna właściwość środowiska — wartość zamaskowana: "value":"******"
+GET {{host}}/actuator/env/info.app.name
+
+### 8. Beany aplikacji (szukaj productController)
+GET {{host}}/actuator/beans
+
+### 9. Raport autokonfiguracji (positiveMatches / negativeMatches)
+GET {{host}}/actuator/conditions
+
+### 10. Zwykły punkt końcowy aplikacji (nie Actuatora) — lista produktów
+GET {{host}}/api/products
+
+### 11. heapdump — oczekiwane: 404 (domyślnie access=none, nawet przy include=*)
+GET {{host}}/actuator/heapdump

@@ -1,0 +1,30 @@
+# Lekcja s15_actuator_logging / Obs02HealthIndicators — zdrowie, grupy, sondy (IntelliJ HTTP Client)
+# 1. Uruchom Obs02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Profil "obs02": szczegóły zdrowia widoczne, grupa "sklep" (warehouse + ping).
+# 2. Kliknij ▶ obok zapytania.
+
+@host = http://localhost:8080
+
+### 1. Zdrowie ze szczegółami — oczekiwane: 200, "status":"UP", składniki warehouse, ping, diskSpace...
+GET {{host}}/actuator/health
+
+### 2. Grupa "sklep" — tylko warehouse i ping
+GET {{host}}/actuator/health/sklep
+
+### 3. Sondy — oczekiwane: 200 {"status":"UP"}
+GET {{host}}/actuator/health/liveness
+
+###
+GET {{host}}/actuator/health/readiness
+
+### 4. Psujemy magazyn — potem powtórz zapytanie 1: oczekiwane 503 i "status":"DOWN"
+POST {{host}}/admin/warehouse/down
+
+### 5. Naprawiamy magazyn
+POST {{host}}/admin/warehouse/up
+
+### 6. Odmowa ruchu — readiness: 503 OUT_OF_SERVICE, liveness nadal 200
+POST {{host}}/admin/readiness/refuse
+
+### 7. Przywrócenie gotowości
+POST {{host}}/admin/readiness/accept

@@ -41,6 +41,7 @@
         <module>s11-testing</module>
         <module>s12-security</module>
         <module>s14-openapi</module>
+        <module>s15-actuator-logging</module>
         <module>s16-cache-scheduling-async</module>
     </modules>
 

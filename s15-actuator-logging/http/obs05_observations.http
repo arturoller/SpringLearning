@@ -1,0 +1,27 @@
+# Lekcja s15_actuator_logging / Obs05Observations — obserwacje (IntelliJ HTTP Client)
+# 1. Uruchom Obs05Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Profil "obs05": wystawione health i metrics.
+# 2. Wyślij kilka wysyłek (1-3), potem oglądaj metryki powstałe z OBSERWACJI (4-6).
+
+@host = http://localhost:8080
+
+### 1. Wysyłka DHL — oczekiwane: "TRK-001" (potem 002...)
+POST {{host}}/api/deliveries?orderId=ZAM-001&carrier=DHL
+
+### 2. Wysyłka InPost
+POST {{host}}/api/deliveries?orderId=ZAM-002&carrier=INPOST
+
+### 3. Nieznany przewoźnik — oczekiwane: 500 (wyjątek IllegalArgumentException zapisany w obserwacji)
+POST {{host}}/api/deliveries?orderId=ZAM-003&carrier=KURIER-WIDMO
+
+### 4. Metryka z obserwacji — availableTags: carrier (DHL, INPOST, KURIER-WIDMO) i error (none, IllegalArgumentException); NIE MA orderId
+GET {{host}}/actuator/metrics/deliveries.ship
+
+### 5. Tylko udane wysyłki DHL
+GET {{host}}/actuator/metrics/deliveries.ship?tag=carrier:DHL&tag=error:none
+
+### 6. Tylko wysyłki zakończone błędem
+GET {{host}}/actuator/metrics/deliveries.ship?tag=error:IllegalArgumentException
+
+### 7. Metryka żądań HTTP — też obserwacja (Boot obserwuje serwer sam)
+GET {{host}}/actuator/metrics/http.server.requests

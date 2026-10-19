@@ -1,0 +1,45 @@
+# Lekcja s15_actuator_logging / Obs03Metrics — metryki Micrometera (IntelliJ HTTP Client)
+# 1. Uruchom Obs03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Profil "obs03": wystawione health i metrics, wspólny tag application=sklep.
+# 2. Złóż kilka zamówień (zapytania 1-2), potem oglądaj metryki (3-8).
+
+@host = http://localhost:8080
+
+### 1. Zamówienie z kanału WEB — oczekiwane: tekst "ZAM-001" (potem 002...)
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{"sku": "ELE-001", "quantity": 1, "channel": "WEB"}
+
+### 2. Zamówienie ze sklepu stacjonarnego
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{"sku": "SPO-001", "quantity": 2, "channel": "SKLEP"}
+
+### 3. Lista nazw metryk (jest orders.created, orders.open, orders.processing, http.server.requests...)
+GET {{host}}/actuator/metrics
+
+### 4. Licznik zamówień — availableTags pokazuje channel: SKLEP i WEB
+GET {{host}}/actuator/metrics/orders.created
+
+### 5. Tylko kanał WEB — COUNT rośnie z każdym zamówieniem WEB
+GET {{host}}/actuator/metrics/orders.created?tag=channel:WEB
+
+### 6. Kanał, którego nie było — oczekiwane: 404
+GET {{host}}/actuator/metrics/orders.created?tag=channel:NIE-MA
+
+### 7. Wskaźnik otwartych zamówień (Gauge) — po wysłaniu zapytania 8 maleje
+GET {{host}}/actuator/metrics/orders.open
+
+### 8. Wysyłamy jedno zamówienie
+POST {{host}}/api/orders/ship
+
+### 9. Czasomierz — COUNT = liczba złożonych zamówień (czas zależy od komputera)
+GET {{host}}/actuator/metrics/orders.processing
+
+### 10. Metryka HTTP — tag uri to szablon /api/orders/{id}, nie konkretne id
+GET {{host}}/api/orders/ZAM-100
+
+###
+GET {{host}}/actuator/metrics/http.server.requests

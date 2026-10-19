@@ -1,0 +1,47 @@
+# Lekcja s15_actuator_logging / Obs04Logging — logowanie (IntelliJ HTTP Client)
+# 1. Uruchom Obs04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Profil "obs04": DEBUG dla pakietu lekcji, wzorzec konsoli z [requestId], wystawiony punkt loggers.
+# 2. Wysyłaj zapytania i PATRZ NA KONSOLĘ aplikacji (okno Run w IntelliJ) — tam są logi.
+
+@host = http://localhost:8080
+
+### 1. Zamówienie z własnym identyfikatorem zapytania — w logu: [REQ-MOJE-1], e-mail zamaskowany (j***@example.com)
+POST {{host}}/api/checkout
+Content-Type: application/json
+X-Request-Id: REQ-MOJE-1
+
+{"sku": "ELE-001", "quantity": 1, "priceGrosze": 549999, "email": "jan@example.com"}
+
+### 2. Zamówienie bez nagłówka — filtr wygeneruje UUID (zobacz nagłówek X-Request-Id w odpowiedzi)
+POST {{host}}/api/checkout
+Content-Type: application/json
+
+{"sku": "SPO-001", "quantity": 2, "priceGrosze": 6499, "email": "zofia@example.com"}
+
+### 3. Błąd płatności (cena 0) — w logu ERROR ze śladem stosu, odpowiedź "BLAD"
+POST {{host}}/api/checkout
+Content-Type: application/json
+X-Request-Id: REQ-BLAD
+
+{"sku": "SPO-002", "quantity": 1, "priceGrosze": 0, "email": "adam.mazur@example.com"}
+
+### 4. Poziom logowania pakietu lekcji — oczekiwane: "configuredLevel":"DEBUG" (z profilu obs04)
+GET {{host}}/actuator/loggers/s15_actuator_logging.obs04_logging
+
+### 5. Zmiana w locie: wyłączamy DEBUG (poziom INFO) — potem powtórz zapytanie 1: linii DEBUG już nie ma
+POST {{host}}/actuator/loggers/s15_actuator_logging.obs04_logging
+Content-Type: application/json
+
+{"configuredLevel": "INFO"}
+
+### 6. Powrót do poziomu dziedziczonego (null) — pakiet znów dziedziczy z rejestratora głównego (INFO)
+POST {{host}}/actuator/loggers/s15_actuator_logging.obs04_logging
+Content-Type: application/json
+
+{"configuredLevel": null}
+
+### 7. Włączamy DEBUG ponownie
+POST {{host}}/actuator/loggers/s15_actuator_logging.obs04_logging
+Content-Type: application/json
+
+{"configuredLevel": "DEBUG"}

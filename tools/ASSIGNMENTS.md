@@ -471,7 +471,7 @@ test `webmvc-test`. SPRAWDŹ zgodność springdoc 3.1.1 z Boot 4.1.1 (start apli
   z `s04_web_rest/Rest07ApiVersioning` (SPRAWDŹ, czy springdoc 3.1 rozumie atrybut `version` w mapowaniach Framework 7 — jeśli
   nie, pokaż obejście i powiedz o tym uczciwie).
 
-## N. s15_actuator_logging — Actuator, metryki, logi (5 lekcji) — stan: do napisania
+## N. s15_actuator_logging — Actuator, metryki, logi (5 lekcji) — stan: gotowe (2026-10-19)
 Startery: `webmvc`, `actuator`, test `webmvc-test`, `actuator-test`.
 - **Obs01Actuator** (`obs01_actuator`): punkty końcowe (health, info, metrics, loggers, env, beans, conditions — odesłanie do
   `s03_boot_basics/Boot01AutoConfiguration`), domyślnie wystawione przez HTTP (SPRAWDŹ w Boot 4.1), `management.endpoints.web.
