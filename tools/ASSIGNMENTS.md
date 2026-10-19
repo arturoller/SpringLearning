@@ -283,7 +283,7 @@ Startery: `jdbc`, `h2` (runtime), `flyway` (+ test `-jdbc-test`). Bez weba, bez 
   `DuplicateKeyException`/`DataIntegrityViolationException` (SPRAWDŹ), test wycinkowy `@JdbcTest` (SPRAWDŹ pakiet w Boot 4,
   domyślne wycofanie transakcji po teście, zastępowanie bazy — `@AutoConfigureTestDatabase`).
 
-## G. s08_data_jpa — Spring Data JPA (6 lekcji) — stan: do napisania
+## G. s08_data_jpa — Spring Data JPA (6 lekcji) — stan: gotowe (2026-10-19)
 Startery: `data-jpa`, `h2` (runtime), `flyway` (+ test `-data-jpa-test`). Bez weba. Hibernate 7.4, Jakarta Persistence 3.2.
 SPRAWDŹ pakiety Boot 4 (`@DataJpaTest`, `TestEntityManager`) w jarach.
 - **Jpa01Entities** (`jpa01_entities`): `@Entity`, `@Id`, `@GeneratedValue` (IDENTITY vs SEQUENCE — co wybiera domyślnie
