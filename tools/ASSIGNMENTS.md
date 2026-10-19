@@ -340,7 +340,7 @@ Startery: `data-jpa`, `flyway`, `h2` (runtime), test `data-jpa-test`; dodatkowo 
   (`t20_lombok/Lombok03DataValueBuilder` jeśli istnieje w rejestrze JavaLearning). Plik `.http` dla aplikacji lekcji
   (sprawdzanie ręczne na porcie 8089).
 
-## I. s10_transactions — transakcje (5 lekcji) — stan: do napisania (Tx01, Tx02 z WIP — do przeglądu)
+## I. s10_transactions — transakcje (5 lekcji) — stan: gotowe (2026-10-19; Tx01, Tx02 z WIP po przeglądzie)
 Startery: `data-jpa`, `flyway`, `h2` (runtime), test `data-jpa-test`. Dział TRUDNY — każde twierdzenie z testem.
 - **Tx01Transactional**, **Tx02Propagation** — z WIP: przegląd i weryfikacja (patrz zasady H–I).
 - **Tx03ProxyPitfalls** (`tx03_proxy_pitfalls`, klasy pomocnicze w WIP): wywołanie metody `@Transactional` z tej samej klasy

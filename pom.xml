@@ -37,6 +37,7 @@
         <module>s07-data-jdbc</module>
         <module>s08-data-jpa</module>
         <module>s09-jpa-relations</module>
+        <module>s10-transactions</module>
     </modules>
 
     <properties>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+        Moduł s10-transactions — dział 10: transakcje — @Transactional, rollback, propagacja, pułapki proxy,
+        readOnly i izolacja, TransactionTemplate. Hibernate 7, H2, Flyway.
+    -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>springlearning</groupId>
+        <artifactId>spring-learning</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>s10-transactions</artifactId>
+    <name>s10-transactions</name>
+
+    <dependencies>
+        <!-- data-jpa = Spring Data JPA + Hibernate (implementacja JPA) + JDBC i pula połączeń HikariCP. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- flyway = wersjonowane migracje bazy (pliki db/migration/V1__...sql). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+
+        <!-- H2 = baza danych w pamięci; runtime = potrzebna tylko w czasie działania, nie do kompilacji. -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Narzędzia do testów warstwy JPA: @DataJpaTest (wycinek kontekstu z encjami i repozytoriami). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
