@@ -240,8 +240,10 @@ Locale JVM (są polskie tłumaczenia) — testy NIE porównują treści domyśln
   `ConstraintViolationException`; działa przez proxy (`MethodValidationPostProcessor`) — PUŁAPKA: wywołanie z tej samej klasy
   nie jest walidowane (SPRAWDŹ); walidacja w kontrolerze czy w serwisie — kiedy co.
 
-## E. s06_error_handling — obsługa błędów (5 lekcji) — stan: do napisania
+## E. s06_error_handling — obsługa błędów (5 lekcji) — stan: gotowe (2026-10-19)
 Startery: `webmvc`, `validation` (+ test `-webmvc-test`).
+Uwaga po napisaniu: w Boot 4 właściwości błędów mają prefiks `spring.web.error.*`; `server.error.*` (jak niżej w konspekcie)
+jest wycofane z poziomem `error` i po cichu ignorowane — lekcja Err01 to pokazuje.
 - **Err01DefaultErrors** (`err01_default_errors`): domyślna obsługa Boota: przekierowanie do `/error` (`BasicErrorController`),
   ciało JSON (timestamp, status, error, path), właściwości `server.error.include-message`/`include-binding-errors`/
   `include-stacktrace`/`include-exception` (wartości domyślne — SPRAWDŹ), strona Whitelabel dla przeglądarki; PUŁAPKA:
@@ -353,3 +355,75 @@ Startery: `data-jpa`, `flyway`, `h2` (runtime), test `data-jpa-test`. Dział TRU
 - **Tx05ProgrammaticTransactions** (`tx05_programmatic_transactions`): `TransactionTemplate` (`execute`,
   `executeWithoutResult`, `setRollbackOnly`), `PlatformTransactionManager` niskopoziomowo, kiedy programowo zamiast adnotacji;
   `@TransactionalEventListener` — tylko zapowiedź `s17_events`.
+
+## J. s11_testing — testowanie w Spring Boot (7 lekcji) — stan: do napisania (szkielet Test01 z WIP)
+Startery (pom gotowy, z WIP): `webmvc`, `data-jpa`, `flyway`, `h2` + `postgresql` (runtime), `spring-boot-docker-compose`
+(runtime), test: `-webmvc-test`, `-data-jpa-test`, `spring-boot-testcontainers`, `testcontainers-junit-jupiter`,
+`testcontainers-postgresql` (Testcontainers 2.0.5). Docker JEST dostępny na komputerze autora (28.3.3) — lekcje 06/07 sprawdzaj
+naprawdę; obrazy z jawnym tagiem (nigdy `latest`). U ucznia bez Dockera testy z kontenerami mają być POMIJANE
+(`@Testcontainers(disabledWithoutDocker = true)` albo równoważny warunek), a `./mvnw test` zielony.
+W WIP są tylko klasy domenowe i 5 testów Test01 (slices, cache kontekstu, webEnvironment) — bez klasy lekcji; przejrzyj je
+według AGENT_KIT i dopisz lekcję.
+- **Test01TestSlices** (`test01_test_slices`): piramida testów, wycinki (`@WebMvcTest`, `@DataJpaTest`, `@JdbcTest`, `@JsonTest`)
+  a `@SpringBootTest` (webEnvironment MOCK/RANDOM_PORT/DEFINED_PORT/NONE), co ładuje który wycinek (SPRAWDŹ pakiety Boot 4),
+  pamięć podręczna kontekstów testowych (ten sam klucz konfiguracji = ten sam kontekst; co tworzy nowy: `@MockitoBean`,
+  inne właściwości, `@DirtiesContext`) — pokaż licząc starty kontekstu.
+- **Test02MockitoBeans** (`test02_mockito_beans`): czysty Mockito (`@Mock`, `@InjectMocks`, `when/verify`, `ArgumentCaptor`)
+  w teście jednostkowym bez Springa vs `@MockitoBean`/`@MockitoSpyBean` w kontekście (pakiet
+  `org.springframework.test.context.bean.override.mockito`); `@MockBean` usunięte w Boot 4; `@TestBean` (podmiana beana metodą
+  fabryczną — SPRAWDŹ); reset atrap między testami; PUŁAPKA: atrapa wszystkiego = test niczego. Odesłanie do
+  `t32_junit_mockito/…` (tylko nazwy z rejestru JavaLearning).
+- **Test03MockMvcTester** (`test03_mock_mvc_tester`): `MockMvcTester` (API w stylu AssertJ, Framework 6.2+) — jak go dostać
+  w `@WebMvcTest` (SPRAWDŹ, czy Boot 4 wstrzykuje go automatycznie), `assertThat(mvc.get().uri(...)).hasStatusOk()`,
+  `bodyJson()`, porównanie z klasycznym `perform().andExpect()`; `RestTestClient` (Framework 7) — SPRAWDŹ, czy jest dostępny
+  z zależności modułu; jeśli wymaga innej zależności, tylko wzmianka.
+- **Test04DataJpaTest** (`test04_data_jpa_test`): `@DataJpaTest` dokładniej — transakcja i wycofanie po teście, `TestEntityManager`,
+  `flush()`/`clear()`, `@Sql`, zastępowanie bazy (`@AutoConfigureTestDatabase`, `replace = NONE` — zapowiedź Test06),
+  Flyway w wycinku, dane testowe niezależne od kolejności testów.
+- **Test05TestConfiguration** (`test05_test_configuration`): `@TestConfiguration` (kiedy jest skanowana, a kiedy trzeba
+  `@Import` — SPRAWDŹ), `@TestPropertySource`, `@DynamicPropertySource`, `@ActiveProfiles`, podmiana `Clock` w teście
+  (deterministyczny czas — CLAUDE.md sekcja 5), wpływ na pamięć podręczną kontekstów.
+- **Test06Testcontainers** (`test06_testcontainers`): prawdziwy PostgreSQL w kontenerze na czas testu: `@Testcontainers`,
+  `@Container` (statyczny — jeden na klasę), `@ServiceConnection` (Boot sam ustawia `DataSource`), klasa kontenera
+  w Testcontainers 2.0 (SPRAWDŹ pakiet — zmienił się względem 1.x), Flyway na PostgreSQL, różnice H2 vs PostgreSQL, które test na
+  H2 by przeoczył (pokaż jedną prawdziwą — SPRAWDŹ uruchomieniem), uruchamianie aplikacji lokalnie z kontenerami
+  (`SpringApplication.from(...).with(...)` — SPRAWDŹ). Testy pomijane bez Dockera.
+- **Test07DockerCompose** (`test07_docker_compose`): `spring-boot-docker-compose` — plik `compose.yaml` lekcji, Boot uruchamia
+  usługi przy starcie aplikacji i tworzy połączenia (service connection), cykl życia (`spring.docker.compose.lifecycle-management`),
+  wskazanie pliku lekcji (`spring.docker.compose.file`), domyślne pomijanie w testach (SPRAWDŹ właściwość), Docker Compose vs
+  Testcontainers — kiedy co. IZOLACJA: obsługa Compose musi być WYŁĄCZONA dla wszystkich innych lekcji modułu
+  (`spring.docker.compose.enabled=false` we wspólnym `application.properties`, włączona tylko w profilu Test07). Plik `.http`
+  dla aplikacji lekcji (port 8091 przy sprawdzaniu).
+
+## K. s12_security — Spring Security 7 (6 lekcji) — stan: do napisania
+Startery: `webmvc`, `security`, `oauth2-resource-server` (+ test `-webmvc-test`, `-security-test`). Spring Security 7.1.1.
+Dział TRUDNY — stare tutoriale (Security 5: `WebSecurityConfigurerAdapter`, `antMatchers`, `.and()`) NIE działają; mów o tym
+wprost i SPRAWDŹ każde API w jarach 7.1.1. Hasła i klucze tylko przykładowe, oznaczone jako testowe; klucze JWT generuj w kodzie
+w czasie działania (para RSA albo tajny klucz HMAC z jawnie testową wartością) — żadnych plików z kluczami w repozytorium.
+Port do ręcznego sprawdzania `.http`: 8092.
+- **Sec01Basics** (`sec01_basics`): co się dzieje po dodaniu startera (wszystko zablokowane, wygenerowane hasło w logu —
+  SPRAWDŹ dokładną treść, użytkownik `user`, formularz logowania i HTTP Basic), łańcuch filtrów (`SecurityFilterChain`,
+  `DelegatingFilterProxy`/`FilterChainProxy` — po co), własny bean `SecurityFilterChain` z DSL lambda
+  (`authorizeHttpRequests`, `requestMatchers`, `permitAll`, `authenticated`), 401 vs 403. Odesłanie do
+  `s04_web_rest/Rest06Cors` (CORS) i do `s06_error_handling/…`.
+- **Sec02Authorization** (`sec02_authorization`): role i uprawnienia (`hasRole("ADMIN")` = `ROLE_ADMIN` — PUŁAPKA prefiksu),
+  kolejność reguł (pierwsza pasująca wygrywa — PUŁAPKA `anyRequest()` na początku), metody HTTP w regułach, zabezpieczenia
+  metod: `@EnableMethodSecurity` + `@PreAuthorize` (SpEL, `#id`, `authentication.name`), domyślny deny (`anyRequest().denyAll()`
+  vs `authenticated()`).
+- **Sec03UsersPasswords** (`sec03_users_passwords`): `UserDetailsService`, `InMemoryUserDetailsManager`, użytkownicy z „bazy”
+  (własna implementacja na mapie — bez JPA w tym module), `PasswordEncoder`: `BCryptPasswordEncoder` (sól, koszt, ten sam
+  tekst → różne hashe), `DelegatingPasswordEncoder` i prefiks `{bcrypt}` (SPRAWDŹ domyślny encoder z
+  `PasswordEncoderFactories`), PUŁAPKA `{noop}` i hasła w kodzie; aktualnie zalogowany użytkownik (`@AuthenticationPrincipal`,
+  `SecurityContextHolder`).
+- **Sec04StatelessApi** (`sec04_stateless_api`): API bez sesji (`SessionCreationPolicy.STATELESS`), CSRF — czym jest, dlaczego
+  można wyłączyć dla czysto bezstanowego API z tokenem w nagłówku, a nie wolno dla aplikacji z ciasteczkiem sesji (SPRAWDŹ
+  domyślne zachowanie CSRF w Security 7), CORS w Security (`http.cors(...)` + `CorsConfigurationSource`), obsługa błędów
+  401/403 jako JSON (`AuthenticationEntryPoint`, `AccessDeniedHandler`, ewentualnie `ProblemDetail`).
+- **Sec05Jwt** (`sec05_jwt`): JWT — budowa (nagłówek, ładunek, podpis), czego NIE trzymać w ładunku, ważność (`exp`), Resource
+  Server: `http.oauth2ResourceServer(o -> o.jwt(...))`, `JwtDecoder` z kluczem testowym, wystawianie tokenu w lekcji
+  (`JwtEncoder`/`NimbusJwtEncoder` — SPRAWDŹ API) przez prosty punkt końcowy logowania, mapowanie claimów na uprawnienia
+  (`JwtAuthenticationConverter`, prefiks `SCOPE_`), token przeterminowany → 401 (SPRAWDŹ nagłówek `WWW-Authenticate`).
+  DOBRA PRAKTYKA: w prawdziwym systemie tokeny wydaje serwer tożsamości (zapowiedź OAuth2/Keycloak w `s22_extras`).
+- **Sec06SecurityTesting** (`sec06_security_testing`): `@WebMvcTest` + bezpieczeństwo (co jest ładowane — SPRAWDŹ, czy własny
+  `SecurityFilterChain` trzeba `@Import`), `@WithMockUser`, `@WithUserDetails`, `SecurityMockMvcRequestPostProcessors`
+  (`httpBasic()`, `user()`, `jwt()`, `csrf()`), testy 401/403/200 dla każdej reguły, test, że hasło nie wycieka w odpowiedzi.

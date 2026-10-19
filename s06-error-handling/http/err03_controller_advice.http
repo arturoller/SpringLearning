@@ -1,0 +1,51 @@
+# Lekcja s06_error_handling / Err03ControllerAdvice — jedna porada na całą aplikację
+# 1. Uruchom Err03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Odpowiedź (status, nagłówki, ciało) pojawi się w oknie Services.
+# Błąd wewnętrzny (zapytanie 6) zapisuje się w logu aplikacji ze znacznikiem [BLAD-WEWNETRZNY] — zajrzyj do konsoli.
+
+@host = http://localhost:8080
+
+### 1. Brak produktu — oczekiwane: 404 i {"code":"PRODUKT_NIE_ISTNIEJE","message":"Nie ma produktu o SKU XXX"}
+GET {{host}}/api/products/XXX
+
+### 2. Zamówienie z błędami pól — oczekiwane: 400 i mapa "fields" z trzema wpisami (customer, lines[0].quantity, lines[0].sku)
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customer": " ",
+  "lines": [
+    {"sku": "", "quantity": 0},
+    {"sku": "ELE-001", "quantity": 2}
+  ]
+}
+
+### 3. Zamówienie bez pozycji — oczekiwane: 400 i "fields": {"lines": "Zamówienie musi mieć co najmniej jedną pozycję"}
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customer": "Jan Kowalski",
+  "lines": []
+}
+
+### 4. Niepoprawny JSON — oczekiwane: 400 i {"code":"NIEPOPRAWNY_JSON",...}
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{nie json
+
+### 5. Porada zawężona do klasy (assignableTypes) — oczekiwane: 502 i {"code":"BRAMKA_PLATNOSCI",...}
+POST {{host}}/api/billing/charge
+
+### 6. Błąd wewnętrzny — oczekiwane: 500 i ogólny komunikat (BEZ tekstu o bazie), a w logu aplikacji pełny wpis ze stosem
+GET {{host}}/api/products/ELE-001/stock
+
+### 7. Porada zawężona do pakietu (basePackages) — oczekiwane: 503 i {"code":"RAPORT_NIEDOSTEPNY",...}
+GET {{host}}/api/admin/report
+
+### 8. Wyjątki Springa bez handlera w poradzie nadal idą ścieżką domyślną — oczekiwane: 404 i domyślny JSON Boota
+GET {{host}}/api/nie-ma-takiego
+
+### 9. To samo dla złej metody HTTP — oczekiwane: 405 i domyślny JSON Boota
+DELETE {{host}}/api/products/ELE-001

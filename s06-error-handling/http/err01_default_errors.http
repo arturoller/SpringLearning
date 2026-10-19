@@ -1,0 +1,48 @@
+# Lekcja s06_error_handling / Err01DefaultErrors — domyślne błędy Spring Boota
+# 1. Uruchom Err01Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Odpowiedź (status, nagłówki, ciało) pojawi się w oknie Services.
+# Wszystkie błędy poniżej są celowe — kontroler niczego nie obsługuje, więc widzisz odpowiedzi domyślne.
+
+@host = http://localhost:8080
+
+### 1. Poprawny produkt — oczekiwane: 200 OK i JSON z Laptopem
+GET {{host}}/api/products/ELE-001
+
+### 2. Nieznany adres — oczekiwane: 404 i JSON {"timestamp":...,"status":404,"error":"Not Found","path":"/api/nie-ma-takiego"}
+GET {{host}}/api/nie-ma-takiego
+
+### 3. Nieobsłużony wyjątek w kontrolerze — oczekiwane: 500 i JSON BEZ komunikatu wyjątku (szczegóły są tylko w logu serwera)
+GET {{host}}/api/products/KSI-999
+
+### 4. Zły typ w adresie (abc zamiast liczby) — oczekiwane: 400 Bad Request
+GET {{host}}/api/orders/abc
+
+### 5. Błędne dane w POST (pusta nazwa, ujemna cena) — oczekiwane: 400, ale bez informacji, które pole jest złe
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "name": "",
+  "price": -1
+}
+
+### 6. Niepoprawny JSON — oczekiwane: 400
+POST {{host}}/api/products
+Content-Type: application/json
+
+{niepoprawny
+
+### 7. Zła metoda HTTP — oczekiwane: 405 Method Not Allowed i nagłówek Allow: GET
+DELETE {{host}}/api/products/ELE-001
+
+### 8. Tak widzi to przeglądarka (Accept: text/html) — oczekiwane: 404 i strona „Whitelabel Error Page”
+GET {{host}}/api/nie-ma-takiego
+Accept: text/html
+
+### 9. Klient, który nie akceptuje JSON-a ani HTML-a — oczekiwane: 404 i PUSTE ciało
+GET {{host}}/api/nie-ma-takiego
+Accept: application/xml
+
+### 10. Ujawnianie szczegółów (message=true) — oczekiwane: 500 i pole "message" w JSON-ie, ALE tylko gdy aplikację uruchomiono z argumentem programu --spring.web.error.include-message=on-param (bez niego pola nie ma)
+# Argument programu w IntelliJ: Run → Edit Configurations → Program arguments. Bez ?message=true pola "message" nie ma nawet z on-param.
+GET {{host}}/api/products/KSI-999?message=true

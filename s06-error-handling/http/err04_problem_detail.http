@@ -1,0 +1,45 @@
+# Lekcja s06_error_handling / Err04ProblemDetail — błędy w standardzie RFC 9457 (application/problem+json)
+# 1. Uruchom Err04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Zwróć uwagę na nagłówek Content-Type: application/problem+json.
+
+@host = http://localhost:8080
+
+### 1. Brak produktu (handler zwraca ProblemDetail) — oczekiwane: 404, title "Produkt nie istnieje", własne pole "sku":"XXX"
+GET {{host}}/api/products/XXX
+
+### 2. ErrorResponseException z własnym ProblemDetail — oczekiwane: 409, pola "sku":"ELE-001" i "available":7
+POST {{host}}/api/products/ELE-001/reserve?quantity=10
+
+### 3. Błąd walidacji — oczekiwane: 400, title "Niepoprawne dane" i pole "errors" z nazwą i ceną
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "name": " ",
+  "price": -2
+}
+
+### 4. Zła metoda HTTP (obsługuje klasa bazowa) — oczekiwane: 405, nagłówek Allow: GET, tytuł i opis po polsku z pliku komunikatów
+DELETE {{host}}/api/products/ELE-001
+
+### 5. To samo po angielsku (nagłówek Accept-Language) — oczekiwane: 405, title "Method not allowed"
+DELETE {{host}}/api/products/ELE-001
+Accept-Language: en
+
+### 6. Brak wymaganego parametru — oczekiwane: 400, problem+json
+POST {{host}}/api/products/ELE-001/reserve
+
+### 7. Zły typ treści — oczekiwane: 415, problem+json
+POST {{host}}/api/products
+Content-Type: text/plain
+
+x
+
+### 8. ResponseStatusException — oczekiwane: 410, problem+json z opisem "Produkt ELE-001 został zarchiwizowany"
+GET {{host}}/api/products/ELE-001/archive
+
+### 9. Nieznany wyjątek — oczekiwane: 500, problem+json z ogólnym opisem (BEZ tekstu o bazie); szczegóły w logu [BLAD-WEWNETRZNY]
+GET {{host}}/api/crash
+
+### 10. Nieznany adres — oczekiwane: 404, problem+json
+GET {{host}}/api/nie-ma-takiego

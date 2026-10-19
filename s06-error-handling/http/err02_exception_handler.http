@@ -1,0 +1,35 @@
+# Lekcja s06_error_handling / Err02ExceptionHandler — własna obsługa wyjątków
+# 1. Uruchom Err02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Odpowiedź (status, nagłówki, ciało) pojawi się w oknie Services.
+
+@host = http://localhost:8080
+
+### 1. Poprawny produkt — oczekiwane: 200 OK
+GET {{host}}/api/products/ELE-001
+
+### 2. @ResponseStatus na wyjątku — oczekiwane: 404 i domyślny JSON Boota (timestamp, status, error, path)
+GET {{host}}/api/products/XXX
+
+### 3. ResponseStatusException — oczekiwane: 409 Conflict i domyślny JSON Boota (powodu nie widać bez include-message)
+GET {{host}}/api/products/ELE-001/reserve
+
+### 4. @ResponseStatus z polem reason — oczekiwane: 410 Gone i domyślny JSON Boota
+GET {{host}}/api/products/ELE-001/offer
+
+### 5. Handler szczegółowy (CardDeclinedException) — oczekiwane: 402 i {"code":"KARTA_ODRZUCONA","message":"Karta kończąca się na 4242 została odrzucona"}
+POST {{host}}/api/payments/card
+
+### 6. Handler ogólny (PaymentException) — oczekiwane: 402 i {"code":"PLATNOSC","message":"Płatność nie powiodła się"}
+POST {{host}}/api/payments/other
+
+### 7. Handler na wyjątek Javy — oczekiwane: 400 i {"code":"ZLY_ARGUMENT","message":"Nieznany sposób płatności"}
+POST {{host}}/api/payments/bug
+
+### 8. PUŁAPKA: handler bez statusu — oczekiwane: 200 OK (!) i {"code":"NIEOBSLUGIWANE",...}
+POST {{host}}/api/payments/refund
+
+### 9. Ten sam wyjątek z INNEGO kontrolera — oczekiwane: 500 i domyślny JSON (handler z PaymentController tu nie działa)
+POST {{host}}/api/orders/ZAM-001/pay
+
+### 10. Handler kontra @ResponseStatus — oczekiwane: 409 i {"code":"KUPON_WYGASL",...}, a NIE 410
+GET {{host}}/api/coupons/ABC

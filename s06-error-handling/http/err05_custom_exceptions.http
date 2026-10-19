@@ -1,0 +1,70 @@
+# Lekcja s06_error_handling / Err05CustomExceptions — wyjątki domeny sklepu i bezpieczne błędy serwera
+# 1. Uruchom Err05Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Przy błędach 500/503 skopiuj errorId z odpowiedzi i znajdź go w konsoli aplikacji (log).
+
+@host = http://localhost:8080
+
+### 1. Poprawny produkt — oczekiwane: 200 {"stock":7,"sku":"ELE-001"}
+GET {{host}}/api/products/ELE-001
+
+### 2. Nie ma takiego produktu — oczekiwane: 404, "code":"PRODUKT_NIE_ISTNIEJE", "sku":"XXX"
+GET {{host}}/api/products/XXX
+
+### 3. Za mało towaru — oczekiwane: 409, "code":"BRAK_TOWARU", "available":7
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customer": "Jan Kowalski",
+  "lines": [{"sku": "ELE-001", "quantity": 50}]
+}
+
+### 4. Pusta lista pozycji — oczekiwane: 422 (JSON poprawny, ale zamówienie bez sensu)
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customer": "Jan Kowalski",
+  "lines": []
+}
+
+### 5. Nieznany produkt w pozycji — oczekiwane: 422 (a NIE 404: adres /api/orders istnieje)
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customer": "Jan Kowalski",
+  "lines": [{"sku": "ZZZ-1", "quantity": 1}]
+}
+
+### 6. Zły FORMAT danych — oczekiwane: 400 i mapa "errors" (customer, lines[0].quantity)
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customer": "",
+  "lines": [{"sku": "ELE-001", "quantity": 0}]
+}
+
+### 7. Brak pola lines — oczekiwane: 400 i "errors": {"lines": "Brak listy pozycji"}
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customer": "Jan Kowalski"
+}
+
+### 8. Poprawne zamówienie — oczekiwane: 200 {"id":"ZAM-001"}
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customer": "Jan Kowalski",
+  "lines": [{"sku": "ELE-001", "quantity": 1}]
+}
+
+### 9. Awaria bazy — oczekiwane: 503, ogólny opis i errorId (adresu bazy w odpowiedzi NIE ma; w logu jest łańcuch Caused by)
+GET {{host}}/api/reports/sales
+
+### 10. Błąd w kodzie (NullPointerException) — oczekiwane: 500, ogólny opis i errorId; w logu pełny stos pod tym samym errorId
+GET {{host}}/api/bug
