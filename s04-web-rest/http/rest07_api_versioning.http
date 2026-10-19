@@ -1,0 +1,46 @@
+# Lekcja s04_web_rest / Rest07ApiVersioning — wersjonowanie API (Spring Framework 7)
+# 1. Uruchom Rest07Application (▶ obok main) — włącza profil rest07 (application-rest07.properties).
+#    Poczekaj na „Tomcat started on port 8080”.
+# 2. Wersję podajesz nagłówkiem API-Version albo parametrem ?version=. Bez wersji = wersja domyślna 1.0.
+
+@host = http://localhost:8080
+
+### 1. Bez wersji — oczekiwane: 200, ProductV1 (price jako liczba) i nagłówki Deprecation, Link, Sunset (1.0 wycofywana)
+GET {{host}}/api/products/ELE-001
+
+### 2. Wersja 2.0 nagłówkiem — oczekiwane: 200, ProductV2 (price: net, vatRate, gross, currency), bez Deprecation
+GET {{host}}/api/products/ELE-001
+API-Version: 2.0
+
+### 3. Wersja 2.0 parametrem — oczekiwane: to samo co w 2
+GET {{host}}/api/products/ELE-001?version=2.0
+
+### 4. Wersja 1.5 (na liście supported) — oczekiwane: 200 i ProductV1 (obsługuje ją wersja bazowa „1.0+”)
+GET {{host}}/api/products/ELE-001
+API-Version: 1.5
+
+### 5. „v2” — parser pomija litery na początku; oczekiwane: ProductV2
+GET {{host}}/api/products/ELE-001
+API-Version: v2
+
+### 6. Nieznana wersja — oczekiwane: 400 Bad Request (powód „Invalid API version: '3.0.0'.” widać w teście, nie w logu)
+GET {{host}}/api/products/ELE-001
+API-Version: 3.0
+
+### 7. Adres dodany w 1.1 („1.1+”), zapytanie w 1.1 — oczekiwane: 200 i {"sku":"ELE-001","stock":7}
+GET {{host}}/api/products/ELE-001/stock
+API-Version: 1.1
+
+### 8. Ten sam adres w wersji domyślnej 1.0 — oczekiwane: 404 (w 1.0 tego adresu nie ma)
+GET {{host}}/api/products/ELE-001/stock
+
+### 9. Wersja STAŁA „1.0”, zapytanie 1.1 — oczekiwane: 400 Bad Request (NotAcceptableApiVersionException)
+GET {{host}}/api/products/ELE-001/legacy-price
+API-Version: 1.1
+
+### 10. Ręczne wersjonowanie w adresie — oczekiwane: 200 i „v2: ELE-001 (z cenami netto i brutto)”
+GET {{host}}/api/v2/catalog/ELE-001
+
+### 11. PUŁAPKA: zła wersja psuje też adres bez atrybutu version — oczekiwane: 400
+GET {{host}}/api/v1/catalog/ELE-001
+API-Version: 3.0

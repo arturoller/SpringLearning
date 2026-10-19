@@ -1,0 +1,46 @@
+# Lekcja s04_web_rest / Rest06Cors — CORS z punktu widzenia serwera
+# 1. Uruchom Rest06Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Plik .http to NIE przeglądarka — CORS go nie blokuje. Nagłówkiem Origin UDAJEMY przeglądarkę na innej stronie
+#    i patrzymy, jakie nagłówki Access-Control-* odsyła serwer.
+
+@host = http://localhost:8080
+
+### 1. Bez Origin (jak curl) — oczekiwane: 200, brak nagłówków Access-Control-*
+GET {{host}}/api/shop/products
+
+### 2. Dozwolony frontend — oczekiwane: 200, Access-Control-Allow-Origin: http://localhost:3000,
+#    Access-Control-Expose-Headers: Location, X-Total-Count
+GET {{host}}/api/shop/products
+Origin: http://localhost:3000
+
+### 3. Obca strona — oczekiwane: 403 i ciało „Invalid CORS request”
+GET {{host}}/api/shop/products
+Origin: http://evil.example
+
+### 4. Preflight przed PUT — oczekiwane: 200, Allow-Methods: GET,POST,PUT,DELETE, Allow-Headers: content-type, Max-Age: 3600
+OPTIONS {{host}}/api/shop/products
+Origin: http://localhost:3000
+Access-Control-Request-Method: PUT
+Access-Control-Request-Headers: content-type
+
+### 5. Preflight przed PATCH (metoda spoza listy) — oczekiwane: 403
+OPTIONS {{host}}/api/shop/products
+Origin: http://localhost:3000
+Access-Control-Request-Method: PATCH
+
+### 6. @CrossOrigin(origins = "*") — oczekiwane: 200 i Access-Control-Allow-Origin: *
+GET {{host}}/api/public/opening-hours
+Origin: http://whatever.example
+
+### 7. originPatterns + credentials — oczekiwane: 200, Allow-Origin: https://hurt.partner.example, Allow-Credentials: true
+GET {{host}}/api/partners/stock
+Origin: https://hurt.partner.example
+
+### 8. Domena tylko podobna do partnera — oczekiwane: 403
+GET {{host}}/api/partners/stock
+Origin: https://partner.example.evil.com
+
+### 9. Brak konfiguracji CORS — oczekiwane: 200 i DANE, ale bez Access-Control-Allow-Origin
+#    (serwer odpowiada; to przeglądarka nie pokazałaby tego skryptowi)
+GET {{host}}/api/internal/report
+Origin: http://localhost:3000

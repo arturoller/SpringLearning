@@ -1,0 +1,56 @@
+# Lekcja s04_web_rest / Rest04Json — JSON w Boot 4 (Jackson 3)
+# 1. Uruchom Rest04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Dane są stałe — kolejność zapytań nie ma znaczenia.
+
+@host = http://localhost:8080
+
+### 1. Domyślny JSON rekordu — oczekiwane: daty ISO ("2026-10-19", "2026-10-19T08:30:00Z"), price 5499.99
+GET {{host}}/api/json/card
+
+### 2. Adnotacje — oczekiwane: productName, brak purchasePrice, addedOn "19.10.2026", price jako tekst "5499.99"
+GET {{host}}/api/json/public
+
+### 3. Pole null — oczekiwane: "email":null
+GET {{host}}/api/json/customer
+
+### 4. @JsonInclude(NON_NULL) — oczekiwane: brak pola email
+GET {{host}}/api/json/customer-without-nulls
+
+### 5. PUŁAPKA Jackson 3: enum z własnym toString() — oczekiwane: "category":"książki"
+GET {{host}}/api/json/labeled
+
+### 6. Nieznane pole "color" — oczekiwane: 200, pole po cichu pominięte (nie ma go w odpowiedzi)
+POST {{host}}/api/json/products
+Content-Type: application/json
+
+{
+  "sku": "SPO-001",
+  "name": "Kawa ziarnista 1kg",
+  "category": "SPOZYWCZE",
+  "price": 64.99,
+  "stock": 120,
+  "color": "brązowy"
+}
+
+### 7. PUŁAPKA Jackson 3: brak pola stock (int) — oczekiwane: 400 Bad Request
+POST {{host}}/api/json/products
+Content-Type: application/json
+
+{
+  "sku": "SPO-001",
+  "name": "Kawa ziarnista 1kg",
+  "category": "SPOZYWCZE",
+  "price": 64.99
+}
+
+### 8. Customizer z JsonConfig: kategoria małymi literami — oczekiwane: 200 i "category":"SPOZYWCZE"
+POST {{host}}/api/json/products
+Content-Type: application/json
+
+{
+  "sku": "SPO-002",
+  "name": "Czekolada gorzka",
+  "category": "spozywcze",
+  "price": 7.49,
+  "stock": 300
+}

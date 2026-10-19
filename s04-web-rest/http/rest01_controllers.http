@@ -1,0 +1,60 @@
+# Lekcja s04_web_rest / Rest01Controllers — kontrolery REST i adnotacje metod HTTP
+# 1. Uruchom Rest01Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Odpowiedź (status, nagłówki, ciało) pojawi się w oknie Services.
+# Produkty są w pamięci aplikacji — po restarcie wraca stan startowy (ELE-001, KSI-001, SPO-001).
+
+@host = http://localhost:8080
+
+### 1. @RestController — oczekiwane: 200, Content-Type: text/plain, ciało „Witaj w sklepie”
+GET {{host}}/api/greeting/rest
+
+### 2. @Controller + @ResponseBody — oczekiwane: DOKŁADNIE to samo co zapytanie 1
+GET {{host}}/api/greeting/classic
+
+### 3. PUŁAPKA: sam @Controller — oczekiwane: 404 (Spring potraktował „witaj” jako nazwę widoku)
+GET {{host}}/api/greeting/view
+
+### 4. Lista produktów — oczekiwane: 200 i tablica JSON posortowana po sku
+GET {{host}}/api/products
+
+### 5. Jeden produkt — oczekiwane: 200 i Laptop Pro 14
+GET {{host}}/api/products/ELE-001
+
+### 6. Nieznany produkt — oczekiwane: 404 (ResponseStatusException z kontrolera)
+GET {{host}}/api/products/XXX-999
+
+### 7. POST — dodanie produktu; oczekiwane: 200 i dodany produkt (201 Created — w lekcji Rest03Responses)
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "sku": "ODZ-001",
+  "name": "Kurtka zimowa",
+  "category": "ODZIEZ",
+  "price": 459.00,
+  "stock": 12
+}
+
+### 8. PUT — zastąpienie CAŁEGO produktu; oczekiwane: 200 i nowa nazwa
+PUT {{host}}/api/products/ODZ-001
+Content-Type: application/json
+
+{
+  "sku": "ODZ-001",
+  "name": "Kurtka zimowa XL",
+  "category": "ODZIEZ",
+  "price": 479.00,
+  "stock": 10
+}
+
+### 9. PATCH — zmiana TYLKO stanu magazynu (delta = o ile zmienić); oczekiwane: 200 i stock 7
+PATCH {{host}}/api/products/ODZ-001/stock?delta=-3
+
+### 10. DELETE — metoda void; oczekiwane: 200 i PUSTE ciało
+DELETE {{host}}/api/products/ODZ-001
+
+### 11. Zła metoda HTTP — oczekiwane: 405 Method Not Allowed i nagłówek Allow (np. PUT, GET, DELETE)
+POST {{host}}/api/products/ELE-001
+
+### 12. Nieznany adres — oczekiwane: 404 i JSON strony błędu Boota (timestamp, status, error, path)
+GET {{host}}/api/nothing

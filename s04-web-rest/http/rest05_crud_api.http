@@ -1,0 +1,113 @@
+# Lekcja s04_web_rest / Rest05CrudApi — SCENARIUSZ: cały cykl życia produktu
+# 1. Uruchom Rest05Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Wysyłaj zapytania PO KOLEI, od 1 do 14 — każde zakłada stan po poprzednich.
+#    Chcesz zacząć od nowa? Zatrzymaj i uruchom aplikację ponownie (dane są w pamięci).
+
+@host = http://localhost:8080
+
+### 1. Lista — oczekiwane: 200, 4 produkty posortowane po sku, BEZ pola purchasePrice, z polem available
+GET {{host}}/api/products
+
+### 2. Utworzenie — oczekiwane: 201 Created, Location: http://localhost:8080/api/products/DOM-001
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "sku": "DOM-001",
+  "name": "Ekspres do kawy",
+  "category": "DOM",
+  "price": 1899.00,
+  "purchasePrice": 1400.00,
+  "stock": 2
+}
+
+### 3. To samo jeszcze raz — POST nie jest idempotentny; oczekiwane: 409 Conflict
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "sku": "DOM-001",
+  "name": "Ekspres do kawy",
+  "category": "DOM",
+  "price": 1899.00,
+  "purchasePrice": 1400.00,
+  "stock": 2
+}
+
+### 4. Odczyt nowego produktu (adres z nagłówka Location) — oczekiwane: 200
+GET {{host}}/api/products/DOM-001
+
+### 5. PUT — zastąpienie CAŁOŚCI; oczekiwane: 200, nowa nazwa i cena
+PUT {{host}}/api/products/DOM-001
+Content-Type: application/json
+
+{
+  "name": "Ekspres do kawy Deluxe",
+  "category": "DOM",
+  "price": 2199.00,
+  "purchasePrice": 1600.00,
+  "stock": 3
+}
+
+### 6. Ten sam PUT drugi raz — PUT jest idempotentny; oczekiwane: 200 i DOKŁADNIE ta sama odpowiedź co w 5
+PUT {{host}}/api/products/DOM-001
+Content-Type: application/json
+
+{
+  "name": "Ekspres do kawy Deluxe",
+  "category": "DOM",
+  "price": 2199.00,
+  "purchasePrice": 1600.00,
+  "stock": 3
+}
+
+### 7. PUT bez pola stock — PUT to całość; oczekiwane: 400 Bad Request
+PUT {{host}}/api/products/DOM-001
+Content-Type: application/json
+
+{
+  "name": "Ekspres do kawy Deluxe",
+  "category": "DOM",
+  "price": 2199.00,
+  "purchasePrice": 1600.00
+}
+
+### 8. PATCH — tylko stan magazynu; oczekiwane: 200, stock 0, available false, nazwa bez zmian
+PATCH {{host}}/api/products/DOM-001
+Content-Type: application/json
+
+{
+  "stock": 0
+}
+
+### 9. PATCH z purchasePrice — DTO nie ma tego pola, więc nic się nie zmieni; oczekiwane: 200 (over-posting zablokowany)
+PATCH {{host}}/api/products/DOM-001
+Content-Type: application/json
+
+{
+  "purchasePrice": 1.00
+}
+
+### 10. Usunięcie — oczekiwane: 204 No Content, brak ciała
+DELETE {{host}}/api/products/DOM-001
+
+### 11. Usunięcie drugi raz — DELETE jest idempotentny (stan ten sam), ale status inny; oczekiwane: 404
+DELETE {{host}}/api/products/DOM-001
+
+### 12. Odczyt usuniętego — oczekiwane: 404
+GET {{host}}/api/products/DOM-001
+
+### 13. PUT nieistniejącego — PUT nie tworzy produktów; oczekiwane: 404
+PUT {{host}}/api/products/XXX-404
+Content-Type: application/json
+
+{
+  "name": "Nieznany",
+  "category": "DOM",
+  "price": 1.00,
+  "purchasePrice": 1.00,
+  "stock": 1
+}
+
+### 14. Lista na koniec — oczekiwane: znowu 4 produkty (DOM-001 usunięty)
+GET {{host}}/api/products

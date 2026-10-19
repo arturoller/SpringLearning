@@ -1,0 +1,86 @@
+# Lekcja s04_web_rest / Rest02RequestData — dane z zapytania: ścieżka, parametry, ciało, nagłówki
+# 1. Uruchom Rest02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Dane są tylko do odczytu — kolejność zapytań nie ma znaczenia.
+
+@host = http://localhost:8080
+
+### 1. @PathVariable — oczekiwane: 200 i Java. Podstawy
+GET {{host}}/api/products/KSI-002
+
+### 2. @PathVariable typu enum — oczekiwane: 200 i trzy książki
+GET {{host}}/api/categories/KSIAZKI/products
+
+### 3. Enum rozróżnia wielkość liter — oczekiwane: 400 Bad Request
+GET {{host}}/api/categories/ksiazki/products
+
+### 4. Dwie zmienne ścieżki — oczekiwane: 200 i KSI-002
+GET {{host}}/api/categories/KSIAZKI/products/KSI-002
+
+### 5. @RequestParam z wartościami domyślnymi — oczekiwane: 5 produktów (limit 5, offset 0)
+GET {{host}}/api/products
+
+### 6. Stronicowanie (sortowanie po sku, pomijamy DOM-001 i DOM-002) — oczekiwane: ELE-001, ELE-002, ELE-003
+GET {{host}}/api/products?limit=3&offset=2
+
+### 7. Konwersja typów nie wychodzi — oczekiwane: 400 (MethodArgumentTypeMismatchException w logu)
+GET {{host}}/api/products?limit=abc
+
+### 8. Wymagany parametr name — oczekiwane: 200 i Kawa ziarnista 1kg
+GET {{host}}/api/products/search?name=kawa
+
+### 9. Brak wymaganego parametru — oczekiwane: 400
+GET {{host}}/api/products/search
+
+### 10. Optional<Category> — bez kategorii: 6 produktów tańszych niż 100 zł
+GET {{host}}/api/products/cheaper-than?max=100
+
+### 11. Optional<Category> — z kategorią: KSI-001 i KSI-003
+GET {{host}}/api/products/cheaper-than?max=100&category=KSIAZKI
+
+### 12. Lista z powtórzonego parametru — oczekiwane: ELE-001 i KSI-001
+GET {{host}}/api/products/by-sku?sku=ELE-001&sku=KSI-001
+
+### 13. PUŁAPKA: required = false + int, brak parametru — oczekiwane: 500
+GET {{host}}/api/pitfalls/primitive
+
+### 14. ZNAJDŹ BŁĄD: @PathVariable("sku") przy zmiennej {id} — oczekiwane: 500
+GET {{host}}/api/pitfalls/products/ELE-001
+
+### 15. @RequestBody — wycena; oczekiwane: 200, unitPrice 79.00, total 237.00
+POST {{host}}/api/products/price-check
+Content-Type: application/json
+
+{
+  "sku": "KSI-001",
+  "quantity": 3
+}
+
+### 16. Zły JSON (brak wartości quantity) — oczekiwane: 400
+POST {{host}}/api/products/price-check
+Content-Type: application/json
+
+{
+  "sku": "KSI-001",
+  "quantity":
+}
+
+### 17. @RequestHeader — oczekiwane: „Laptop Pro 14 — 5499.99 zł” (bez nagłówka też po polsku: defaultValue = "pl")
+GET {{host}}/api/products/ELE-001/label
+Accept-Language: pl
+
+### 18. Ten sam adres po angielsku — oczekiwane: Laptop Pro 14 - PLN 5499.99
+GET {{host}}/api/products/ELE-001/label
+Accept-Language: en-US,en;q=0.9
+
+### 19. Wymagany nagłówek X-Shop-Id — oczekiwane: 200 i raport sklepu
+GET {{host}}/api/products/stock-report
+X-Shop-Id: WAW-01
+
+### 20. Brak wymaganego nagłówka — oczekiwane: 400
+GET {{host}}/api/products/stock-report
+
+### 21. @ModelAttribute — filtr z parametrów; oczekiwane: ELE-003 i ELE-004
+GET {{host}}/api/products/filter?category=ELEKTRONIKA&maxPrice=1500&inStock=true
+
+### 22. Błąd konwersji w @ModelAttribute — oczekiwane: 400
+GET {{host}}/api/products/filter?maxPrice=abc

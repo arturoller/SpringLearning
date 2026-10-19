@@ -184,7 +184,7 @@ Fakty Boot 4 do potwierdzenia (SPRAWDŹ, zanim napiszesz):
   uczą Flyway, mają `spring.flyway.enabled=false` (starter Flyway jest na classpath modułu i inaczej uruchomiłby się wszędzie).
   Ustawienia lekcji — w profilu `application-<lekcja>.properties` włączanym w jej klasie startowej albo w `@SpringBootTest(properties=…)`.
 
-## C. s04_web_rest — REST w Spring MVC (7 lekcji) — stan: do napisania
+## C. s04_web_rest — REST w Spring MVC (7 lekcji) — stan: gotowe (2026-10-19)
 Startery: `spring-boot-starter-webmvc` (+ test `-webmvc-test`). Model: produkty sklepu. Każda lekcja-aplikacja ma plik
 `s04-web-rest/http/restNN_….http`.
 - **Rest01Controllers** (`rest01_controllers`): `@RestController` = `@Controller` + `@ResponseBody`; `@RequestMapping` na klasie,
@@ -427,3 +427,162 @@ Port do ręcznego sprawdzania `.http`: 8092.
 - **Sec06SecurityTesting** (`sec06_security_testing`): `@WebMvcTest` + bezpieczeństwo (co jest ładowane — SPRAWDŹ, czy własny
   `SecurityFilterChain` trzeba `@Import`), `@WithMockUser`, `@WithUserDetails`, `SecurityMockMvcRequestPostProcessors`
   (`httpBasic()`, `user()`, `jwt()`, `csrf()`), testy 401/403/200 dla każdej reguły, test, że hasło nie wycieka w odpowiedzi.
+
+---
+
+## Zasady dla sekcji L i dalszych
+Jak w „Zasadach wspólnych dla sekcji C–G”. Moduł istnieje (pom gotowy, w parent pom, zależności pobrane). Porty do ręcznego
+sprawdzania `.http`: s13 → 8093, s14 → 8094, s15 → 8095, s16 → 8096. Żadnego internetu w testach: „zewnętrzne API” to lokalny
+serwer w teście (RANDOM_PORT) albo `MockRestServiceServer`.
+
+## L. s13_rest_client — klient HTTP (4 lekcje) — stan: do napisania
+Startery: `restclient`, `webmvc` (udawany serwer dostawcy), test: `restclient-test`, `webmvc-test`. Scenariusz: sklep pyta
+zewnętrzne API dostawcy o ceny/stan magazynu.
+- **Rc01RestClient** (`rc01_rest_client`): `RestClient` (od Framework 6.1) — budowanie (`RestClient.Builder` od Boota,
+  `baseUrl`, nagłówki domyślne), `get().uri(...).retrieve().body(...)`, `toEntity`, `post().body(...)`, mapowanie JSON na rekord
+  (Jackson 3), `ParameterizedTypeReference` dla list; test `@RestClientTest` + `MockRestServiceServer` (SPRAWDŹ pakiety Boot 4)
+  i test z prawdziwym lokalnym serwerem (RANDOM_PORT). Porównanie: `RestTemplate` (stary, w trybie utrzymania), `WebClient`
+  (reaktywny — nie potrzebujesz go do zwykłych wywołań).
+- **Rc02ErrorsAndTimeouts** (`rc02_errors_and_timeouts`): domyślne wyjątki dla 4xx/5xx (`HttpClientErrorException`,
+  `HttpServerErrorException` — SPRAWDŹ dokładne typy), `onStatus(...)` i własne wyjątki, `exchange(...)` dla pełnej kontroli,
+  limity czasu połączenia i odczytu (SPRAWDŹ, jak w Boot 4 — właściwości `spring.http.client.*`/fabryka żądań), wyjątek przy
+  przekroczeniu (`ResourceAccessException` — test z wolnym udawanym serwerem, deterministycznie: serwer czeka na zatrzask, nie `sleep`
+  w asercji), logowanie wywołań.
+- **Rc03HttpInterfaces** (`rc03_http_interfaces`): klient opisany interfejsem (`@HttpExchange`, `@GetExchange`, `@PostExchange`),
+  tworzenie przez `HttpServiceProxyFactory` + `RestClientAdapter`, w Framework 7/Boot 4 rejestracja grup klientów
+  (`@ImportHttpServices` i właściwości — SPRAWDŹ dokładne nazwy i działanie), test z `MockRestServiceServer`.
+- **Rc04Resilience** (`rc04_resilience`): odporność wbudowana w Spring Framework 7: `@Retryable` (liczba prób, opóźnienie,
+  które wyjątki), `@ConcurrencyLimit`, włączenie (`@EnableResilientMethods` — SPRAWDŹ), `RetryTemplate`/`RetryPolicy` z core
+  (SPRAWDŹ pakiety `org.springframework.core.retry`, `org.springframework.resilience`); PUŁAPKA: ponawianie operacji nie
+  idempotentnej (POST zamówienia), ponawianie przez proxy (wywołanie z tej samej klasy — bez ponowień); testy liczące próby
+  na udawanym serwerze, bez zależności od czasu (minimalne opóźnienia, asercje na liczbie wywołań).
+
+## M. s14_openapi — dokumentacja API (3 lekcje) — stan: do napisania
+Startery: `webmvc`, `validation`, `springdoc-openapi-starter-webmvc-ui` (wersja z parent pom: `${springdoc.version}` = 3.1.1),
+test `webmvc-test`. SPRAWDŹ zgodność springdoc 3.1.1 z Boot 4.1.1 (start aplikacji, `/v3/api-docs`, `/swagger-ui.html`).
+- **Api01Springdoc** (`api01_springdoc`): czym jest OpenAPI (opis API jako dane), co springdoc generuje z kontrolerów bez żadnych
+  adnotacji, `/v3/api-docs` (JSON) i Swagger UI; test MockMvc czytający dokument i sprawdzający ścieżki/operacje/schematy (JsonPath);
+  właściwości `springdoc.*` (ścieżki, wyłączenie UI na produkcji).
+- **Api02DocumentingApi** (`api02_documenting_api`): `@Operation`, `@ApiResponse`, `@Parameter`, `@Schema` (opis, przykład),
+  `@Tag`; jak ograniczenia Bean Validation trafiają do schematu (SPRAWDŹ, co springdoc 3 odwzorowuje); rekordy DTO, odpowiedzi
+  błędów (`ProblemDetail`); PUŁAPKA: dokumentacja rozjeżdża się z kodem — test, który pilnuje kluczowych elementów dokumentu.
+- **Api03GroupsAndVersions** (`api03_groups_and_versions`): `GroupedOpenApi` (publiczne vs administracyjne), informacje ogólne
+  (`OpenAPI` bean: tytuł, wersja, kontakt), schemat zabezpieczeń (tylko opis, bez Security w module), dokumentowanie wersji API
+  z `s04_web_rest/Rest07ApiVersioning` (SPRAWDŹ, czy springdoc 3.1 rozumie atrybut `version` w mapowaniach Framework 7 — jeśli
+  nie, pokaż obejście i powiedz o tym uczciwie).
+
+## N. s15_actuator_logging — Actuator, metryki, logi (5 lekcji) — stan: do napisania
+Startery: `webmvc`, `actuator`, test `webmvc-test`, `actuator-test`.
+- **Obs01Actuator** (`obs01_actuator`): punkty końcowe (health, info, metrics, loggers, env, beans, conditions — odesłanie do
+  `s03_boot_basics/Boot01AutoConfiguration`), domyślnie wystawione przez HTTP (SPRAWDŹ w Boot 4.1), `management.endpoints.web.
+  exposure.include`, osobny port zarządzania, PUŁAPKA bezpieczeństwa (`env`, `heapdump` wystawione publicznie), `info` z danymi
+  aplikacji. Testy MockMvc albo RANDOM_PORT.
+- **Obs02HealthIndicators** (`obs02_health_indicators`): własny `HealthIndicator` (np. „magazyn dostępny”), szczegóły
+  (`show-details`), grupy zdrowia, sondy liveness/readiness (kiedy włączone — SPRAWDŹ), `AvailabilityChangeEvent`.
+- **Obs03Metrics** (`obs03_metrics`): Micrometer — `MeterRegistry`, `Counter`, `Timer`, `Gauge`, tagi (PUŁAPKA wysokiej
+  kardynalności — np. id klienta jako tag), metryki HTTP od Boota (`http.server.requests`), `/actuator/metrics/{nazwa}`; testy
+  bez zależności od czasu (sprawdzaj liczniki, nie czasy).
+- **Obs04Logging** (`obs04_logging`): SLF4J + Logback, poziomy, `logging.level.*`, grupy logów, zapis do pliku, wzorzec,
+  logowanie strukturalne (`logging.structured.format.console` — SPRAWDŹ wartości w Boot 4.1), MDC (identyfikator żądania),
+  zmiana poziomu w czasie działania przez `/actuator/loggers`; PUŁAPKA: łączenie napisów zamiast `{}` i logowanie danych
+  osobowych/haseł. Testy z `OutputCaptureExtension`.
+- **Obs05Observations** (`obs05_observations`): Observation API (Micrometer) — jedna obserwacja = metryka + (opcjonalnie) ślad,
+  `ObservationRegistry`, `Observation.createNotStarted(...).observe(...)`, `@Observed` (SPRAWDŹ, co trzeba włączyć), co
+  obserwuje Boot sam; zapowiedź śledzenia rozproszonego (`s22_extras/Ext04Tracing`).
+
+## O. s16_cache_scheduling_async — pamięć podręczna, harmonogram, asynchroniczność (5 lekcji) — stan: do napisania
+Startery: `cache`, `webmvc`, test `webmvc-test`. Determinizm: żadnych asercji na czasie; zadania cykliczne testuj przez
+wywołanie metody i sprawdzenie konfiguracji harmonogramu, asynchroniczność przez `CompletableFuture`/Awaitility (SPRAWDŹ, czy
+Awaitility jest w `spring-boot-starter-test`).
+- **Cache01Cacheable** (`cache01_cacheable`): `@EnableCaching`, `@Cacheable` (nazwa, klucz, `condition`, `unless`), licznik
+  wywołań prawdziwej metody w teście, domyślny `CacheManager` (SPRAWDŹ, co Boot wybiera bez dodatkowych bibliotek), PUŁAPKI:
+  wywołanie z tej samej klasy (proxy), obiekty zmienne w pamięci podręcznej, klucz z wielu parametrów.
+- **Cache02CacheManagement** (`cache02_cache_management`): `@CachePut`, `@CacheEvict` (`allEntries`), `@Caching`, unieważnianie
+  przy zmianie danych, ograniczenie rozmiaru i czasu życia (tylko opis — Caffeine/Redis wymagają zależności; wyraźnie powiedz),
+  `spring.cache.*`, testy z `CacheManager`.
+- **Sched03Scheduled** (`sched03_scheduled`): `@EnableScheduling`, `@Scheduled` (`fixedRate`, `fixedDelay`, `initialDelay`, `cron`
+  ze strefą), wyrażenia cron Springa (6 pól — PUŁAPKA vs cron Linuksa 5 pól), `CronExpression.next(...)` w teście z ustalonym
+  czasem, pula wątków harmonogramu (domyślnie jeden wątek — SPRAWDŹ), `ScheduledTaskHolder` do sprawdzenia zarejestrowanych zadań,
+  `Clock` w logice zadania.
+- **Async04Async** (`async04_async`): `@EnableAsync`, `@Async` z `CompletableFuture`, wykonawca (`TaskExecutor` od Boota —
+  `spring.task.execution.*`), wyjątki w metodach `void` (`AsyncUncaughtExceptionHandler`), PUŁAPKI: wywołanie z tej samej klasy,
+  `@Async` na metodzie prywatnej, utrata kontekstu (MDC, transakcja) w innym wątku.
+- **Async05VirtualThreads** (`async05_virtual_threads`): wątki wirtualne (Java 21) — `spring.threads.virtual.enabled=true`: co
+  zmienia w Boot 4.1 (Tomcat, wykonawcy zadań, harmonogram — SPRAWDŹ), test pokazujący `Thread.currentThread().isVirtual()` w
+  kontrolerze/metodzie `@Async`, kiedy pomagają (dużo czekania na I/O) a kiedy nie (obliczenia CPU), przypinanie (pinning) —
+  `synchronized` w JDK 24+ już nie przypina (JEP 491 — SPRAWDŹ, opisz dla Javy 21 i 25), PUŁAPKA: pule połączeń z bazą
+  nadal ograniczają współbieżność. Odesłanie do `t21_concurrency/…` (tylko nazwy z rejestru JavaLearning).
+
+## P. s17_events — zdarzenia aplikacji (3 lekcje) — stan: do napisania
+Startery: `jdbc`, `h2` (runtime), `flyway`. Bez weba. Scenariusz: złożenie zamówienia → powiadomienie, punkty lojalnościowe,
+rezerwacja magazynu. Odesłanie do `t22_design_patterns/…` (obserwator — tylko nazwy z rejestru JavaLearning).
+- **Evt01ApplicationEvents** (`evt01_application_events`): `ApplicationEventPublisher.publishEvent(rekord)` (zdarzenie nie musi
+  dziedziczyć po `ApplicationEvent`), `@EventListener`, domyślnie SYNCHRONICZNIE w tym samym wątku (wyjątek słuchacza wraca do
+  publikującego — SPRAWDŹ), kolejność `@Order`, warunek `condition` (SpEL), słuchacz zwracający nowe zdarzenie; po co zdarzenia
+  (luźne powiązanie modułów) i kiedy NIE (ukryty przepływ sterowania).
+- **Evt02TransactionalEvents** (`evt02_transactional_events`): `@TransactionalEventListener` (fazy `AFTER_COMMIT` domyślnie,
+  `AFTER_ROLLBACK`, `BEFORE_COMMIT`), PUŁAPKA: publikacja bez transakcji → słuchacz się nie wykona (`fallbackExecution` —
+  SPRAWDŹ), PUŁAPKA: zapis do bazy w słuchaczu `AFTER_COMMIT` (transakcja już zatwierdzona — SPRAWDŹ, co się dzieje i jak to
+  zrobić poprawnie, np. `REQUIRES_NEW`); testy z prawdziwą transakcją (`TransactionTemplate`) i wycofaniem. Odesłanie do
+  `s10_transactions/Tx01Transactional`.
+- **Evt03AsyncAndOutbox** (`evt03_async_and_outbox`): słuchacz `@Async` (zdarzenie obsłużone w innym wątku, utrata kontekstu
+  transakcji), co jeśli aplikacja padnie po zatwierdzeniu, a przed obsłużeniem zdarzenia (zdarzenie ginie) → wzorzec outbox
+  (zapis zdarzenia w tej samej transakcji i osobne wysyłanie) — prosta własna implementacja na tabeli + zapowiedź rejestru
+  publikacji Spring Modulith (`s20_modulith/Mod02ModuleEvents`) i kolejek (Kafka/RabbitMQ w `s22_extras/Ext02Messaging`).
+  Testy deterministyczne (Awaitility albo jawne wywołanie wysyłacza).
+
+## Q. s18_aop — programowanie aspektowe (3 lekcje) — stan: do napisania
+Starter: `spring-boot-starter-aspectj` (w Boot 4 zamiast `-aop`). Dział TRUDNY (proxy od środka).
+- **Aop01Aspects** (`aop01_aspects`): po co aspekty (sprawy przekrojowe: logowanie, pomiar, uprawnienia), `@Aspect` + `@Component`,
+  porady `@Before`, `@AfterReturning`, `@AfterThrowing`, `@After`, `@Around` (`ProceedingJoinPoint.proceed()` — PUŁAPKA: brak
+  `proceed()` = metoda się nie wykona), wyrażenia punktów przecięcia (`execution(...)`, `within(...)`, `@annotation(...)`,
+  `bean(...)`), `@Pointcut` wielokrotnego użytku; testy z licznikami/zapisem kolejności wywołań.
+- **Aop02Proxies** (`aop02_proxies`): jak Spring tworzy proxy — JDK dynamic proxy (interfejs) vs CGLIB (podklasa), co Boot ustawia
+  domyślnie (`spring.aop.proxy-target-class` — SPRAWDŹ), `AopUtils.isAopProxy/isCglibProxy`, klasa obiektu w teście,
+  PUŁAPKI: wywołanie z tej samej klasy omija proxy (dlatego `@Transactional`, `@Cacheable`, `@Async`, `@Retryable`
+  „nie działają”), metody `final`/prywatne, rzutowanie na klasę przy proxy JDK (`ClassCastException`/`BeanNotOfRequiredTypeException`
+  — SPRAWDŹ); obejścia (osobny bean, wstrzyknięcie samego siebie, `AopContext` — z ostrzeżeniem). Odesłanie do
+  `t19_annotations_reflection/…` (dynamiczne proxy w czystej Javie — tylko nazwy z rejestru).
+- **Aop03CustomAnnotations** (`aop03_custom_annotations`): własna adnotacja (np. `@MeasureTime`, `@AuditLog`) + aspekt
+  `@Around("@annotation(...)")` z dostępem do atrybutów adnotacji, kolejność kilku aspektów (`@Order`) i kolejność względem
+  transakcji, PUŁAPKA: aspekt łapiący i połykający wyjątki; kiedy aspekt to przesada (jawne wywołanie jest czytelniejsze).
+
+## R. s19_deploy — wdrożenie (4 lekcje) — stan: do napisania
+Startery: `webmvc`, `actuator`, test `webmvc-test`. W tym dziale agent MOŻE dodać do `s19-deploy/pom.xml` sekcję `<build>` z
+`spring-boot-maven-plugin` (to temat lekcji) — z jedną klasą główną (`mainClass`), żeby `./mvnw -pl s19-deploy package` dał
+działający JAR. Docker jest dostępny u autora — budowanie obrazu sprawdź ręcznie, ale testy (`mvnw test`) NIE mogą wymagać
+Dockera ani zbudowanego JAR-a (faza test jest przed package).
+- **Dep01ExecutableJar** (`dep01_executable_jar`): JAR wykonywalny („fat jar”) — `repackage`, budowa (`BOOT-INF/classes`,
+  `BOOT-INF/lib`, `META-INF/MANIFEST.MF`, `JarLauncher` — SPRAWDŹ nazwę klasy w Boot 4), `java -jar`, argumenty i właściwości
+  z linii poleceń, warstwy (layers) i `java -Djarmode=tools -jar … extract` (SPRAWDŹ tryb w Boot 4), dlaczego nie „uber-jar”
+  z rozpakowanymi klasami. Pokaż prawdziwy wynik `jar tf` (z uruchomienia) w komentarzu.
+- **Dep02Docker** (`dep02_docker`): `Dockerfile` wielostopniowy (budowa + obraz z samym JRE, warstwy z `extract`), obraz
+  bazowy z jawnym tagiem (np. Temurin 25 JRE), uruchomienie jako nie-root, pamięć JVM w kontenerze (`-XX:MaxRAMPercentage`),
+  `./mvnw spring-boot:build-image` (Buildpacks) — porównanie; `.dockerignore`. Plik `Dockerfile` w module; instrukcja ręczna,
+  sprawdzona przez autora (`docker build`, `docker run`, zapytanie do `/actuator/health`).
+- **Dep03ProductionConfig** (`dep03_production_config`): konfiguracja z zewnątrz — zmienne środowiskowe (relaxed binding:
+  `SPRING_DATASOURCE_URL`… — odesłanie do `s02_configuration/Cfg05Environment`), `spring.config.import` (plik spoza JAR-a,
+  `optional:`), profil `prod`, sekrety NIGDY w repozytorium (zmienne środowiskowe, menedżer sekretów — opis), `--debug` wyłączony;
+  testy wiązania konfiguracji z „udawanego” środowiska (prawdziwa nazwa źródła `systemEnvironment`!).
+- **Dep04StartupAndShutdown** (`dep04_startup_and_shutdown`): łagodne zamykanie (`server.shutdown=graceful` — SPRAWDŹ wartość
+  domyślną w Boot 4.1, `spring.lifecycle.timeout-per-shutdown-phase`), sondy liveness/readiness dla Kubernetesa (odesłanie do
+  `s15_actuator_logging/Obs02HealthIndicators`), czas startu, leniwa inicjalizacja (wady), CDS / pamięć podręczna AOT w JDK 25
+  (tylko opis + SPRAWDŹ, co Boot 4.1 wspiera), zapowiedź GraalVM (`s22_extras/Ext06NativeImage`).
+
+## S. s20_modulith — Spring Modulith (3 lekcje) — stan: do napisania
+Zależności: `spring-modulith-starter-core`, `-starter-jdbc`, `spring-modulith-docs` (BOM Modulith 2.1.1 z parent pom), `jdbc`,
+`h2`, `flyway`, test `spring-modulith-starter-test`. UWAGA na izolację: Modulith traktuje pakiety pod klasą
+`@SpringBootApplication` jako moduły — każda lekcja ma WŁASNĄ aplikację w swoim pakiecie, a moduły biznesowe są jej podpakietami
+(np. `mod01_modules.products`, `mod01_modules.orders`). SPRAWDŹ, jak `ApplicationModules.of(Mod01Application.class)` wyznacza
+moduły i czy pakiet `solutions` nie zostanie potraktowany jako moduł innej lekcji.
+- **Mod01Modules** (`mod01_modules`): monolit modułowy — moduł = bezpośredni podpakiet aplikacji, API modułu vs pakiet
+  `internal`, `ApplicationModules.of(...).verify()` w teście (błąd przy sięganiu do środka innego modułu — SPRAWDŹ komunikat,
+  pokaż na celowo złej aplikacji w osobnym pakiecie testowym), cykle między modułami, `@ApplicationModule(allowedDependencies=…)`.
+- **Mod02ModuleEvents** (`mod02_module_events`): komunikacja modułów przez zdarzenia — `@ApplicationModuleListener` (asynchronicznie,
+  po zatwierdzeniu transakcji, we własnej transakcji — SPRAWDŹ), rejestr publikacji zdarzeń w bazie (tabela `EVENT_PUBLICATION`
+  — skąd schemat: SPRAWDŹ `spring.modulith.events.jdbc.schema-initialization.enabled` albo migracja Flyway), ponawianie
+  nieukończonych publikacji, test `@ApplicationModuleTest` + `Scenario` (`publish(...).andWaitForEventOfType(...)`). Odesłanie
+  do `s17_events/Evt03AsyncAndOutbox`.
+- **Mod03Documentation** (`mod03_documentation`): `Documenter` — diagramy modułów (PlantUML/C4) i „kanwa” modułu generowane do
+  `target/spring-modulith-docs` w teście (pokaż fragment prawdziwego wyniku), nazwane interfejsy (`@NamedInterface`),
+  obserwowalność modułów (tylko wzmianka); kiedy monolit modułowy, a kiedy mikroserwisy.

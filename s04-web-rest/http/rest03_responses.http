@@ -1,0 +1,74 @@
+# Lekcja s04_web_rest / Rest03Responses — statusy, nagłówki i ciało odpowiedzi
+# 1. Uruchom Rest03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Wysyłaj zapytania po kolei (5 i 6 tworzą produkt, 8 i 9 go usuwają). Po restarcie aplikacji wraca stan startowy.
+
+@host = http://localhost:8080
+
+### 1. ResponseEntity z nagłówkiem — oczekiwane: 200, nagłówek X-Total-Count: 3, lista
+GET {{host}}/api/products
+
+### 2. JSON (Accept: application/json) — oczekiwane: 200 i Laptop Pro 14
+GET {{host}}/api/products/ELE-001
+Accept: application/json
+
+### 3. Ten sam adres, Accept: text/plain — oczekiwane: 200 i „Laptop Pro 14 — 5499.99 zł”
+GET {{host}}/api/products/ELE-001
+Accept: text/plain
+
+### 4. Accept: application/xml — oczekiwane: 406 Not Acceptable, PUSTE ciało, nagłówek Accept z dostępnymi typami
+GET {{host}}/api/products/ELE-001
+Accept: application/xml
+
+### 5. POST — oczekiwane: 201 Created, Location: http://localhost:8080/api/products/ODZ-002 i produkt w ciele
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "sku": "ODZ-002",
+  "name": "T-shirt bawełniany",
+  "price": 49.99,
+  "stock": 80
+}
+
+### 6. Ten sam POST drugi raz — oczekiwane: 409 Conflict
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "sku": "ODZ-002",
+  "name": "T-shirt bawełniany",
+  "price": 49.99,
+  "stock": 80
+}
+
+### 7. Zły Content-Type — oczekiwane: 415 Unsupported Media Type i nagłówek Accept: application/json
+POST {{host}}/api/products
+Content-Type: text/plain
+
+{"sku": "ODZ-003"}
+
+### 8. DELETE — oczekiwane: 204 No Content, brak ciała
+DELETE {{host}}/api/products/ODZ-002
+
+### 9. Drugi DELETE — oczekiwane: 404 Not Found
+DELETE {{host}}/api/products/ODZ-002
+
+### 10. ResponseStatusException — oczekiwane: 404 i JSON błędu Boota (bez tekstu „Nie ma produktu”)
+GET {{host}}/api/products/XXX-999/details
+
+### 11. Wyjątek z @ResponseStatus — oczekiwane: 404
+GET {{host}}/api/products/XXX-999/stock
+
+### 12. PUŁAPKA: return null — oczekiwane: 200 OK i PUSTE ciało (Content-Length: 0)
+GET {{host}}/api/pitfalls/null-product/XXX-999
+
+### 13. @ResponseStatus(CREATED) na metodzie — oczekiwane: 201, ale BEZ nagłówka Location
+POST {{host}}/api/products/quick
+Content-Type: application/json
+
+{
+  "sku": "DOM-001",
+  "name": "Ekspres do kawy",
+  "price": 1899.00,
+  "stock": 2
+}
