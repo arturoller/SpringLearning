@@ -23,7 +23,7 @@ import java.time.Duration;
  *
  * JAK TO DZIAŁA:
  *   1. SpringApplication.run buduje Environment (środowisko = zbiór źródeł ustawień, uporządkowany wg priorytetu).
- *   2. Boot dokłada do niego źródła: argumenty, właściwości JVM, zmienne systemowe, pliki application*.properties.
+ *   2. Boot dokłada do niego źródła: argumenty, właściwości JVM, zmienne środowiska, pliki application*.properties.
  *   3. Przy tworzeniu beana Spring widzi @Value("${klucz}"), pyta Environment o wartość, zamienia tekst na typ
  *      parametru (int, boolean, Duration…) i wywołuje konstruktor.
  *   PRIORYTET (wyższy wygrywa; skrót wyboru z dokumentacji Boota):
@@ -111,6 +111,10 @@ public final class Cfg01Properties {
     //
     // PUŁAPKA: tekst, którego nie da się zamienić ("dużo" na int), kończy start aplikacji wyjątkiem konwersji.
     //   Dlaczego? Konwersja dzieje się przy tworzeniu beana, więc błąd jest od razu, a nie przy pierwszym użyciu.
+    //
+    // PUŁAPKA: liczba BEZ jednostki jako Duration (cfg01.shop.reservation-time=30) to 30 MILISEKUND, nie 30 sekund.
+    //   Dlaczego? Gdy w tekście nie ma jednostki, konwersja Boota przyjmuje milisekundy. Błędu nie ma — rezerwacja
+    //   po prostu trwa ułamek sekundy. Sprawdzone testem (sekcja 4). Zawsze pisz jednostkę: 30s.
 
     // =================================================================================================
     // 5. LUŹNE DOPASOWANIE NAZW (relaxed binding) — podstawy
@@ -118,9 +122,10 @@ public final class Cfg01Properties {
     //
     // W @Value zapisz klucz w formie KANONICZNEJ: małe litery i myślniki: ${cfg01.shop.max-items}.
     // Wtedy Boot znajdzie wartość także pod nazwami: cfg01.shop.maxItems, cfg01.shop.max_items
-    // oraz (zmienna środowiska) CFG01_SHOP_MAX_ITEMS (szczegóły: lekcja Cfg05Environment).
+    // oraz (zmienna środowiska) CFG01_SHOP_MAXITEMS albo CFG01_SHOP_MAX_ITEMS (szczegóły: lekcja Cfg05Environment).
     //
-    // PUŁAPKA: w @Value zapisujesz ${cfg01.shop.maxItems} (camelCase) — wtedy NIE znajdzie klucza max-items.
+    // PUŁAPKA: w @Value zapisujesz ${cfg01.shop.maxItems} (camelCase — zapis „wielbłądzi”: kolejne słowa sklejone,
+    //   każde od wielkiej litery) — wtedy NIE znajdzie klucza max-items.
     //   Dlaczego? Luźne dopasowanie działa w jedną stronę: Boot przeszukuje źródła, porównując z formą kanoniczną
     //   zapisaną w adnotacji. Kanoniczny zapis (kebab-case) to jedyny, który obejmuje wszystkie warianty.
     //   Sprawdzone testem (sekcja 5): ${cfg01.shop.maxItems} nie widzi klucza zapisanego jako max-items.
@@ -151,7 +156,8 @@ public final class Cfg01Properties {
     // PRZED (błąd): FieldInjectionDemo — @Value na polu i odczyt tego pola w konstruktorze → null.
     // PO (poprawnie): wartość jako PARAMETR konstruktora (jak w ShopInfo).
     // Pole STATYCZNE z @Value: Spring go nie wstrzyknie (adnotacje wstrzykiwania działają na obiekcie, a pole statyczne
-    // należy do klasy) — pole zostaje null, a w logu pojawia się ostrzeżenie. Sprawdzone testem (sekcja 7).
+    // należy do klasy) — pole zostaje null. W logu nie ma ostrzeżenia (WARN), jest tylko łatwy do przeoczenia wpis
+    // na poziomie INFO: "Autowired annotation is not supported on static fields: …". Sprawdzone testem (sekcja 7).
 
     /** PUŁAPKA w kodzie: pole wstrzykiwane po konstruktorze. Nie jest beanem — test rejestruje ją ręcznie. */
     static class FieldInjectionDemo {
@@ -188,6 +194,7 @@ public final class Cfg01Properties {
      *   • @Value("${klucz}") — wartość z Environment; @Value("${klucz:domyślna}") — z wartością domyślną.
      *   • Wstrzykuj przez PARAMETR konstruktora (pola final); nie przez pole, jeśli użyjesz go w konstruktorze.
      *   • Konwersja tekstu na int/boolean/Duration ("30s") działa dzięki Spring Bootowi; w gołym Springu nie ma Duration.
+     *   • Duration bez jednostki ("30") = milisekundy — zawsze pisz jednostkę (30s).
      *   • W @Value pisz klucz kanonicznie (kebab-case), wtedy luźne dopasowanie obejmuje camelCase i zmienne środowiska.
      *   • Priorytet: test properties > argumenty > właściwości JVM > zmienne środowiska > pliki > wartość domyślna.
      *   • Brak klucza bez wartości domyślnej = błąd przy starcie (i bardzo dobrze).
@@ -197,10 +204,10 @@ public final class Cfg01Properties {
      *   1. Który ma wyższy priorytet: argument --klucz=wartość czy właściwość JVM -Dklucz=wartość?
      *   2. Co się stanie? Bean ma @Value("${cfg01.brak:}") String x — a klucza nie ma w żadnym źródle.
      *   3. Co się stanie? W konstruktorze odczytujesz pole oznaczone @Value (wstrzykiwane przez pole).
-     *   4. ZNAJDŹ BŁĄD: {@code @Value("cfg01.shop.name") String name} — dlaczego name nie zawiera "Sklep Spring"?
-     *   5. ZNAJDŹ BŁĄD: {@code @Value("${cfg01.shop.maxItems}")} przy kluczu max-items w pliku — dlaczego aplikacja nie wystartuje?
+     *   4. ZNAJDŹ BŁĄD: @Value("cfg01.shop.name") String name — dlaczego name nie zawiera "Sklep Spring"?
+     *   5. ZNAJDŹ BŁĄD: @Value("${cfg01.shop.maxItems}") przy kluczu max-items w pliku — dlaczego aplikacja nie wystartuje?
      *   6. Dlaczego ustawień nie wpisuje się na stałe w kodzie?
-     *   7. Dlaczego dla adresu bazy danych nie warto dawać wartości domyślnej w {@code ${klucz:domyślna}}?
+     *   7. Dlaczego dla adresu bazy danych nie warto dawać wartości domyślnej w ${klucz:domyślna}?
      *   (odpowiedzi w zwiniętym bloku na samym końcu pliku)
      * =================================================================================================
      */

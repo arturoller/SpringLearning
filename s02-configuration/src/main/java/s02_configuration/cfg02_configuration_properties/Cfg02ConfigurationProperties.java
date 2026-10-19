@@ -20,7 +20,7 @@ import java.math.BigDecimal;
  *   Wszystko w jednym miejscu, z nazwanymi polami i typami.
  *
  * JAK TO DZIAŁA:
- *   cfg02.shop.delivery.timeout=45s  ──►  Binder (spoiwo wiążące)  ──►  new DeliveryProperties(..., Duration.ofSeconds(45), ...)
+ *   cfg02.shop.delivery.timeout=45s  ──►  Binder (obiekt wiążący)  ──►  new DeliveryProperties(..., Duration.ofSeconds(45), ...)
  *     1. @ConfigurationPropertiesScan (albo @EnableConfigurationProperties) rejestruje rekord jako bean.
  *     2. Binder czyta wszystkie klucze zaczynające się od prefiksu (z luźnym dopasowaniem nazw — jak w lekcji Cfg01).
  *     3. Nazwy pól rekordu (maxParcels) odpowiadają kluczom w kebab-case (max-parcels).
@@ -99,7 +99,7 @@ public final class Cfg02ConfigurationProperties {
     //   timeout=45s → Duration;   max-label-size=2MB → DataSize (B, KB, MB, GB, TB);   prices=12.50 → BigDecimal.
     // Nieobecny klucz: @DefaultValue("5") int maxParcels daje 5. @DefaultValue przy polu-rekordzie
     // (@DefaultValue Warehouse warehouse) tworzy obiekt zagnieżdżony zawsze, nawet gdy w pliku nie ma żadnego jego klucza
-    // — inaczej bez ani jednego klucza dostałbyś null. To samo przy List i Map: goły {@code @DefaultValue} daje PUSTĄ
+    // — inaczej bez ani jednego klucza dostałbyś null. To samo przy List i Map: goły @DefaultValue daje PUSTĄ
     // kolekcję, a bez niego brakujący klucz daje null (sprawdzone testem — w Boot 4.1.1 kolekcje NIE są puste same z siebie).
     // Konwersja działa też bez pełnej aplikacji — Binder ma własną (test sekcji 4 używa lekkiego kontekstu).
     //
@@ -166,9 +166,9 @@ public final class Cfg02ConfigurationProperties {
      *   4. ZNAJDŹ BŁĄD: rekord ma @ConfigurationProperties("cfg02.exercise.discount"), ale nie ma ani skanowania,
      *      ani @EnableConfigurationProperties — dlaczego getBean(Discount.class) nie działa?
      *   5. Jaką wartość ma maxParcels, gdy klucza max-parcels nie ma w żadnym pliku, a pole ma @DefaultValue("5")?
-     *      A jaką, gdy pole ma zwykły {@code int} bez @DefaultValue?
+     *      A jaką, gdy pole ma zwykły int bez @DefaultValue?
      *   6. Dlaczego rekord pasuje do ustawień lepiej niż klasa z setterami?
-     *   7. ZNAJDŹ BŁĄD: w mapie cen używasz klucza {@code cfg02.shop.delivery.prices.Kraków=15.00} — co jest ryzykowne?
+     *   7. ZNAJDŹ BŁĄD: w mapie cen używasz klucza cfg02.shop.delivery.prices.Kraków=15.00 — co jest ryzykowne?
      *   (odpowiedzi w zwiniętym bloku na samym końcu pliku)
      * =================================================================================================
      */

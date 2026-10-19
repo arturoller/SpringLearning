@@ -66,7 +66,7 @@ public final class Cfg03Profiles {
     //   application-cfg03-prod.properties  url=https://pay.example.com/api, timeout=3s
     // W pliku profilu wpisuj TYLKO to, co się różni od bazy. Reszta jest dziedziczona.
     //
-    // PUŁAPKA: kolejność aktywnych profili. {@code --spring.profiles.active=cfg03-prod,cfg03} (baza na końcu) wygrywa
+    // PUŁAPKA: kolejność aktywnych profili. Przy --spring.profiles.active=cfg03-prod,cfg03 (baza na końcu) wygrywa
     //   adres z pliku cfg03, a nie z prod. Dlaczego? Pliki wczytywane są w kolejności wymienienia profili, a późniejszy
     //   nadpisuje wcześniejszy. Sprawdzone testem (sekcja 2). Wniosek: ogólne profile wymieniaj pierwsze,
     //   szczegółowe (prod) na końcu.
@@ -81,6 +81,8 @@ public final class Cfg03Profiles {
     //   d) w kodzie startowym: new SpringApplicationBuilder(...).profiles("cfg03", "cfg03-dev")  (jak w Cfg03Application)
     //   e) w teście: @ActiveProfiles({"cfg03", "cfg03-dev"})
     // @ActiveProfiles działa tylko w testach opartych na Spring Test (np. @SpringBootTest).
+    // Test sekcji 3 włącza profil produkcyjny sposobami a), b) i d) i za każdym razem dostaje prawdziwą bramkę;
+    // sposób e) pokazuje test sekcji 7.
     //
     // DOBRA PRAKTYKA: profil produkcyjny podawaj z ZEWNĄTRZ (zmienna środowiska SPRING_PROFILES_ACTIVE w kontenerze),
     //   a nie wpisuj na stałe do pliku w repozytorium. Dlaczego? Ten sam plik JAR ma działać wszędzie, a pomyłka
@@ -93,11 +95,11 @@ public final class Cfg03Profiles {
     // Gdy nie włączysz żadnego profilu, aktywny jest profil o nazwie "default" (environment.getDefaultProfiles()).
     // @Profile("default") oznacza więc „bean tylko wtedy, gdy nie ma żadnych innych profili”. Istnieje też plik
     // application-default.properties — wczytywany w takiej sytuacji. W tym module go nie tworzymy: dotknąłby
-    // wszystkich lekcji bez profilu. Test sekcji 3: DefaultProfileMarker istnieje bez profili i znika po włączeniu cfg03.
+    // wszystkich lekcji bez profilu. Test sekcji 4: DefaultProfileMarker istnieje bez profili i znika po włączeniu cfg03.
     //
     // PUŁAPKA: włączasz profil "dev" i dziwisz się, że przestał działać bean z @Profile("default").
     //   Dlaczego? "default" jest aktywny TYLKO gdy nie ma żadnego innego profilu. Dołożenie dowolnego profilu go wyłącza.
-    //   Sprawdzone testem (sekcja 3).
+    //   Sprawdzone testem (sekcja 4).
 
     // =================================================================================================
     // 5. WYRAŻENIA PROFILOWE: ! & | oraz nawiasy
@@ -108,7 +110,8 @@ public final class Cfg03Profiles {
     //   @Profile("cfg03-dev & cfg03-audit")     oba naraz
     // PUŁAPKA: mieszanie & i | bez nawiasów, np. "a & b | c", jest niedozwolone — Spring wymaga nawiasów:
     //   "(a & b) | c". Dlaczego? Wyrażenie bez nawiasów jest niejednoznaczne i Spring woli odmówić niż zgadywać.
-    //   Sprawdzone testem (sekcja 4).
+    //   Kontekst nie wystartuje: IllegalArgumentException: Malformed profile expression [a & b | c]
+    //   (malformed = źle zbudowane). Sprawdzone testem (sekcja 5).
     // Wiele nazw w @Profile({"a", "b"}) znaczy LUB.
 
     // =================================================================================================
@@ -117,7 +120,7 @@ public final class Cfg03Profiles {
     //
     //   spring.profiles.group.cfg03-full=cfg03-dev,cfg03-audit
     //   --spring.profiles.active=cfg03,cfg03-full      → aktywne: cfg03, cfg03-full, cfg03-dev, cfg03-audit
-    // Grupa upraszcza uruchamianie: zamiast pięciu nazw podajesz jedną. Test sekcji 5 sprawdza, że grupa włączyła
+    // Grupa upraszcza uruchamianie: zamiast pięciu nazw podajesz jedną. Test sekcji 6 sprawdza, że grupa włączyła
     // profile (a więc i plik cfg03-dev oraz bean AuditLog).
 
     // =================================================================================================
@@ -125,8 +128,10 @@ public final class Cfg03Profiles {
     // =================================================================================================
     //
     // @ActiveProfiles({"cfg03", "cfg03-dev"}) nad klasą testu; Spring Test uruchamia kontekst z tymi profilami.
-    // Różne zestawy profili = różne konteksty = wolniejsze testy (Spring cache'uje kontekst osobno dla każdego zestawu).
-    // Dlatego w tej lekcji scenariusze „prod”, „audit” i „grupa” uruchamiamy małymi aplikacjami w try-with-resources.
+    // Test sekcji 7 sprawdza, że kontekst klasy testowej ma dokładnie te profile (i plik cfg03-dev).
+    // Różne zestawy profili = różne konteksty = wolniejsze testy (Spring trzyma gotowy kontekst w pamięci podręcznej
+    // — cache — osobno dla każdego zestawu). Dlatego w tej lekcji scenariusze „prod”, „audit” i „grupa” uruchamiamy
+    // małymi aplikacjami w try-with-resources.
 
     /*
      * =================================================================================================
@@ -142,11 +147,11 @@ public final class Cfg03Profiles {
      *
      * PYTANIA KONTROLNE:
      *   1. Jakie dwie rzeczy robi włączenie profilu "cfg03-prod"?
-     *   2. Co się stanie? Uruchamiasz aplikację z {@code --spring.profiles.active=cfg03-prod,cfg03} — z którego pliku
+     *   2. Co się stanie? Uruchamiasz aplikację z --spring.profiles.active=cfg03-prod,cfg03 — z którego pliku
      *      pochodzi adres bramki?
      *   3. Co się stanie? Masz bean z @Profile("default") i włączasz profil cfg03.
-     *   4. ZNAJDŹ BŁĄD: {@code @Profile("a & b | c")} — dlaczego Spring odmówi takiego wyrażenia i jak je naprawić?
-     *   5. ZNAJDŹ BŁĄD: prawdziwa bramka płatności ma {@code @Profile("!prod")}, a atrapa {@code @Profile("prod")} —
+     *   4. ZNAJDŹ BŁĄD: @Profile("a & b | c") — dlaczego Spring odmówi takiego wyrażenia i jak je naprawić?
+     *   5. ZNAJDŹ BŁĄD: prawdziwa bramka płatności ma @Profile("!prod"), a atrapa @Profile("prod") —
      *      co jest nie tak?
      *   6. Dlaczego dobrą praktyką jest atrapa jako bean „domyślny”, a prawdziwa usługa tylko w profilu produkcyjnym?
      *   7. Który profil jest aktywny, gdy nie włączysz żadnego, i co się z nim dzieje po włączeniu innego?
@@ -214,14 +219,15 @@ public final class Cfg03Profiles {
      *   2. Z pliku bazowego cfg03 (http://localhost:8080/pay): profile wczytują się w kolejności wymienienia, a
      *      późniejszy nadpisuje wcześniejszy — baza na końcu wygrywa. Sprawdzone testem (sekcja 2).
      *   3. Bean z @Profile("default") nie powstanie: "default" jest aktywny tylko wtedy, gdy nie ma żadnego innego
-     *      profilu. Sprawdzone testem (sekcja 3).
-     *   4. Mieszanie & i | bez nawiasów jest niejednoznaczne. Napraw: {@code @Profile("(a & b) | c")} albo
-     *      {@code "a & (b | c)"}, zależnie od zamiaru. Sprawdzone testem (sekcja 4).
+     *      profilu. Sprawdzone testem (sekcja 4).
+     *   4. Mieszanie & i | bez nawiasów jest niejednoznaczne, więc kontekst nie wystartuje
+     *      (IllegalArgumentException: Malformed profile expression [a & b | c]). Napraw: @Profile("(a & b) | c") albo
+     *      "a & (b | c)", zależnie od zamiaru. Sprawdzone testem (sekcja 5).
      *   5. Odwrócone: na produkcji (profil prod) powstanie atrapa, a prawdziwa bramka we wszystkich pozostałych
      *      środowiskach. Przy braku profilu prawdziwa bramka byłaby domyślna — ryzyko prawdziwych obciążeń w testach.
      *   6. Bo pomyłka (brak profilu, literówka w nazwie) kończy się wtedy bezpieczną atrapą, a nie prawdziwymi
      *      pieniędzmi czy prawdziwą wysyłką poczty.
-     *   7. Profil "default"; po włączeniu jakiegokolwiek innego przestaje być aktywny. Sprawdzone testem (sekcja 3).
+     *   7. Profil "default"; po włączeniu jakiegokolwiek innego przestaje być aktywny. Sprawdzone testem (sekcja 4).
      */
     // </editor-fold>
 }

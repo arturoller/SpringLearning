@@ -28,7 +28,10 @@ public final class Cfg05EnvironmentSolutions {
     /** Rozwiązanie 3: sztuczne źródło zmiennych systemowych + Binder z luźnym dopasowaniem nazw. */
     public static int solution3(Map<String, Object> fakeOsEnvironment) {
         StandardEnvironment environment = new StandardEnvironment();
-        environment.getPropertySources().addLast(new SystemEnvironmentPropertySource("sztuczne-env", fakeOsEnvironment));
+        // nazwa źródła MUSI być "systemEnvironment" — tylko wtedy Boot stosuje reguły nazw zmiennych środowiska
+        // (replace = zastąp: prawdziwe zmienne komputera nie mieszają się z mapą z testu)
+        String name = StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME;
+        environment.getPropertySources().replace(name, new SystemEnvironmentPropertySource(name, fakeOsEnvironment));
         return new Binder(ConfigurationPropertySources.get(environment))
                 .bind("cfg05.exercise.max-days", Integer.class)
                 .orElse(-1);

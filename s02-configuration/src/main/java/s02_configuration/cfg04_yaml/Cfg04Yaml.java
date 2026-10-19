@@ -101,12 +101,22 @@ public final class Cfg04Yaml {
     // To odpowiednik osobnego pliku application-cfg04-promo.properties z lekcji Cfg03Profiles — tyle że wszystko
     // leży w jednym pliku. Test sekcji 3: bez profilu baner to "brak", z profilem cfg04-promo — tekst z dokumentu 2.
     //
-    // UWAGA (zmiana względem starych tutoriali): dawniej piszono {@code spring.profiles: promo} w dokumencie.
-    // To zapis sprzed Boota 2.4. Dziś jest {@code spring.config.activate.on-profile: promo}.
+    // UWAGA (zmiana względem starych tutoriali): dawniej piszono spring.profiles: promo w dokumencie.
+    // To zapis sprzed Boota 2.4. Dziś jest spring.config.activate.on-profile: promo. Stary zapis w Boot 4 NIE jest
+    // po cichu pomijany — aplikacja nie wystartuje (sprawdzone testem sekcji 3):
+    //   InvalidConfigDataPropertyException: Property 'spring.profiles' imported from location '…' is invalid
+    //   and should be replaced with 'spring.config.activate.on-profile'
     //
-    // PUŁAPKA: w dokumencie dla profilu zapomniałeś o separatorze --- albo literówka w on-profile.
-    //   Dlaczego to groźne? Ustawienia „dla promocji” staną się zwykłym kluczem w dokumencie głównym i będą
-    //   obowiązywać ZAWSZE — albo dokument nigdy się nie włączy — bez żadnego komunikatu błędu.
+    // PUŁAPKA: zapomniałeś o separatorze --- przed dokumentem profilu. Skutek zależy od reszty pliku
+    //   (oba warianty sprawdzone testem sekcji 3):
+    //   a) drugi „dokument” powtarza klucz główny pierwszego (u nas cfg04:) — w jednym dokumencie YAML ten sam klucz
+    //      wystąpił dwa razy, więc aplikacja NIE wystartuje: DuplicateKeyException: found duplicate key cfg04;
+    //   b) klucze się nie powtarzają — powstaje JEDEN dokument z warunkiem on-profile. Warunek dotyczy CAŁEGO
+    //      dokumentu, więc bez profilu znikają także ustawienia „zwykłe”, które miały obowiązywać zawsze — bez błędu.
+    //   Dlaczego? spring.config.activate.on-profile to warunek dla całego dokumentu, a nie dla linii, które stoją
+    //   pod nim. Tylko separator --- dzieli plik na dokumenty.
+    // PUŁAPKA: literówka w nazwie profilu w on-profile (cfg04-prmo). Dlaczego groźna? Dokument po cichu nigdy się
+    //   nie włączy — Boot nie wie, że takiego profilu nikt nie zamierza włączać.
 
     // =================================================================================================
     // 4. KTO WYGRYWA, GDY ISTNIEJĄ OBA PLIKI
@@ -127,13 +137,16 @@ public final class Cfg04Yaml {
     // 5. PUŁAPKI SKŁADNI YAML
     // =================================================================================================
     //
-    // a) Tabulator w wcięciu → błąd składni (SnakeYAML: "Do not use TAB for indentation"). Test sekcji 5.
+    // a) Tabulator we wcięciu → błąd składni. SnakeYAML zgłasza: "found character '\t(TAB)' that cannot start any
+    //    token. (Do not use \t(TAB) for indentation)". Test sekcji 5.
     // b) Złe wcięcie NIE musi dać błędu — tylko zmienia klucz:
     //        cfg04:
     //          shop:
     //          name: X          ← name stoi na poziomie shop, więc klucz to cfg04.name, a nie cfg04.shop.name
     //    Aplikacja startuje, a wartość „nie dociera”. Test sekcji 5 pokazuje właśnie ten przypadek.
-    // c) Wartości logiczne w starym stylu YAML 1.1: yes/no/on/off (dowolna wielkość liter) są BOOLEAN-ami!
+    // c) Wartości logiczne w starym stylu YAML 1.1: yes/no/on/off (oraz true/false) są BOOLEAN-ami — w trzech zapisach:
+    //    małymi literami, z wielkiej litery albo WIELKIMI (no, No, NO; on, On, ON…). Zapis mieszany (nO, oFF) oraz
+    //    pojedyncze litery y/n zostają tekstem.
     //        country: NO   → false (np. kod Norwegii!)     version: 1.10 → liczba 1.1 (traci zero)
     //    Test sekcji 6: pole country dostaje tekst "false". Cudzysłów ("NO", "1.10") zawsze daje tekst.
     // d) Dwukropek lub # w wartości: napis z ": " albo " #" ujmij w cudzysłów.
@@ -148,20 +161,21 @@ public final class Cfg04Yaml {
      *   • YAML = te same klucze co .properties, zapisane hierarchicznie (wcięcie 2 spacje, "klucz: wartość").
      *   • Tylko spacje, nigdy tabulatory; wcięcie jest znaczące — zła głębokość cicho zmienia klucz.
      *   • Lista: pozycje "- element" albo [a, b]; po spłaszczeniu klucz[0], klucz[1], …
-     *   • Wiele dokumentów: separator ---; warunek: spring.config.activate.on-profile: profil (dawniej spring.profiles).
+     *   • Wiele dokumentów: separator ---; warunek: spring.config.activate.on-profile: profil — dotyczy CAŁEGO dokumentu.
+     *   • Stary zapis spring.profiles: profil w Boot 4 = błąd startu (InvalidConfigDataPropertyException).
      *   • Oba pliki w tym samym miejscu: dla tego samego klucza wygrywa .properties, nie .yml.
-     *   • yes/no/on/off to boolean w YAML 1.1; tekst, który wygląda na liczbę/boolean — w cudzysłów.
+     *   • yes/no/on/off (np. no, No, NO) to boolean w YAML 1.1; tekst, który wygląda na liczbę/boolean — w cudzysłów.
      *   • YAML czytany jako UTF-8 (polskie litery OK); .properties jako ISO-8859-1.
      *   • W projekcie trzymaj jeden format.
      *
      * PYTANIA KONTROLNE:
-     *   1. Jak zapiszesz w YAML klucz {@code a.b.c=1} i listę {@code a.d[0]=x}, {@code a.d[1]=y}?
+     *   1. Jak zapiszesz w YAML klucz a.b.c=1 i listę a.d[0]=x, a.d[1]=y?
      *   2. Co się stanie? W application.properties i application.yml jest ten sam klucz z różnymi wartościami.
-     *   3. Co się stanie? W YAML wpisujesz w wcięciu tabulator.
-     *   4. Co się stanie? W YAML masz {@code country: NO} i wiążesz do pola String.
-     *   5. ZNAJDŹ BŁĄD: w dokumencie profilu napisano {@code spring.profiles: promo} — co jest nie tak w Bootcie 4?
-     *   6. ZNAJDŹ BŁĄD: {@code cfg04:\n  shop:\n  name: X} — dlaczego @ConfigurationProperties(prefix = "cfg04.shop") nie
-     *      widzi nazwy?
+     *   3. Co się stanie? W YAML wpisujesz we wcięciu tabulator.
+     *   4. Co się stanie? W YAML masz country: NO i wiążesz do pola String.
+     *   5. ZNAJDŹ BŁĄD: w dokumencie profilu napisano spring.profiles: promo — co jest nie tak w Bootcie 4?
+     *   6. ZNAJDŹ BŁĄD: pod cfg04: stoją shop: i name: X z TYM SAMYM wcięciem (dwie spacje) — dlaczego
+     *      @ConfigurationProperties(prefix = "cfg04.shop") nie widzi nazwy?
      *   7. Dlaczego ustawienia tej lekcji leżą w cfg04.yml, a nie w application.yml?
      *   (odpowiedzi w zwiniętym bloku na samym końcu pliku)
      * =================================================================================================
@@ -221,11 +235,14 @@ public final class Cfg04Yaml {
      * ODPOWIEDZI:
      *   1. a:\n  b:\n    c: 1\n  d:\n    - x\n    - y   (albo d: [x, y]). Sprawdź w sekcji 1 i 2, jak to się spłaszcza.
      *   2. Wygrywa wartość z .properties — plik .yml jest ignorowany dla tego klucza. Sprawdzone testem (sekcja 4).
-     *   3. Błąd składni przy starcie (SnakeYAML: znak TAB nie może być wcięciem). Sprawdzone testem (sekcja 5).
+     *   3. Błąd składni przy starcie — SnakeYAML: "found character '\t(TAB)' that cannot start any token.
+     *      (Do not use \t(TAB) for indentation)", czyli znak TAB nie może być wcięciem. Sprawdzone testem (sekcja 5).
      *   4. Pole dostaje tekst "false": YAML 1.1 czyta NO jako wartość logiczną, a nie tekst.
      *      Sprawdzone testem (sekcja 6). Napraw: country: "NO".
-     *   5. Zapis spring.profiles w dokumencie pochodzi sprzed Boota 2.4. Dziś warunek to
-     *      spring.config.activate.on-profile: promo.
+     *   5. Zapis spring.profiles w dokumencie pochodzi sprzed Boota 2.4 i Boot 4 go odrzuca: aplikacja NIE wystartuje,
+     *      błąd to InvalidConfigDataPropertyException: Property 'spring.profiles' imported from location '…'
+     *      is invalid and should be replaced with 'spring.config.activate.on-profile'. Napraw:
+     *      spring.config.activate.on-profile: promo. Sprawdzone testem (sekcja 3).
      *   6. name stoi na tym samym poziomie co shop, więc klucz to cfg04.name, a nie cfg04.shop.name. Aplikacja startuje
      *      bez błędu, a pole name zostaje null. Sprawdzone testem (sekcja 5). Napraw: wciąć name o dwie spacje bardziej.
      *   7. Pliki nazwane cfg04.* czyta tylko ta lekcja (spring.config.name=cfg04). Wspólny application.yml

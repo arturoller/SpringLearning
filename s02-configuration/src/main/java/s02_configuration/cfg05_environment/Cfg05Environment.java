@@ -25,9 +25,10 @@ import java.util.Map;
  * JAK TO DZIAŁA:
  *   1. Environment trzyma PropertySources w kolejności priorytetu (patrz lekcja Cfg01Properties).
  *   2. getProperty("cfg05.shop.discount-percent") przegląda je po kolei i zwraca pierwszą znalezioną wartość.
- *   3. Zmienne środowiska mają inną składnię nazw niż klucze (wielkie litery, podkreślniki zamiast kropek i myślników),
- *      więc źródło systemowe (SystemEnvironmentPropertySource) „tłumaczy” nazwy:
- *          cfg05.shop.discount-percent  ⇄  CFG05_SHOP_DISCOUNT_PERCENT
+ *   3. Zmienne środowiska mają inną składnię nazw niż klucze (wielkie litery i podkreślniki, bez kropek i myślników),
+ *      więc Boot „tłumaczy” nazwy w źródle zmiennych systemu (to źródło nazywa się "systemEnvironment"):
+ *          cfg05.shop.discount-percent  ⇄  CFG05_SHOP_DISCOUNTPERCENT   (zapis z dokumentacji Boota: myślnik usunięty)
+ *          cfg05.shop.discount-percent  ⇄  CFG05_SHOP_DISCOUNT_PERCENT  (starszy zapis: myślnik → podkreślnik; też działa)
  *   4. @ConditionalOnProperty sprawdza wartość przy rejestracji beana: pasuje → bean powstaje, nie pasuje → nie ma go.
  *
  * SŁÓWKA:
@@ -82,6 +83,13 @@ public final class Cfg05Environment {
     // Układ NewCheckout + LegacyCheckout gwarantuje, że istnieje dokładnie jedna kasa niezależnie od konfiguracji
     // (stara jest „domyślna”, bo pasuje przy braku klucza).
     //
+    // NOWSZY ZAPIS (od Spring Boota 3.5): dla flag typu prawda/fałsz jest @ConditionalOnBooleanProperty
+    //   (boolean property = ustawienie logiczne), np. @ConditionalOnBooleanProperty("cfg05.feature.gift-wrap").
+    //   Jego havingValue to boolean (domyślnie true), a nie tekst — nie da się wpisać literówki w "true".
+    //   Różnica (sprawdzona testem sekcji 2): wartość "tak" NIE włącza takiego beana (porównanie z "true", bez względu
+    //   na wielkość liter), a przy @ConditionalOnProperty bez havingValue "tak" bean włącza. W starszych tutorialach
+    //   zobaczysz tylko @ConditionalOnProperty.
+    //
     // PUŁAPKA: oba beany z @ConditionalOnProperty z havingValue="true"/"false", ale BEZ matchIfMissing na tym „domyślnym”.
     //   Dlaczego to groźne? Gdy ktoś nie wpisze klucza, nie powstanie ŻADNA kasa i aplikacja się nie uruchomi
     //   (NoSuchBeanDefinitionException tam, gdzie wstrzykiwany jest Checkout).
@@ -95,36 +103,44 @@ public final class Cfg05Environment {
     //   kombinacje konfiguracji do przetestowania.
 
     // =================================================================================================
-    // 3. ZMIENNE ŚRODOWISKA — nazwa CFG05_SHOP_DISCOUNT_PERCENT ⇄ klucz cfg05.shop.discount-percent
+    // 3. ZMIENNE ŚRODOWISKA — nazwa CFG05_SHOP_DISCOUNTPERCENT ⇄ klucz cfg05.shop.discount-percent
     // =================================================================================================
     //
     // W systemie operacyjnym zmienne środowiska mają wielkie litery, cyfry i podkreślniki (nie wolno kropek ani
-    // myślników). Reguła zamiany klucza na zmienną: kropki i myślniki → podkreślniki, wszystko wielkimi literami.
-    //     cfg05.shop.discount-percent   →   CFG05_SHOP_DISCOUNT_PERCENT
-    // Dotyczy to zarówno pytania Environmentu (getProperty), jak i wiązania do rekordów (relaxed binding).
+    // myślników). Reguła z dokumentacji Boota: kropki → podkreślniki, myślniki USUŃ, wszystko wielkimi literami.
+    //     cfg05.shop.discount-percent   →   CFG05_SHOP_DISCOUNTPERCENT
+    // Boot przyjmuje też starszy zapis, w którym myślnik zamienia się na podkreślnik: CFG05_SHOP_DISCOUNT_PERCENT.
+    // Obie nazwy działają (sprawdzone testem sekcji 3) — i przy pytaniu Environmentu (getProperty), i przy wiązaniu
+    // do rekordów (relaxed binding).
     // Lista w zmiennej: wartości po przecinku:  CFG05_SHOP_DAYS=pon,wt.
     // (Zapis elementów listy z indeksem ma w zmiennych środowiska osobne reguły — dla prostych list użyj przecinków.)
     //
-    // PUŁAPKA: zmienna CFG05_SHOP_DISCOUNTPERCENT (bez podkreślnika między discount a percent) NIE pasuje do klucza
-    //   discount-percent. Dlaczego? Myślnik w kluczu odpowiada podkreślnikowi w zmiennej — sklejona nazwa to inna
-    //   nazwa. Sprawdzone testem (sekcja 3): wiązanie zwraca „brak wartości”, a nie błąd.
-    //
     // Testy NIE ustawiają prawdziwych zmiennych środowiska (zależałyby od komputera). Test sekcji 3 podstawia sztuczne
-    // źródło SystemEnvironmentPropertySource, a test sekcji 4 — całe sztuczne "środowisko systemowe" w aplikacji.
+    // źródło SystemEnvironmentPropertySource, a test sekcji 4 — sztuczne zmienne systemu w całej aplikacji.
+    //
+    // PUŁAPKA: w teście podstawiasz sztuczne zmienne środowiska jako SystemEnvironmentPropertySource o dowolnej
+    //   nazwie, np. "sztuczne-env" — i nagle CFG05_SHOP_DISCOUNTPERCENT „nie działa”, choć w prawdziwym systemie działa.
+    //   Dlaczego? Boot stosuje swoje reguły nazw zmiennych tylko do źródła o nazwie "systemEnvironment"
+    //   (stała StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME). Źródło o innej nazwie traktuje jak zwykłe
+    //   klucze; zostaje tylko prostsze dopasowanie samego Springa (kropki i myślniki → podkreślniki), więc znajdzie
+    //   CFG05_SHOP_DISCOUNT_PERCENT, ale nie CFG05_SHOP_DISCOUNTPERCENT. Sprawdzone testem (sekcja 3).
+    //   Wniosek: sztuczne zmienne systemu podstawiaj pod nazwą "systemEnvironment" — wtedy test zachowuje się
+    //   jak prawdziwy system.
     //
     // DOBRA PRAKTYKA: w kontenerze Dockera i w chmurze ustawienia podawaj zmiennymi środowiska (SPRING_PROFILES_ACTIVE,
-    //   SHOP_DISCOUNT_PERCENT…), a w pliku trzymaj wartości domyślne. Dlaczego? Zmienne środowiska ustawia platforma
+    //   SHOP_DISCOUNTPERCENT…), a w pliku trzymaj wartości domyślne. Dlaczego? Zmienne środowiska ustawia platforma
     //   uruchomieniowa bez dotykania obrazu aplikacji, a wartość z nich wygrywa z plikiem (sekcja 4).
     //
     // PUŁAPKA: zmienne środowiska nigdy nie trafiają do repozytorium, ale trafiają do logów i do narzędzi
-    //   diagnostycznych. Sekrety (hasła) traktuj ostrożnie. Dlaczego? Wyciek z zrzutu środowiska jest realnym ryzykiem.
+    //   diagnostycznych. Sekrety (hasła) traktuj ostrożnie. Dlaczego? Wyciek ze zrzutu środowiska jest realnym ryzykiem.
 
     // =================================================================================================
-    // 4. PEŁNY PRIORYTET Z ZMIENNYMI ŚRODOWISKA
+    // 4. PEŁNY PRIORYTET ZE ZMIENNYMI ŚRODOWISKA
     // =================================================================================================
     //
     // Test sekcji 4 uruchamia aplikację z podstawionymi zmiennymi środowiska (CFG05_SHOP_DISCOUNT_PERCENT=15):
     //   plik: 10  →  zmienna środowiska: 15  →  właściwość JVM: 17  →  argument: 20. Każdy kolejny wygrywa z poprzednim.
+    // Ten sam test pokazuje, że zmienna w zapisie z dokumentacji (CFG05_SHOP_DISCOUNTPERCENT=25) też nadpisuje plik.
     // Uzupełnia to lekcję Cfg01Properties, gdzie zmiennych środowiska nie dało się pokazać.
 
     // =================================================================================================
@@ -144,19 +160,23 @@ public final class Cfg05Environment {
      *   • Zwykle wstrzykuj @Value / rekord @ConfigurationProperties; Environment — dla kodu infrastrukturalnego.
      *   • @ConditionalOnProperty(prefix, name, havingValue, matchIfMissing): bean powstaje zależnie od ustawienia.
      *   • Bez havingValue: klucz musi istnieć i nie być "false". Domyślny wariant: matchIfMissing = true.
-     *   • Zmienna środowiska: wielkie litery, kropki i myślniki → _ (CFG05_SHOP_DISCOUNT_PERCENT); lista po przecinku.
+     *   • Flaga prawda/fałsz od Boota 3.5: @ConditionalOnBooleanProperty (havingValue typu boolean, "tak" nie włącza).
+     *   • Zmienna środowiska: kropki → _, myślniki usuń, wielkie litery (CFG05_SHOP_DISCOUNTPERCENT); działa też
+     *     starszy zapis z _ zamiast myślnika (CFG05_SHOP_DISCOUNT_PERCENT); lista po przecinku.
      *   • Priorytet: plik < zmienna środowiska < właściwość JVM < argument wiersza poleceń.
-     *   • Testy nie dotykają prawdziwych zmiennych środowiska — podstawiaj SystemEnvironmentPropertySource.
+     *   • Testy nie dotykają prawdziwych zmiennych środowiska — podstawiaj SystemEnvironmentPropertySource
+     *     o nazwie "systemEnvironment" (inaczej Boot nie stosuje reguł nazw zmiennych).
      *
      * PYTANIA KONTROLNE:
      *   1. Czym różni się getProperty od getRequiredProperty, gdy klucza brak?
-     *   2. Co się stanie? {@code @ConditionalOnProperty("cfg05.feature.loyalty")} i w pliku jest {@code cfg05.feature.loyalty=false}.
-     *   3. Co się stanie? Ta sama adnotacja, w pliku {@code cfg05.feature.loyalty=tak}.
-     *   4. Co się stanie? Ustawiasz zmienną środowiska {@code CFG05_SHOP_DISCOUNTPERCENT=25} dla klucza {@code discount-percent}.
+     *   2. Co się stanie? @ConditionalOnProperty("cfg05.feature.loyalty") i w pliku jest cfg05.feature.loyalty=false.
+     *   3. Co się stanie? Ta sama adnotacja, w pliku cfg05.feature.loyalty=tak.
+     *   4. Co się stanie? W pliku jest cfg05.shop.discount-percent=10, a w systemie ustawiasz zmienną środowiska
+     *      CFG05_SHOP_DISCOUNTPERCENT=25 (bez podkreślnika między DISCOUNT a PERCENT). Ile zwróci DiscountService.percent()?
      *   5. ZNAJDŹ BŁĄD: NewCheckout ma havingValue="true", a LegacyCheckout havingValue="false" BEZ matchIfMissing,
      *      i nikt nie wpisał flagi do konfiguracji. Co się wydarzy przy starcie?
-     *   6. ZNAJDŹ BŁĄD: w pliku {@code cfg05.feature.new-chekout=true} — dlaczego nowa kasa się nie włączyła?
-     *   7. Jak zapiszesz klucz {@code app.max-retries} jako zmienną środowiska?
+     *   6. ZNAJDŹ BŁĄD: w pliku cfg05.feature.new-chekout=true — dlaczego nowa kasa się nie włączyła?
+     *   7. Jak zapiszesz klucz app.max-retries jako zmienną środowiska?
      *   8. Dlaczego Environment w logice biznesowej to zwykle gorszy wybór niż @Value?
      *   (odpowiedzi w zwiniętym bloku na samym końcu pliku)
      * =================================================================================================
@@ -186,9 +206,13 @@ public final class Cfg05Environment {
 
     /**
      * ĆWICZENIE 3 (trudniejsze): dostałeś mapę udającą zmienne środowiska systemu, np.
-     * {@code {"CFG05_EXERCISE_MAX_DAYS": "4"}}. Zwróć wartość klucza {@code cfg05.exercise.max-days} jako Integer,
-     * a gdy jej nie ma — -1. Podpowiedź: {@code new StandardEnvironment()}, dodaj
-     * {@code new SystemEnvironmentPropertySource("nazwa", mapa)} do jego {@code getPropertySources()}, potem
+     * {@code {"CFG05_EXERCISE_MAXDAYS": "4"}}. Zwróć wartość klucza {@code cfg05.exercise.max-days} jako Integer,
+     * a gdy jej nie ma — -1. Mają działać OBA zapisy nazwy zmiennej: {@code CFG05_EXERCISE_MAXDAYS} (z dokumentacji)
+     * i {@code CFG05_EXERCISE_MAX_DAYS} (starszy) — tak jak w prawdziwym systemie.
+     * Podpowiedź: {@code new StandardEnvironment()}; w jego {@code getPropertySources()} zastąp ({@code replace})
+     * źródło o nazwie {@code StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME} nowym
+     * {@code SystemEnvironmentPropertySource} o TEJ SAMEJ nazwie i z podaną mapą (PUŁAPKA z sekcji 3: przy innej nazwie
+     * zapis z dokumentacji nie zadziała), potem
      * {@code new Binder(ConfigurationPropertySources.get(env)).bind(klucz, Integer.class).orElse(-1)}.
      */
     static int exercise3(Map<String, Object> fakeOsEnvironment) {
@@ -205,14 +229,16 @@ public final class Cfg05Environment {
      *      Sprawdzone testem (sekcja 2).
      *   3. Bean powstanie: bez havingValue pasuje każda wartość inna niż "false", więc "tak" też włącza.
      *      Sprawdzone testem (sekcja 2).
-     *   4. Nic się nie zwiąże: nazwa bez podkreślnika to inna nazwa niż CFG05_SHOP_DISCOUNT_PERCENT; wiązanie
-     *      zwraca „brak wartości”, a nie błąd. Sprawdzone testem (sekcja 3).
+     *   4. 25. CFG05_SHOP_DISCOUNTPERCENT to właśnie zapis z dokumentacji Boota (kropki → _, myślnik usunięty), więc
+     *      pasuje do klucza discount-percent, a zmienna środowiska wygrywa z plikiem. Tak samo zadziałałby starszy zapis
+     *      CFG05_SHOP_DISCOUNT_PERCENT. Sprawdzone testem (sekcje 3 i 4).
      *   5. Żadna kasa nie powstanie (ani nowa, ani stara), więc wstrzyknięcie Checkout kończy się niepowodzeniem
      *      i aplikacja się nie uruchomi (brak beana wymaganego typu). Napraw: matchIfMissing = true na „domyślnym”.
      *      Sprawdzone testem (sekcja 2): bez klucza pasuje tylko wariant z matchIfMissing = true.
      *   6. Literówka w nazwie klucza — klucz nie istnieje w oczekiwanej formie, więc flaga jest „brakująca”,
      *      a matchIfMissing=true wybiera starą kasę. Nikt nie zgłasza błędu, bo nieznane klucze są ignorowane.
-     *   7. APP_MAX_RETRIES (kropka i myślnik zamieniają się na podkreślniki, litery wielkie).
+     *   7. APP_MAXRETRIES (reguła z dokumentacji: kropka → podkreślnik, myślnik usunięty, litery wielkie).
+     *      Boot przyjmie też starszy zapis APP_MAX_RETRIES (myślnik → podkreślnik).
      *   8. Environment ukrywa potrzebne ustawienia (brak ich w konstruktorze) i trudniej go testować; @Value albo rekord
      *      pokazuje zależność wprost i da się go utworzyć zwykłym new.
      */

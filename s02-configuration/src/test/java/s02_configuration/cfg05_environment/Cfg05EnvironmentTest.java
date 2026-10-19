@@ -4,6 +4,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.WebApplicationType;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.bind.Bindable;
@@ -27,8 +29,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Testy lekcji Cfg05Environment. Zmiennych środowiska systemu NIE ustawiamy naprawdę (testy zależałyby od komputera):
- * podstawiamy sztuczne źródło {@link SystemEnvironmentPropertySource} albo własne środowisko, którego
- * "zmienne systemowe" są podane w teście.
+ * podstawiamy sztuczne źródło {@link SystemEnvironmentPropertySource} o nazwie "systemEnvironment" — w zwykłym
+ * środowisku Springa albo w całej aplikacji.
  */
 @SpringBootTest
 @ActiveProfiles("cfg05")
@@ -62,19 +64,33 @@ class Cfg05EnvironmentTest {
         }
     }
 
-    /** Środowisko z podstawionymi „zmiennymi systemowymi” — resztę (argumenty, JVM, pliki) Boot dokłada sam. */
-    static class FakeOsEnvironment extends StandardEnvironment {
-        private static final Map<String, Object> OS = Map.of("CFG05_SHOP_DISCOUNT_PERCENT", "15");
-
-        @Override
-        public Map<String, Object> getSystemEnvironment() {
-            return OS;
-        }
+    /** Flaga logiczna nowszym zapisem (Boot 3.5+): bean istnieje, gdy cfg05.feature.gift-wrap=true. Nie jest skanowana. */
+    @ConditionalOnBooleanProperty("cfg05.feature.gift-wrap")
+    static class GiftWrap {
     }
 
-    private static ConfigurableApplicationContext startWithFakeOsEnvironment(String... args) {
+    /**
+     * Środowisko, w którym prawdziwe zmienne systemu zastępujemy mapą z testu. Ważne: źródło dostaje nazwę
+     * "systemEnvironment" (stała SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME) — tylko wtedy Boot stosuje do niego
+     * reguły nazw zmiennych środowiska, tak jak do prawdziwych zmiennych systemu (PUŁAPKA z sekcji 3).
+     */
+    private static StandardEnvironment osEnvironment(Map<String, Object> variables) {
+        StandardEnvironment env = new StandardEnvironment();
+        String name = StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME;
+        env.getPropertySources().replace(name, new SystemEnvironmentPropertySource(name, variables));
+        return env;
+    }
+
+    /** Wiąże klucz cfg05.shop.discount-percent tak, jak robi to @ConfigurationProperties; brak wartości = null. */
+    private static Integer bindPercent(StandardEnvironment env) {
+        return new Binder(ConfigurationPropertySources.get(env))
+                .bind("cfg05.shop.discount-percent", Integer.class).orElse(null);
+    }
+
+    /** Startuje lekcję (profil cfg05) z podstawionymi zmiennymi systemu — resztę (argumenty, JVM, pliki) Boot dokłada sam. */
+    private static ConfigurableApplicationContext startWithFakeOsEnvironment(Map<String, Object> variables, String... args) {
         return new SpringApplicationBuilder(Cfg05Application.class)
-                .environment(new FakeOsEnvironment())
+                .environment(osEnvironment(variables))
                 .profiles("cfg05")
                 .web(WebApplicationType.NONE)
                 .run(args);
@@ -106,7 +122,7 @@ class Cfg05EnvironmentTest {
     }
 
     @Test
-    @DisplayName("2. @ConditionalOnProperty: flaga przełącza kasę (matchIfMissing, havingValue)")
+    @DisplayName("2. @ConditionalOnProperty: flaga przełącza kasę (matchIfMissing, havingValue); @ConditionalOnBooleanProperty")
     void featureFlag() {
         // pełna aplikacja: plik mówi new-checkout=false → stara kasa
         assertThat(checkout.version()).isEqualTo("stara");
@@ -131,7 +147,10 @@ class Cfg05EnvironmentTest {
         new ApplicationContextRunner().withUserConfiguration(NewCheckout.class, StrictLegacyCheckout.class)
                 .run(context -> assertThat(context).doesNotHaveBean(Checkout.class));
         new ApplicationContextRunner().withUserConfiguration(NewCheckout.class, StrictLegacyCheckout.class, NeedsCheckout.class)
-                .run(context -> assertThat(context).hasFailed());
+                .run(context -> {
+                    assertThat(context).hasFailed();
+                    assertThat(context.getStartupFailure()).hasRootCauseInstanceOf(NoSuchBeanDefinitionException.class);
+                });
 
         // bez havingValue: klucz musi istnieć i nie może być "false"
         ApplicationContextRunner loyalty = new ApplicationContextRunner().withUserConfiguration(LoyaltyProgram.class);
@@ -142,57 +161,72 @@ class Cfg05EnvironmentTest {
                 .run(context -> assertThat(context).hasSingleBean(LoyaltyProgram.class));
         loyalty.withPropertyValues("cfg05.feature.loyalty=tak")
                 .run(context -> assertThat(context).hasSingleBean(LoyaltyProgram.class));
+
+        // nowszy zapis dla flag prawda/fałsz: @ConditionalOnBooleanProperty — wartość porównywana z "true"
+        ApplicationContextRunner giftWrap = new ApplicationContextRunner().withUserConfiguration(GiftWrap.class);
+        giftWrap.run(context -> assertThat(context).doesNotHaveBean(GiftWrap.class));          // brak klucza
+        giftWrap.withPropertyValues("cfg05.feature.gift-wrap=true")
+                .run(context -> assertThat(context).hasSingleBean(GiftWrap.class));
+        giftWrap.withPropertyValues("cfg05.feature.gift-wrap=TRUE")
+                .run(context -> assertThat(context).hasSingleBean(GiftWrap.class));            // wielkość liter bez znaczenia
+        giftWrap.withPropertyValues("cfg05.feature.gift-wrap=tak")
+                .run(context -> assertThat(context).doesNotHaveBean(GiftWrap.class));          // inaczej niż LoyaltyProgram
     }
 
     @Test
-    @DisplayName("3. Zmienna środowiska CFG05_SHOP_DISCOUNT_PERCENT odpowiada kluczowi cfg05.shop.discount-percent")
+    @DisplayName("3. Zmienne środowiska CFG05_SHOP_DISCOUNTPERCENT (z dokumentacji) i CFG05_SHOP_DISCOUNT_PERCENT pasują do klucza discount-percent")
     void environmentVariableNaming() {
-        StandardEnvironment env = new StandardEnvironment();
-        env.getPropertySources().addLast(new SystemEnvironmentPropertySource("sztuczne-env", Map.of(
-                "CFG05_SHOP_DISCOUNT_PERCENT", "15",
-                "CFG05_SHOP_LABEL", "Z ENV")));
+        // 1) wiązanie (tak jak przy @ConfigurationProperties): działają OBA zapisy nazwy zmiennej
+        assertThat(bindPercent(osEnvironment(Map.of("CFG05_SHOP_DISCOUNTPERCENT", "25")))).isEqualTo(25);   // myślnik usunięty
+        assertThat(bindPercent(osEnvironment(Map.of("CFG05_SHOP_DISCOUNT_PERCENT", "15")))).isEqualTo(15);  // myślnik → _
 
-        // 1) samo Environment: kropki i myślniki z klucza zamienia na _ i szuka WIELKIMI literami
-        assertThat(env.getProperty("cfg05.shop.discount-percent")).isEqualTo("15");
-        assertThat(env.getProperty("cfg05.shop.label")).isEqualTo("Z ENV");
-        // 2) odwrotnie nie działa: nazwa ze zmiennej nie jest kluczem z kropkami
-        assertThat(env.getProperty("CFG05_SHOP_LABEL")).isEqualTo("Z ENV");   // tak, bo to dokładna nazwa zmiennej
+        // 2) wiązanie do rekordu (relaxed binding): pole discountPercent ↔ klucz discount-percent ↔ zmienna DISCOUNTPERCENT
+        StandardEnvironment env = osEnvironment(Map.of("CFG05_SHOP_DISCOUNTPERCENT", "25", "CFG05_SHOP_LABEL", "Z ENV"));
+        ShopSettings settings = new Binder(ConfigurationPropertySources.get(env))
+                .bind("cfg05.shop", Bindable.of(ShopSettings.class)).get();
+        assertThat(settings.discountPercent()).isEqualTo(25);
+        assertThat(settings.label()).isEqualTo("Z ENV");
 
-        // 3) wiązanie do rekordu (relaxed binding): pole discountPercent ↔ klucz discount-percent ↔ zmienna DISCOUNT_PERCENT
-        Binder binder = new Binder(ConfigurationPropertySources.get(env));
-        ShopSettings fromUnderscore = binder.bind("cfg05.shop", Bindable.of(ShopSettings.class)).get();
-        assertThat(fromUnderscore.discountPercent()).isEqualTo(15);
-        assertThat(fromUnderscore.label()).isEqualTo("Z ENV");
+        // 3) Environment z regułami Boota (attach = podłącz; każda aplikacja Boota robi to sama): getProperty też tłumaczy
+        ConfigurationPropertySources.attach(env);
+        assertThat(env.getProperty("cfg05.shop.discount-percent")).isEqualTo("25");
+        assertThat(env.getProperty("CFG05_SHOP_LABEL")).isEqualTo("Z ENV");   // dokładna nazwa zmiennej też działa
 
-        // 4) PUŁAPKA: nazwa BEZ podkreślnika w środku (DISCOUNTPERCENT) NIE pasuje do klucza discount-percent
-        StandardEnvironment glued = new StandardEnvironment();
-        glued.getPropertySources().addLast(new SystemEnvironmentPropertySource("sztuczne-env",
+        // 4) PUŁAPKA: źródło o innej nazwie niż "systemEnvironment" — Boot nie stosuje reguł nazw zmiennych środowiska
+        StandardEnvironment otherName = osEnvironment(Map.of());   // prawdziwe zmienne komputera usunięte
+        otherName.getPropertySources().addFirst(new SystemEnvironmentPropertySource("sztuczne-env",
                 Map.of("CFG05_SHOP_DISCOUNTPERCENT", "25")));
-        assertThat(new Binder(ConfigurationPropertySources.get(glued))
-                .bind("cfg05.shop.discount-percent", Integer.class).isBound()).isFalse();
+        assertThat(bindPercent(otherName)).isNull();   // zapis z dokumentacji NIE znaleziony — inaczej niż w prawdziwym systemie
+        StandardEnvironment otherNameUnderscore = osEnvironment(Map.of());
+        otherNameUnderscore.getPropertySources().addFirst(new SystemEnvironmentPropertySource("sztuczne-env",
+                Map.of("CFG05_SHOP_DISCOUNT_PERCENT", "15")));
+        assertThat(bindPercent(otherNameUnderscore)).isEqualTo(15);   // znaleziony prostszym dopasowaniem samego Springa
 
         // 5) lista w zmiennej środowiska: wartości po przecinku
-        StandardEnvironment list = new StandardEnvironment();
-        list.getPropertySources().addLast(new SystemEnvironmentPropertySource("sztuczne-env",
-                Map.of("CFG05_SHOP_DAYS", "pon,wt")));
-        assertThat(new Binder(ConfigurationPropertySources.get(list))
+        assertThat(new Binder(ConfigurationPropertySources.get(osEnvironment(Map.of("CFG05_SHOP_DAYS", "pon,wt"))))
                 .bind("cfg05.shop.days", Bindable.listOf(String.class)).get()).containsExactly("pon", "wt");
     }
 
     @Test
     @DisplayName("4. Priorytet: plik < zmienna środowiska < właściwość JVM < argument (zmienne środowiska podstawione w teście)")
     void precedenceWithEnvironmentVariables() {
+        Map<String, Object> os = Map.of("CFG05_SHOP_DISCOUNT_PERCENT", "15");
         // plik: 10; zmienna środowiska: 15 → wygrywa zmienna
-        try (ConfigurableApplicationContext context = startWithFakeOsEnvironment()) {
+        try (ConfigurableApplicationContext context = startWithFakeOsEnvironment(os)) {
             assertThat(context.getBean(DiscountService.class).percent()).isEqualTo(15);
         }
+        // zapis z dokumentacji (myślnik usunięty) działa tak samo: plik 10, zmienna CFG05_SHOP_DISCOUNTPERCENT=25 → 25
+        try (ConfigurableApplicationContext context =
+                     startWithFakeOsEnvironment(Map.of("CFG05_SHOP_DISCOUNTPERCENT", "25"))) {
+            assertThat(context.getBean(DiscountService.class).percent()).isEqualTo(25);
+        }
         // argument: 20 → wygrywa argument
-        try (ConfigurableApplicationContext context = startWithFakeOsEnvironment("--cfg05.shop.discount-percent=20")) {
+        try (ConfigurableApplicationContext context = startWithFakeOsEnvironment(os, "--cfg05.shop.discount-percent=20")) {
             assertThat(context.getBean(DiscountService.class).percent()).isEqualTo(20);
         }
-        // właściwość JVM: 17 → wygrywa z zmienną środowiska
+        // właściwość JVM: 17 → wygrywa ze zmienną środowiska
         System.setProperty("cfg05.shop.discount-percent", "17");
-        try (ConfigurableApplicationContext context = startWithFakeOsEnvironment()) {
+        try (ConfigurableApplicationContext context = startWithFakeOsEnvironment(os)) {
             assertThat(context.getBean(DiscountService.class).percent()).isEqualTo(17);
         } finally {
             System.clearProperty("cfg05.shop.discount-percent");

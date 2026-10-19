@@ -38,10 +38,10 @@ class Cfg05EnvironmentSolutionsTest {
     }
 
     @Test
-    @DisplayName("Wzorzec 3: wartość klucza z podstawionej zmiennej środowiska")
+    @DisplayName("Wzorzec 3: wartość klucza z podstawionej zmiennej środowiska — działają oba zapisy nazwy")
     void solution3() {
-        assertThat(Cfg05EnvironmentSolutions.solution3(Map.of("CFG05_EXERCISE_MAX_DAYS", "4"))).isEqualTo(4);
+        assertThat(Cfg05EnvironmentSolutions.solution3(Map.of("CFG05_EXERCISE_MAXDAYS", "4"))).isEqualTo(4);
+        assertThat(Cfg05EnvironmentSolutions.solution3(Map.of("CFG05_EXERCISE_MAX_DAYS", "9"))).isEqualTo(9);
         assertThat(Cfg05EnvironmentSolutions.solution3(Map.of("INNA_ZMIENNA", "1"))).isEqualTo(-1);
-        assertThat(Cfg05EnvironmentSolutions.solution3(Map.of("CFG05_EXERCISE_MAXDAYS", "9"))).isEqualTo(-1);
     }
 }

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.WebApplicationType;
@@ -13,6 +14,8 @@ import org.springframework.boot.env.PropertiesPropertySourceLoader;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -74,15 +77,24 @@ class Cfg01PropertiesTest {
 
     @Test
     @DisplayName("4. Konwersja typów: "
-            + "tekst z pliku to int, boolean i Duration (Duration tylko dzięki Bootowi)")
+            + "tekst z pliku to int, boolean i Duration (Duration tylko dzięki Bootowi; bez jednostki = milisekundy)")
     void typeConversion() {
         assertThat(shop.reservationTime()).isEqualTo(Duration.ofSeconds(30));
         assertThat(shop.newsletter()).isTrue();
 
+        // PUŁAPKA: liczba bez jednostki to milisekundy, nie sekundy
+        try (ConfigurableApplicationContext context = start("--cfg01.shop.reservation-time=30")) {
+            assertThat(context.getBean(ShopInfo.class).reservationTime()).isEqualTo(Duration.ofMillis(30));
+        }
+
         // goły Spring (bez Boota) nie umie zamienić tekstu na Duration — nawet zapisu ISO
         new ApplicationContextRunner().withUserConfiguration(NeedsDuration.class)
                 .withPropertyValues("cfg01.demo.time=PT7S")
-                .run(context -> assertThat(context).hasFailed());
+                .run(context -> {
+                    assertThat(context).hasFailed();
+                    assertThat(context.getStartupFailure())
+                            .hasStackTraceContaining("no matching editors or conversion strategy found");
+                });
     }
 
     @Test
@@ -127,8 +139,9 @@ class Cfg01PropertiesTest {
     }
 
     @Test
-    @DisplayName("7. PUŁAPKA: @Value na polu jest null w konstruktorze, a na polu statycznym nie działa wcale")
-    void valueOnFieldPitfalls() {
+    @DisplayName("7. PUŁAPKA: @Value na polu jest null w konstruktorze, a na polu statycznym nie działa wcale (log tylko INFO)")
+    @ExtendWith(OutputCaptureExtension.class)   // przechwytuje to, co aplikacja wypisała (także log)
+    void valueOnFieldPitfalls(CapturedOutput output) {
         new ApplicationContextRunner()
                 .withUserConfiguration(Cfg01Properties.FieldInjectionDemo.class, Cfg01Properties.StaticFieldDemo.class)
                 .withPropertyValues("cfg01.shop.name=Kawiarnia")
@@ -138,6 +151,10 @@ class Cfg01PropertiesTest {
                     assertThat(demo.name).isEqualTo("Kawiarnia");      // po utworzeniu beana: jest
                     assertThat(Cfg01Properties.StaticFieldDemo.name).isNull();   // statyczne: nigdy
                 });
+        // jedyny ślad w logu: wpis na poziomie INFO (nie WARN)
+        assertThat(output.getAll().lines().filter(line -> line.contains("not supported on static fields")))
+                .isNotEmpty()
+                .allMatch(line -> line.contains("INFO") && !line.contains("WARN"));
     }
 
     @Test

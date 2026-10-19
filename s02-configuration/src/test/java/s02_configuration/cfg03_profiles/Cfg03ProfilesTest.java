@@ -83,7 +83,31 @@ class Cfg03ProfilesTest {
     }
 
     @Test
-    @DisplayName("3. Profil „default”: aktywny tylko gdy nie włączono żadnego innego profilu")
+    @DisplayName("3. Profil włączasz argumentem, właściwością JVM albo w kodzie startowym (SpringApplicationBuilder.profiles)")
+    void howToActivateProfile() {
+        // a) argument wiersza poleceń
+        try (ConfigurableApplicationContext byArgument = start("--spring.profiles.active=cfg03,cfg03-prod")) {
+            assertThat(byArgument.getEnvironment().getActiveProfiles()).containsExactly("cfg03", "cfg03-prod");
+            assertThat(byArgument.getBean(PaymentGateway.class)).isInstanceOf(RealPaymentGateway.class);
+        }
+        // b) właściwość JVM (jak java -Dspring.profiles.active=...)
+        System.setProperty("spring.profiles.active", "cfg03,cfg03-prod");
+        try (ConfigurableApplicationContext byJvmProperty = start()) {
+            assertThat(byJvmProperty.getEnvironment().getActiveProfiles()).containsExactly("cfg03", "cfg03-prod");
+            assertThat(byJvmProperty.getBean(PaymentGateway.class)).isInstanceOf(RealPaymentGateway.class);
+        } finally {
+            System.clearProperty("spring.profiles.active");
+        }
+        // d) w kodzie startowym — tak robi Cfg03Application.main
+        try (ConfigurableApplicationContext inCode = new SpringApplicationBuilder(Cfg03Application.class)
+                .profiles("cfg03", "cfg03-prod").web(WebApplicationType.NONE).run()) {
+            assertThat(inCode.getEnvironment().getActiveProfiles()).containsExactly("cfg03", "cfg03-prod");
+            assertThat(inCode.getBean(PaymentGateway.class)).isInstanceOf(RealPaymentGateway.class);
+        }
+    }
+
+    @Test
+    @DisplayName("4. Profil „default”: aktywny tylko gdy nie włączono żadnego innego profilu")
     void defaultProfile() {
         try (ConfigurableApplicationContext none = start()) {
             assertThat(none.getEnvironment().getActiveProfiles()).isEmpty();
@@ -98,7 +122,7 @@ class Cfg03ProfilesTest {
     }
 
     @Test
-    @DisplayName("4. Wyrażenia profilowe: AuditLog istnieje w cfg03-prod lub cfg03-audit, nie w dev")
+    @DisplayName("5. Wyrażenia profilowe: AuditLog istnieje w cfg03-prod lub cfg03-audit, nie w dev; & i | bez nawiasów to błąd")
     void profileExpressions() {
         assertThat(environment.matchesProfiles("cfg03-prod | cfg03-audit")).isFalse();   // ta klasa: dev
 
@@ -114,13 +138,17 @@ class Cfg03ProfilesTest {
         }
         // PUŁAPKA: mieszanie & i | bez nawiasów jest odrzucane (z nawiasami jest dobrze)
         new ApplicationContextRunner().withUserConfiguration(MixedWithoutParentheses.class)
-                .run(context -> assertThat(context).hasFailed());
+                .run(context -> {
+                    assertThat(context).hasFailed();
+                    assertThat(context.getStartupFailure())
+                            .hasStackTraceContaining("Malformed profile expression [a & b | c]");
+                });
         new ApplicationContextRunner().withUserConfiguration(MixedWithParentheses.class)
                 .run(context -> assertThat(context).hasNotFailed());
     }
 
     @Test
-    @DisplayName("5. spring.profiles.active i grupy profili: jeden profil włącza kilka innych")
+    @DisplayName("6. Grupy profili: jeden profil (cfg03-full) włącza kilka innych")
     void profileGroups() {
         try (ConfigurableApplicationContext full = start(
                 "--spring.profiles.group.cfg03-full=cfg03-dev,cfg03-audit",
@@ -130,5 +158,13 @@ class Cfg03ProfilesTest {
             assertThat(full.getBeansOfType(AuditLog.class)).hasSize(1);
             assertThat(full.getBean(GatewaySettings.class).url()).isEqualTo("http://localhost:9090/fake-pay");
         }
+    }
+
+    @Test
+    @DisplayName("7. @ActiveProfiles w teście: kontekst tej klasy testowej ma profile cfg03 i cfg03-dev")
+    void activeProfilesInTests() {
+        assertThat(environment.getActiveProfiles()).containsExactly("cfg03", "cfg03-dev");
+        assertThat(gateway).isInstanceOf(FakePaymentGateway.class);                       // !cfg03-prod
+        assertThat(settings.url()).isEqualTo("http://localhost:9090/fake-pay");           // wczytany plik cfg03-dev
     }
 }

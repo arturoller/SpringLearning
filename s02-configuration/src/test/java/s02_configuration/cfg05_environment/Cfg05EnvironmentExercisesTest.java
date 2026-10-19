@@ -35,10 +35,12 @@ class Cfg05EnvironmentExercisesTest {
     }
 
     @Test
-    @DisplayName("Ćwiczenie 3: wartość klucza z podstawionej zmiennej środowiska")
+    @DisplayName("Ćwiczenie 3: wartość klucza z podstawionej zmiennej środowiska — działają oba zapisy nazwy")
     void exercise3() {
-        assertThat(Cfg05Environment.exercise3(Map.of("CFG05_EXERCISE_MAX_DAYS", "4"))).isEqualTo(4);
+        // zapis z dokumentacji Boota (myślnik usunięty) — zadziała tylko przy źródle o nazwie "systemEnvironment"
+        assertThat(Cfg05Environment.exercise3(Map.of("CFG05_EXERCISE_MAXDAYS", "4"))).isEqualTo(4);
+        // starszy zapis (myślnik → podkreślnik)
+        assertThat(Cfg05Environment.exercise3(Map.of("CFG05_EXERCISE_MAX_DAYS", "9"))).isEqualTo(9);
         assertThat(Cfg05Environment.exercise3(Map.of("INNA_ZMIENNA", "1"))).isEqualTo(-1);
-        assertThat(Cfg05Environment.exercise3(Map.of("CFG05_EXERCISE_MAXDAYS", "9"))).isEqualTo(-1);
     }
 }
