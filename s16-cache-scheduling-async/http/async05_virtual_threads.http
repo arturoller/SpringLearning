@@ -1,0 +1,15 @@
+# Lekcja s16_cache_scheduling_async / Async05VirtualThreads — wątki wirtualne w działającej aplikacji
+# 1. Uruchom Async05Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z main aplikacja startuje z spring.threads.virtual.enabled=true (ustawienie domyślne z klasy startowej).
+# 2. Żeby zobaczyć różnicę, uruchom ją drugi raz z argumentem programu --spring.threads.virtual.enabled=false
+#    (Run → Edit Configurations → Program arguments) i wyślij te same zapytania.
+
+@host = http://localhost:8080
+
+### 1. Wątek obsługujący żądanie — oczekiwane (wątki wirtualne): {"name":"tomcat-handler-0","virtual":true}
+#    bez wątków wirtualnych: {"name":"http-nio-8080-exec-1","virtual":false}
+GET {{host}}/api/thread
+
+### 2. Wątek metody @Async — oczekiwane (wątki wirtualne): name zaczyna się od "task-", virtual: true
+#    bez wątków wirtualnych: "task-1", virtual: false (pula ThreadPoolTaskExecutor)
+GET {{host}}/api/async-thread

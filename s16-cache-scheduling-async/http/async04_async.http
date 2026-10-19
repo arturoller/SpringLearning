@@ -1,0 +1,11 @@
+# Lekcja s16_cache_scheduling_async / Async04Async — @Async w działającej aplikacji
+# 1. Uruchom Async04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Porównaj wątek, który zbudował raport, z wątkiem obsługującym żądanie.
+
+@host = http://localhost:8080
+
+### 1. Raport przez metodę @Async — oczekiwane: 200, builtBy zaczyna się od "task-", requestThread to wątek Tomcata (http-nio-...)
+GET {{host}}/api/reports/miesieczny
+
+### 2. PUŁAPKA: to samo przez wywołanie z tej samej klasy — oczekiwane: 200, builtBy == requestThread (proxy ominięte, brak @Async)
+GET {{host}}/api/reports/miesieczny/sync

@@ -1,0 +1,26 @@
+# Lekcja s16_cache_scheduling_async / Cache02CacheManagement — @CachePut i @CacheEvict w działającej aplikacji
+# 1. Uruchom Cache02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Wykonuj zapytania po kolei i po każdym zerknij na licznik odczytów z „bazy” (zapytanie 5).
+
+@host = http://localhost:8080
+
+### 1. Cena ELE-001 — oczekiwane: 549999 (pierwszy odczyt z „bazy”)
+GET {{host}}/api/prices/ELE-001
+
+### 2. Ta sama cena jeszcze raz — oczekiwane: 549999, licznik z zapytania 5 się NIE zmienia (odpowiedź z cache)
+GET {{host}}/api/prices/ELE-001
+
+### 3. @CachePut: zmiana ceny — oczekiwane: 499999 (metoda zapisała w „bazie” i od razu odświeżyła cache)
+PUT {{host}}/api/prices/ELE-001?grosze=499999
+
+### 4. Odczyt po zmianie — oczekiwane: 499999 BEZ nowego odczytu z „bazy”
+GET {{host}}/api/prices/ELE-001
+
+### 5. Licznik — oczekiwane: {"loads": 1}
+GET {{host}}/api/prices-stats
+
+### 6. @CacheEvict(allEntries = true): wyczyść wszystko i przywróć dane startowe — oczekiwane: 200
+DELETE {{host}}/api/prices
+
+### 7. Odczyt po wyczyszczeniu — oczekiwane: 549999 (cena startowa, znów odczyt z „bazy”)
+GET {{host}}/api/prices/ELE-001

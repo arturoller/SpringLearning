@@ -490,7 +490,7 @@ Startery: `webmvc`, `actuator`, test `webmvc-test`, `actuator-test`.
   `ObservationRegistry`, `Observation.createNotStarted(...).observe(...)`, `@Observed` (SPRAWDŹ, co trzeba włączyć), co
   obserwuje Boot sam; zapowiedź śledzenia rozproszonego (`s22_extras/Ext04Tracing`).
 
-## O. s16_cache_scheduling_async — pamięć podręczna, harmonogram, asynchroniczność (5 lekcji) — stan: do napisania
+## O. s16_cache_scheduling_async — pamięć podręczna, harmonogram, asynchroniczność (5 lekcji) — stan: gotowe (2026-10-19)
 Startery: `cache`, `webmvc`, test `webmvc-test`. Determinizm: żadnych asercji na czasie; zadania cykliczne testuj przez
 wywołanie metody i sprawdzenie konfiguracji harmonogramu, asynchroniczność przez `CompletableFuture`/Awaitility (SPRAWDŹ, czy
 Awaitility jest w `spring-boot-starter-test`).

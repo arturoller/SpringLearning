@@ -1,0 +1,17 @@
+# Lekcja s16_cache_scheduling_async / Cache01Cacheable — @Cacheable w działającej aplikacji
+# 1. Uruchom Cache01Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Wyślij zapytanie 1 trzy razy, potem zapytanie 3: licznik prawdziwych wywołań findBySku to 1 (a nie 3).
+
+@host = http://localhost:8080
+
+### 1. Produkt ELE-001 — oczekiwane: 200, Laptop Pro 14 (pierwsze zapytanie liczy się naprawdę, kolejne idą z cache)
+GET {{host}}/api/products/ELE-001
+
+### 2. Inny produkt — oczekiwane: 200, Kawa ziarnista 1kg (nowy klucz = nowe prawdziwe wywołanie)
+GET {{host}}/api/products/SPO-001
+
+### 3. Licznik — oczekiwane: {"findBySkuCalls": 2} niezależnie od liczby powtórzeń zapytań 1 i 2
+GET {{host}}/api/stats
+
+### 4. Nieznany produkt — oczekiwane: 404 (a „brak” też trafia do cache — domyślnie null jest zapamiętywany)
+GET {{host}}/api/products/NIE-MA
