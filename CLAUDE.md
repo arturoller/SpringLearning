@@ -123,8 +123,11 @@ W treści: `PUŁAPKA:` i `DOBRA PRAKTYKA:` (zawsze z „dlaczego”), na końcu 
 
 ## 6. Jak pracujemy (workflow)
 - **1 dział = 1 commit**, robiony dopiero gdy dział jest kompletny i `mvnw test` jest zielony. Commit robi Claude, bez pytania.
-- **Push robi użytkownik** (lokalnie). Sesja w chmurze: pracuj na osobnej gałęzi, wypchnij gałąź i otwórz pull request —
-  nigdy nie wypychaj bezpośrednio na `main`.
+- **Gałąź i pull request na każdy dział/paczkę — lokalnie i w chmurze, tak jak w JavaLearning.** Claude tworzy gałąź
+  (np. `s04-web-rest`), commituje, wypycha gałąź i otwiera PR do `main` (lokalnie nie ma `gh` — wtedy podaje użytkownikowi
+  link `…/pull/new/<gałąź>` z wyniku push). **Merge robi użytkownik w GitHubie.** Nigdy nie wypychaj bezpośrednio na `main`.
+  Gdy gałąź zależy od innej, jeszcze nie scalonej (np. potrzebuje zmian w parent pom), zbuduj ją na tamtej i powiedz
+  użytkownikowi, w jakiej kolejności scalać.
 - Komunikaty commitów po polsku, np. `s04_web_rest: REST w Springu (6 lekcji)`, zakończone liniami Co-Authored-By modeli.
 - Przed commitem działu: pełne `mvnw test` (zielone) + `java tools/LessonLint.java` z `PROBLEMS: 0` (tagi, encje HTML,
   niewidoczne znaki, odesłania do lekcji obu kursów, rejestr, tagi testów ćwiczeń/rozwiązań), brak plików w `temp/`.
