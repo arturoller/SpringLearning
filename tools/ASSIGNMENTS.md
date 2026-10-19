@@ -531,7 +531,7 @@ rezerwacja magazynu. Odesłanie do `t22_design_patterns/…` (obserwator — tyl
   publikacji Spring Modulith (`s20_modulith/Mod02ModuleEvents`) i kolejek (Kafka/RabbitMQ w `s22_extras/Ext02Messaging`).
   Testy deterministyczne (Awaitility albo jawne wywołanie wysyłacza).
 
-## Q. s18_aop — programowanie aspektowe (3 lekcje) — stan: do napisania
+## Q. s18_aop — programowanie aspektowe (3 lekcje) — stan: gotowe (2026-10-19)
 Starter: `spring-boot-starter-aspectj` (w Boot 4 zamiast `-aop`). Dział TRUDNY (proxy od środka).
 - **Aop01Aspects** (`aop01_aspects`): po co aspekty (sprawy przekrojowe: logowanie, pomiar, uprawnienia), `@Aspect` + `@Component`,
   porady `@Before`, `@AfterReturning`, `@AfterThrowing`, `@After`, `@Around` (`ProceedingJoinPoint.proceed()` — PUŁAPKA: brak

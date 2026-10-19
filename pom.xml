@@ -45,6 +45,7 @@
         <module>s15-actuator-logging</module>
         <module>s16-cache-scheduling-async</module>
         <module>s17-events</module>
+        <module>s18-aop</module>
         <module>s19-deploy</module>
     </modules>
 
