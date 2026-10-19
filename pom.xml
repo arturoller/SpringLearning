@@ -49,6 +49,9 @@
         -->
         <excludedGroups>cwiczenie</excludedGroups>
 
+        <!-- Aplikacja uruchamiana przez ./mvnw spring-boot:run startuje z małą pamięcią startową (patrz argLine niżej). -->
+        <spring-boot.run.jvmArguments>-Xms128m</spring-boot.run.jvmArguments>
+
         <!-- Biblioteki spoza BOM Spring Boota (używane w późniejszych działach). -->
         <springdoc.version>3.1.1</springdoc.version>
         <spring-modulith.version>2.1.1</spring-modulith.version>
@@ -78,8 +81,11 @@
                         -Xshare:off wyłącza ostrzeżenie JVM „Sharing is only supported for boot loader classes…”, które agent
                         powoduje (nieszkodliwe, ale myli przy czytaniu logów).
                         IntelliJ przekazuje argLine także przy ▶ (Settings → Build Tools → Maven → Running Tests → argLine).
+                        -Xms128m: mała pamięć startowa JVM testów. Domyślnie JVM rezerwuje na starcie 1/64 RAM (przy 64 GB to
+                        1 GB) — kilka równoległych buildów wyczerpywało wtedy pamięć Windows („Plik stronicowania jest za mały”).
+                        Limit maksymalny (-Xmx) zostaje domyślny, więc testy nadal mogą urosnąć, ile potrzebują.
                     -->
-                    <argLine>"-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar" -Xshare:off</argLine>
+                    <argLine>"-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar" -Xshare:off -Xms128m</argLine>
                 </configuration>
             </plugin>
         </plugins>
