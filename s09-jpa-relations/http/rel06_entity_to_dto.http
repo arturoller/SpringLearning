@@ -1,0 +1,33 @@
+# Lekcja s09_jpa_relations / Rel06EntityToDto — encja czy DTO w odpowiedzi kontrolera
+# 1. Uruchom Rel06Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Profil rel06 ma spring.jpa.open-in-view=false (zalecane ustawienie).
+# 2. Kliknij ▶ obok zapytania. Odpowiedź pojawi się w oknie Services, a wysłany SQL — w konsoli aplikacji.
+# Klienci: id 1 = Jan Kowalski (ZAM-001, ZAM-003), id 2 = Maria Nowak (ZAM-002) — id nadaje baza przy starcie.
+
+@host = http://localhost:8080
+
+### 1. ŹLE — encja produktu. Oczekiwane: 200 i WYCIEK: "id":1 oraz "purchasePrice":4100.00 (cena zakupu!)
+GET {{host}}/api/rel06/entities/products/ELE-001
+
+### 2. DOBRZE — DTO produktu. Oczekiwane: 200, {"sku":"ELE-001","name":"Laptop Pro 14","price":5499.99}
+GET {{host}}/api/rel06/products/ELE-001
+
+### 3. ŹLE — encja klienta z leniwą listą zamówień (open-in-view=false). Oczekiwane: 500 Internal Server Error,
+# w konsoli WARN: „Could not write JSON: Cannot lazily initialize collection of role
+# 's09_jpa_relations.rel06_entity_to_dto.Customer.orders' with key '1' (no session)”.
+GET {{host}}/api/rel06/entities/customers/1
+
+### 4. DOBRZE — DTO klienta (jedno zapytanie z left join fetch, widać je w konsoli).
+# Oczekiwane: 200, {"name":"Jan Kowalski","city":"Warszawa","email":"jan@example.com",
+#                   "orders":[{"number":"ZAM-001","status":"NOWE"},{"number":"ZAM-003","status":"WYSLANE"}]}
+GET {{host}}/api/rel06/customers/1
+
+### 5. DTO klientki bez e-maila — oczekiwane: 200, "email":null, jedno zamówienie ZAM-002
+GET {{host}}/api/rel06/customers/2
+
+### 6. EKSPERYMENT z cyklem: uruchom aplikację jeszcze raz z argumentem programu --spring.jpa.open-in-view=true
+# (Run → Edit Configurations → Program arguments) i wyślij to zapytanie.
+# Oczekiwane: 200 (!) i około 25 KB JSON: klient → zamówienia → klient → ... (w treści także "internalNote").
+# W konsoli: „Ignoring exception, response committed already: ... Document nesting depth (501) exceeds the maximum
+# allowed (500, ...)” — klient API nie dostał żadnego sygnału błędu.
+GET {{host}}/api/rel06/entities/customers/1

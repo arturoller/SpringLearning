@@ -319,7 +319,7 @@ Kolejność pracy agenta:
 3. Nowe lekcje według konspektu.
 Zasady wspólne z sekcji C–G obowiązują (Maven tylko `-pl <moduł>`, H2 i Flyway per lekcja, bez portu 8080).
 
-## H. s09_jpa_relations — relacje JPA (6 lekcji) — stan: do napisania (Rel01, Rel02 z WIP — do przeglądu)
+## H. s09_jpa_relations — relacje JPA (6 lekcji) — stan: gotowe (2026-10-19; Rel01, Rel02 z WIP po przeglądzie)
 Startery: `data-jpa`, `flyway`, `h2` (runtime), test `data-jpa-test`; dodatkowo `webmvc` (+ test `-webmvc-test`) tylko dla Rel06.
 - **Rel01ManyToOne**, **Rel02OneToMany** — z WIP: przegląd i weryfikacja (patrz zasady H–I).
 - **Rel03ManyToMany** (`rel03_many_to_many`, szkic w WIP): `@ManyToMany` (produkty ↔ tagi), tabela łącząca, strona właściciela,
@@ -586,3 +586,58 @@ moduły i czy pakiet `solutions` nie zostanie potraktowany jako moduł innej lek
 - **Mod03Documentation** (`mod03_documentation`): `Documenter` — diagramy modułów (PlantUML/C4) i „kanwa” modułu generowane do
   `target/spring-modulith-docs` w teście (pokaż fragment prawdziwego wyniku), nazwane interfejsy (`@NamedInterface`),
   obserwowalność modułów (tylko wzmianka); kiedy monolit modułowy, a kiedy mikroserwisy.
+
+## T. s21_capstone — projekty końcowe (3 lekcje) — stan: do napisania
+Zależności: `webmvc`, `validation`, `data-jpa`, `h2`, `flyway`, `security`, `oauth2-resource-server`, testy webmvc/data-jpa/security.
+Projekt = lekcja: specyfikacja (wymagania, przypadki użycia, punkty końcowe, model danych), architektura (warstwy, pakiety, DTO,
+obsługa błędów), PEŁNA implementacja wzorcowa w pakiecie lekcji + testy na każdym poziomie (jednostkowe, wycinki, pełny kontekst),
+plik `.http` ze scenariuszem, a ćwiczenia = ROZSZERZENIA projektu (nowa funkcja z testem ćwiczenia; szkielet + TODO).
+Każda lekcja odsyła do lekcji kursu, z których korzysta (tylko nazwy z rejestru). IZOLACJA: Security jest na classpath całego
+modułu — projekty bez logowania (Cap01, Cap02) mają jawny `SecurityFilterChain` z `permitAll()` (z komentarzem DLACZEGO);
+H2 i Flyway osobno na projekt (`db/migration/cap0N`). Port do ręcznego sprawdzania: 8121.
+- **Cap01ShopApi** (`cap01_shop_api`): REST API sklepu — produkty (CRUD, wyszukiwanie, stronicowanie), klienci, zamówienia
+  z pozycjami (relacje JPA, przeliczanie sumy, zmiana statusu z regułami: NOWE → OPLACONE → WYSLANE → DOSTARCZONE, ANULOWANE),
+  walidacja, `ProblemDetail`, DTO zamiast encji, brak N+1 na liście zamówień (test liczący zapytania), dane startowe z
+  `tools/AGENT_KIT.md` 5a w migracji. Ćwiczenia: kody rabatowe, raport sprzedaży po kategoriach, blokada zamówienia przy braku towaru.
+- **Cap02Reservations** (`cap02_reservations`): system rezerwacji (np. stanowiska serwisowe sklepu) — sloty czasowe, rezerwacja
+  bez nakładania się (reguła w serwisie + ograniczenie w bazie; współbieżność: dwie rezerwacje tego samego slotu — test
+  deterministyczny, blokada optymistyczna `@Version` albo ograniczenie unikalności — SPRAWDŹ zachowanie na H2), `Clock`
+  wstrzykiwany (rezerwacje w przeszłości odrzucane), anulowanie z terminem, zdarzenie „potwierdzono” + słuchacz po zatwierdzeniu
+  transakcji. Ćwiczenia: lista oczekujących, limit rezerwacji na klienta, przypomnienia (metoda wołana przez `@Scheduled`).
+- **Cap03LibraryWithAuth** (`cap03_library_with_auth`): biblioteka — książki, czytelnicy, wypożyczenia (termin zwrotu, kara za
+  spóźnienie liczona z `Clock`), Spring Security: role BIBLIOTEKARZ i CZYTELNIK, logowanie zwracające JWT (klucz testowy
+  generowany w kodzie), `@PreAuthorize` (czytelnik widzi tylko swoje wypożyczenia), hasła BCrypt, testy 401/403/200.
+  Ćwiczenia: rezerwacja książki wypożyczonej, przedłużenie terminu (maks. 1 raz), raport zaległości tylko dla bibliotekarza.
+
+## U. s22_extras — dodatki (6 lekcji, opcjonalne) — stan: do napisania
+Zależności (pom gotowy, agent tego działu MOŻE go zmieniać, jeśli coś nie działa — z uzasadnieniem w raporcie): `webmvc`,
+`spring-ai-starter-model-ollama` (BOM Spring AI 2.0.1), `kafka`, `oauth2-resource-server` (Security!), `opentelemetry`, `webflux`,
+testy: webmvc/webflux/security, `spring-boot-testcontainers`, `testcontainers-junit-jupiter`, `testcontainers-kafka`.
+IZOLACJA (najtrudniejsza w kursie — moduł łączy kłócące się startery): każda lekcja ma własną aplikację i musi jawnie wyłączyć to,
+czego nie dotyczy (np. lekcja Spring AI: Security z `permitAll` albo wyłączenie autokonfiguracji — SPRAWDŹ nazwy klas w Boot 4;
+eksport śladów OpenTelemetry wyłączony poza lekcją o tracingu; Kafka nie łączy się przy starcie, jeśli nikt jej nie używa —
+SPRAWDŹ). Testy bez internetu: model AI = atrapa `ChatModel` w teście (żadnych prawdziwych wywołań), Kafka = Testcontainers
+(pomijane bez Dockera; Docker jest u autora), Keycloak tylko w `compose.yaml` do uruchomienia ręcznego (testy z `jwt()`).
+Każda lekcja to PRZEGLĄD: kiedy po to sięgnąć, minimalny działający przykład, pułapki, co czytać dalej. 2–3 ćwiczenia na lekcję.
+Port do ręcznego sprawdzania: 8122.
+- **Ext01SpringAi** (`ext01_spring_ai`): `ChatClient` (prompt, rola systemowa, odpowiedź jako rekord — structured output),
+  model lokalny Ollama (konfiguracja `spring.ai.ollama.*`, uruchomienie modelu w Dockerze — opis), atrapa `ChatModel` w testach,
+  PUŁAPKI: niedeterministyczne odpowiedzi, koszty/limity, dane osobowe w promptach, „prompt injection”. SPRAWDŹ API Spring AI 2.0.1.
+- **Ext02Messaging** (`ext02_messaging`): kolejki wiadomości — Kafka: `KafkaTemplate.send`, `@KafkaListener`, grupa konsumentów,
+  serializacja JSON (Jackson 3 — SPRAWDŹ serializery Spring Kafka dla Boot 4), test z `@ServiceConnection` + kontener Kafki
+  (jawny tag obrazu), RabbitMQ — tylko porównanie (kiedy który); powiązanie z outbox (`s17_events/Evt03AsyncAndOutbox`).
+- **Ext03OAuth2Keycloak** (`ext03_oauth2_keycloak`): OAuth2/OIDC w skrócie (serwer autoryzacji wydaje tokeny, Twoja aplikacja to
+  Resource Server), konfiguracja `spring.security.oauth2.resourceserver.jwt.issuer-uri`, mapowanie ról Keycloak na uprawnienia
+  Springa (konwerter claimów), `compose.yaml` z Keycloakiem do ręcznego uruchomienia (realm do zaimportowania — dane testowe),
+  testy z `jwt()`. Odesłanie do `s12_security/Sec05Jwt`.
+- **Ext04Tracing** (`ext04_tracing`): śledzenie rozproszone — ślad (trace) i odcinek (span), propagacja nagłówka `traceparent`
+  między usługami (dwie aplikacje albo RestClient do samej siebie), identyfikator śladu w logach, eksport (OpenTelemetry —
+  w testach eksporter w pamięci, SPRAWDŹ jak w Boot 4.1), próbkowanie. Odesłanie do `s15_actuator_logging/Obs05Observations`.
+- **Ext05WebFluxOverview** (`ext05_webflux_overview`): czym jest programowanie reaktywne (`Mono`, `Flux`, nieblokujące I/O),
+  minimalny kontroler WebFlux i `WebTestClient` (aplikacja lekcji z `WebApplicationType.REACTIVE`, bo MVC też jest na classpath —
+  SPRAWDŹ), PUŁAPKA: blokujący kod w reaktywnym potoku, i najważniejsze: kiedy NIE potrzebujesz WebFlux (wątki wirtualne —
+  `s16_cache_scheduling_async/Async05VirtualThreads`).
+- **Ext06NativeImage** (`ext06_native_image`): GraalVM native image — co daje (start w milisekundach, mniej pamięci) i co kosztuje
+  (długa kompilacja, świat zamknięty: refleksja wymaga podpowiedzi), przetwarzanie AOT Springa (`spring-boot:process-aot`),
+  `RuntimeHints`/`RuntimeHintsRegistrar` z testem `RuntimeHintsPredicates` (bez GraalVM), opis budowy obrazu natywnego
+  (`native:compile`, Buildpacks) bez wymogu instalacji GraalVM.

@@ -1,0 +1,23 @@
+# Lekcja s09_jpa_relations / Rel04LazyLoading — leniwe ładowanie i open-in-view
+# 1. Uruchom Rel04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    W logu startu poszukaj ostrzeżenia: „spring.jpa.open-in-view is enabled by default...” (poziom WARN).
+# 2. Kliknij ▶ obok zapytania. Odpowiedź pojawi się w oknie Services, a wysłany SQL — w konsoli aplikacji.
+# 3. Potem uruchom aplikację jeszcze raz z open-in-view WYŁĄCZONYM (Run → Edit Configurations → Program arguments:
+#    --spring.jpa.open-in-view=false) i powtórz zapytania. Ostrzeżenia w logu już nie będzie.
+
+@host = http://localhost:8080
+
+### 1. Kontroler czyta leniwe pole klienta PO transakcji serwisu.
+# open-in-view włączone (domyślnie): 200, {"number":"ZAM-001","customerName":"Jan Kowalski","busyConnections":1}
+#   — w konsoli dwa SELECT-y: zamówienie (w serwisie) i klient (w kontrolerze, poza transakcją).
+# open-in-view=false: 500 Internal Server Error, w konsoli LazyInitializationException
+#   „Could not initialize proxy [s09_jpa_relations.rel04_lazy_loading.Customer#1] - no session”.
+GET {{host}}/api/rel04/orders/ZAM-001
+
+### 2. Sam status — kontroler NIE dotyka leniwych pól.
+# open-in-view włączone: "busyConnections":1 (połączenie trzymane do końca żądania)
+# open-in-view=false:    "busyConnections":0 (połączenie wróciło do puli zaraz po transakcji)
+GET {{host}}/api/rel04/orders/ZAM-001/status
+
+### 3. Inne zamówienie — klientka Maria Nowak
+GET {{host}}/api/rel04/orders/ZAM-002
