@@ -513,7 +513,7 @@ Awaitility jest w `spring-boot-starter-test`).
   `synchronized` w JDK 24+ już nie przypina (JEP 491 — SPRAWDŹ, opisz dla Javy 21 i 25), PUŁAPKA: pule połączeń z bazą
   nadal ograniczają współbieżność. Odesłanie do `t21_concurrency/…` (tylko nazwy z rejestru JavaLearning).
 
-## P. s17_events — zdarzenia aplikacji (3 lekcje) — stan: do napisania
+## P. s17_events — zdarzenia aplikacji (3 lekcje) — stan: gotowe (2026-10-19)
 Startery: `jdbc`, `h2` (runtime), `flyway`. Bez weba. Scenariusz: złożenie zamówienia → powiadomienie, punkty lojalnościowe,
 rezerwacja magazynu. Odesłanie do `t22_design_patterns/…` (obserwator — tylko nazwy z rejestru JavaLearning).
 - **Evt01ApplicationEvents** (`evt01_application_events`): `ApplicationEventPublisher.publishEvent(rekord)` (zdarzenie nie musi

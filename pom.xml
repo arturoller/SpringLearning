@@ -43,6 +43,7 @@
         <module>s14-openapi</module>
         <module>s15-actuator-logging</module>
         <module>s16-cache-scheduling-async</module>
+        <module>s17-events</module>
     </modules>
 
     <properties>
