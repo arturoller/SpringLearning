@@ -40,6 +40,7 @@
         <module>s10-transactions</module>
         <module>s11-testing</module>
         <module>s12-security</module>
+        <module>s13-rest-client</module>
         <module>s14-openapi</module>
         <module>s15-actuator-logging</module>
         <module>s16-cache-scheduling-async</module>

@@ -1,0 +1,42 @@
+# Lekcja s13_rest_client / Rc04Resilience — plik .http (IntelliJ HTTP Client)
+# 1. Uruchom Rc04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Wysyłaj zapytania PO KOLEI, zaraz po starcie — „kapryśny” dostawca liczy zapytania, więc wyniki zależą od kolejności.
+#    W konsoli aplikacji RetryLogger wypisuje każdą nieudaną próbę: „Nieudana próba price: ...503 Service Unavailable...”.
+# Zmienna @host — zmień ją w jednym miejscu, jeśli uruchomisz aplikację na innym porcie (--server.port=8081).
+
+@host = http://localhost:8080
+
+### 1. Dostawca wprost — wyślij 3 razy: oczekiwane 503, 503, a za trzecim razem 200 z ceną (awaria przejściowa)
+GET {{host}}/supplier/api/prices/ELE-001
+
+### 2. Nasz sklep (z @Retryable) — oczekiwane: 200 OK za KAŻDYM razem (po ok. 0,6 s: odstępy 200 ms i 400 ms);
+# w konsoli dwie linie „Nieudana próba price”.
+GET {{host}}/api/shop/prices/ELE-001
+
+### 3. ZŁE zamówienie (ponawiany POST bez klucza) — oczekiwane: 201 Created z potwierdzeniem DOST-1002
+# (pierwsza próba zapisała DOST-1001, ale dostała 503 — ponowienie zapisało DRUGIE zamówienie)
+POST {{host}}/api/shop/restock-unsafe
+Content-Type: application/json
+
+{
+  "sku": "SPO-001",
+  "quantity": 10
+}
+
+### 4. Lista zamówień u dostawcy — po zapytaniu 3: DWA zamówienia SPO-001 (DOST-1001 i DOST-1002) zamiast jednego
+GET {{host}}/supplier/api/orders
+
+### 5. DOBRE zamówienie (ten sam Idempotency-Key w każdej próbie) — oczekiwane: 201 Created z DOST-1003
+POST {{host}}/api/shop/restock
+Content-Type: application/json
+
+{
+  "sku": "KSI-001",
+  "quantity": 3
+}
+
+### 6. Lista zamówień u dostawcy — po zapytaniu 5 przybyło tylko JEDNO zamówienie (DOST-1003)
+GET {{host}}/supplier/api/orders
+
+### 7. Raport magazynowy przez nasz sklep (najwyżej 2 równoczesne zapytania do dostawcy) — oczekiwane: 200 OK
+GET {{host}}/api/shop/report

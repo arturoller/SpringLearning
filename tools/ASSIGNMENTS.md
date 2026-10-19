@@ -435,7 +435,7 @@ Jak w „Zasadach wspólnych dla sekcji C–G”. Moduł istnieje (pom gotowy, w
 sprawdzania `.http`: s13 → 8093, s14 → 8094, s15 → 8095, s16 → 8096. Żadnego internetu w testach: „zewnętrzne API” to lokalny
 serwer w teście (RANDOM_PORT) albo `MockRestServiceServer`.
 
-## L. s13_rest_client — klient HTTP (4 lekcje) — stan: do napisania
+## L. s13_rest_client — klient HTTP (4 lekcje) — stan: gotowe (2026-10-19; limity czasu: spring.http.clients.*, nie spring.http.client.*)
 Startery: `restclient`, `webmvc` (udawany serwer dostawcy), test: `restclient-test`, `webmvc-test`. Scenariusz: sklep pyta
 zewnętrzne API dostawcy o ceny/stan magazynu.
 - **Rc01RestClient** (`rc01_rest_client`): `RestClient` (od Framework 6.1) — budowanie (`RestClient.Builder` od Boota,

@@ -1,0 +1,29 @@
+# Lekcja s13_rest_client / Rc03HttpInterfaces — plik .http (IntelliJ HTTP Client)
+# 1. Uruchom Rc03Application (▶ obok main). W konsoli zobaczysz linię
+#    „Najtańsza dostępna elektronika u dostawcy: Optional[SupplierOffer[sku=ELE-003, ...]]” — zapytanie wysłało
+#    proxy interfejsu SupplierApi (grupa „dostawca”, ustawienia z application-rc03.properties).
+# 2. Zapytanie 1 idzie do NASZEGO sklepu: kontroler → CheapestOfferService → SupplierApi (proxy) → dostawca.
+# Zmienna @host — zmień ją w jednym miejscu, jeśli uruchomisz aplikację na innym porcie (--server.port=8081).
+
+@host = http://localhost:8080
+
+### 1. Nasz sklep: najtańsza DOSTĘPNA oferta w kategorii — oczekiwane: 200 OK i ELE-003 (Słuchawki BT, 349.90)
+GET {{host}}/api/shop/cheapest?category=ELEKTRONIKA
+
+### 2. Nasz sklep: kategoria, w której dostawca nic nie ma — oczekiwane: 404 Not Found
+GET {{host}}/api/shop/cheapest?category=ZABAWKI
+
+### 3. Dostawca wprost: to samo zapytanie, które wysyła supplierApi.offers("ELEKTRONIKA") — oczekiwane: 200 i 3 oferty
+GET {{host}}/supplier/api/offers?category=ELEKTRONIKA
+X-Shop-Id: sklep-01
+Accept: application/json
+
+### 4. Dostawca wprost: zapytanie, które wysyła supplierApi.order(...) — oczekiwane: 201 Created i potwierdzenie
+POST {{host}}/supplier/api/orders
+X-Shop-Id: sklep-01
+Content-Type: application/json
+
+{
+  "sku": "SPO-001",
+  "quantity": 10
+}

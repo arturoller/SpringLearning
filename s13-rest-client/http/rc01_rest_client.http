@@ -1,0 +1,45 @@
+# Lekcja s13_rest_client / Rc01RestClient — plik .http (IntelliJ HTTP Client)
+# 1. Uruchom Rc01Application (▶ obok main). W konsoli zobaczysz linię
+#    „Sklep zapytał dostawcę przez RestClient: SupplierOffer[sku=ELE-001, ...]” — to zapytanie wysłał SupplierClient.
+# 2. Tu pytasz „dostawcę” (FakeSupplierController) WPROST — widzisz dokładnie ten JSON, który dostaje RestClient.
+# Zmienna @host — zmień ją w jednym miejscu, jeśli uruchomisz aplikację na innym porcie (--server.port=8081).
+
+@host = http://localhost:8080
+
+### 1. Oferta laptopa — oczekiwane: 200 OK, nagłówek Cache-Control: max-age=60 i JSON oferty
+GET {{host}}/supplier/api/offers/ELE-001
+X-Shop-Id: sklep-01
+Accept: application/json
+
+### 2. Oferty z kategorii — oczekiwane: 200 OK i tablica z ELE-001, ELE-002, ELE-003
+GET {{host}}/supplier/api/offers?category=ELEKTRONIKA
+X-Shop-Id: sklep-01
+
+### 3. Nieznany produkt — oczekiwane: 404 Not Found (RestClient zgłosi HttpClientErrorException.NotFound)
+GET {{host}}/supplier/api/offers/XXX-999
+X-Shop-Id: sklep-01
+
+### 4. Bez nagłówka X-Shop-Id — oczekiwane: 400 Bad Request (dlatego klient ustawia go jako nagłówek domyślny)
+GET {{host}}/supplier/api/offers/ELE-001
+
+### 5. Zamówienie u dostawcy — oczekiwane: 201 Created, Location: /supplier/api/orders/DOST-1001 (przy pierwszym
+# wysłaniu po starcie) i potwierdzenie ze statusem PRZYJETE. Każde kolejne wysłanie = NOWE zamówienie (POST nie
+# jest idempotentny): DOST-1002, DOST-1003...
+POST {{host}}/supplier/api/orders
+X-Shop-Id: sklep-01
+Content-Type: application/json
+
+{
+  "sku": "KSI-001",
+  "quantity": 3
+}
+
+### 6. Zła ilość — oczekiwane: 400 Bad Request
+POST {{host}}/supplier/api/orders
+X-Shop-Id: sklep-01
+Content-Type: application/json
+
+{
+  "sku": "KSI-001",
+  "quantity": 0
+}

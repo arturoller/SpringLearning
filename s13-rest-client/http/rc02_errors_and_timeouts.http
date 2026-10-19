@@ -1,0 +1,30 @@
+# Lekcja s13_rest_client / Rc02ErrorsAndTimeouts — plik .http (IntelliJ HTTP Client)
+# 1. Uruchom Rc02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Zapytania 1–4 idą do NASZEGO sklepu (/api/shop/...), który pyta dostawcę przez SupplierStockClient.
+#    W konsoli aplikacji zobaczysz linie „Dostawca: GET http://localhost:8080/supplier/api/stock/... → ...”.
+# 3. Zapytania 5–7 idą WPROST do udawanego dostawcy — widać, co naprawdę odpowiada.
+# Zmienna @host — zmień ją w jednym miejscu, jeśli uruchomisz aplikację na innym porcie (--server.port=8081).
+
+@host = http://localhost:8080
+
+### 1. Dostawca ma produkt — oczekiwane: 200 OK, {"sku":"ELE-001","available":7}
+GET {{host}}/api/shop/availability/ELE-001
+
+### 2. Dostawca nie zna produktu (u niego 404) — oczekiwane u nas: 404, ProblemDetail „Dostawca nie zna produktu XXX-999”
+GET {{host}}/api/shop/availability/XXX-999
+
+### 3. Awaria dostawcy (u niego 500) — oczekiwane u nas: 503 Service Unavailable, a NIE 500
+GET {{host}}/api/shop/availability/AWARIA
+
+### 4. Dostawca nie odpowiada w limicie 3 s (read-timeout z application-rc02.properties) — oczekiwane po ok. 3 s: 503
+# W konsoli: „Dostawca: GET ... → błąd sieci: java.net.http.HttpTimeoutException: Request cancelled”.
+GET {{host}}/api/shop/availability/WOLNY
+
+### 5. Dostawca wprost: nieznany produkt — oczekiwane: 404 i ProblemDetail (application/problem+json)
+GET {{host}}/supplier/api/stock/XXX-999
+
+### 6. Dostawca wprost: przerwa techniczna — oczekiwane: 503 i nagłówek Retry-After: 120
+GET {{host}}/supplier/api/stock/PRZERWA
+
+### 7. Dostawca wprost: WOLNY — oczekiwane: 200 OK dopiero po ok. 5 s (szlaban nikt nie podnosi, serwer czeka do limitu)
+GET {{host}}/supplier/api/stock/WOLNY
