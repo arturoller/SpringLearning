@@ -1,0 +1,14 @@
+# ĆWICZENIE 3 lekcji s11_testing / Test07DockerCompose — ten plik ma TRZY błędy. Popraw je (opis w klasie lekcji):
+#   1) nazwa pliku — Boot bez spring.docker.compose.file nie znajdzie „services.yaml”;
+#   2) tag obrazu — „latest” zmienia się bez Twojej wiedzy;
+#   3) port — stały port hosta 5432 zderzy się z inną bazą na Twoim komputerze.
+# Sprawdzenie: Test07DockerComposeExercisesTest, ćwiczenie 3 (nic nie uruchamia, tylko czyta plik).
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_DB: 'sklep'
+      POSTGRES_USER: 'sklep'
+      POSTGRES_PASSWORD: 'haslo-tylko-do-cwiczen'
+    ports:
+      - '5432:5432'

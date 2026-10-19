@@ -1,0 +1,14 @@
+# Lekcja s11_testing / Test06Testcontainers — aplikacja z PRAWDZIWYM PostgreSQL w kontenerze (IntelliJ HTTP Client)
+# 1. Uruchom Docker Desktop.
+# 2. Uruchom Test06DevApplication (src/test/java, ▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    W logu zobaczysz start kontenera postgres:18-alpine (pierwszy raz Docker pobiera obraz — potrzebny internet).
+# 3. Kliknij ▶ obok zapytania. Dla porównania uruchom też zwykłą Test06Application (bez kontenerów) — zapytanie 1
+#    pokaże wtedy bazę H2.
+
+@host = http://localhost:8080
+
+### 1. Z jaką bazą rozmawia aplikacja — oczekiwane: {"database":"PostgreSQL 18.…"} (Test06Application: "H2 …")
+GET {{host}}/api/database
+
+### 2. Klienci z pliku db/test06/data.sql — oczekiwane: 200, 7 klientów posortowanych po id
+GET {{host}}/api/customers

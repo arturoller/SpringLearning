@@ -1,0 +1,16 @@
+# Lekcja s11_testing / Test07DockerCompose — aplikacja, która SAMA uruchamia bazę z Docker Compose (IntelliJ HTTP Client)
+# 1. Uruchom Docker Desktop.
+# 2. Uruchom Test07Application (▶ obok main). Katalog roboczy musi być katalogiem modułu s11-testing (domyślne ustawienie
+#    IntelliJ i ./mvnw -pl s11-testing spring-boot:run) — tam jest ścieżka compose/test07/compose.yaml.
+#    W logu: „Using Docker Compose file …\compose\test07\compose.yaml”, potem „Container test07-postgres-1  Started”
+#    i „Healthy”, na końcu „Tomcat started on port 8080”.
+# 3. Kliknij ▶ obok zapytania. Po zatrzymaniu aplikacji Boot usuwa kontener (docker compose down) — jeśli proces
+#    zostanie zabity, kontener zostaje: usuń go poleceniem  docker compose -f compose/test07/compose.yaml down --volumes
+
+@host = http://localhost:8080
+
+### 1. Z jaką bazą rozmawia aplikacja — oczekiwane: {"database":"PostgreSQL 18.…"}
+GET {{host}}/api/database
+
+### 2. Produkty z db/test07/data.sql — oczekiwane: 200, 5 produktów posortowanych po SKU
+GET {{host}}/api/products

@@ -1,0 +1,13 @@
+# Rozwiązanie wzorcowe ćwiczenia 3 lekcji s11_testing / Test07DockerCompose — zajrzyj dopiero po własnej próbie!
+#   1) nazwa compose.yaml — Boot znajduje ją sam w katalogu roboczym;
+#   2) jawny tag obrazu (ta sama wersja co na produkcji);
+#   3) tylko port kontenera — Docker wybiera wolny port hosta, a Boot go odczytuje.
+services:
+  postgres:
+    image: 'postgres:18-alpine'
+    environment:
+      POSTGRES_DB: 'sklep'
+      POSTGRES_USER: 'sklep'
+      POSTGRES_PASSWORD: 'haslo-tylko-do-cwiczen'
+    ports:
+      - '5432'

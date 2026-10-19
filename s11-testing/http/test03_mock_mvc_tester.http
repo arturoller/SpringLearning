@@ -1,0 +1,47 @@
+# Lekcja s11_testing / Test03MockMvcTester — te same zapytania, które testy wysyłają przez MockMvcTester (IntelliJ HTTP Client)
+# 1. Uruchom Test03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Kliknij ▶ obok zapytania. Odpowiedź (status, nagłówki, ciało) pojawi się w oknie Services.
+# Dane trzyma pamięć aplikacji: po restarcie wraca 5 produktów startowych (zapytania 5–7 zmieniają stan).
+# Porównaj zapytanie 4 z testem sekcji 5: przez prawdziwy serwer 404 ma ciało JSON (strona /error Boota), w MockMvc — puste.
+
+@host = http://localhost:8080
+
+### 1. Lista wszystkich produktów — oczekiwane: 200, 5 produktów posortowanych po SKU
+GET {{host}}/api/products
+
+### 2. Tylko książki — oczekiwane: 200, KSI-001 i KSI-002
+GET {{host}}/api/products?category=KSIAZKI
+
+### 3. Jeden produkt — oczekiwane: 200, {"sku":"SPO-001","name":"Kawa ziarnista 1kg","category":"SPOZYWCZE","price":64.99}
+GET {{host}}/api/products/SPO-001
+
+### 4. Nieznany produkt — oczekiwane: 404 z ciałem JSON: timestamp, status, error, path
+GET {{host}}/api/products/XXX-999
+
+### 5. Nowy produkt — oczekiwane: 201 Created, nagłówek Location: /api/products/DOM-001
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "sku": "DOM-001",
+  "name": "Ekspres do kawy",
+  "category": "DOM",
+  "price": 1899.00
+}
+
+### 6. Ten sam SKU drugi raz — oczekiwane: 409 Conflict, {"error":"Produkt o SKU DOM-001 już istnieje"}
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "sku": "DOM-001",
+  "name": "Ekspres do kawy",
+  "category": "DOM",
+  "price": 1899.00
+}
+
+### 7. Usunięcie — oczekiwane: 204 No Content (drugi raz: 404)
+DELETE {{host}}/api/products/DOM-001
+
+### 8. Funkcja „w budowie” — oczekiwane: 500 Internal Server Error (nieobsłużony IllegalStateException; stos w logu)
+GET {{host}}/api/products/SPO-001/reviews

@@ -356,7 +356,7 @@ Startery: `data-jpa`, `flyway`, `h2` (runtime), test `data-jpa-test`. Dział TRU
   `executeWithoutResult`, `setRollbackOnly`), `PlatformTransactionManager` niskopoziomowo, kiedy programowo zamiast adnotacji;
   `@TransactionalEventListener` — tylko zapowiedź `s17_events`.
 
-## J. s11_testing — testowanie w Spring Boot (7 lekcji) — stan: do napisania (szkielet Test01 z WIP)
+## J. s11_testing — testowanie w Spring Boot (7 lekcji) — stan: gotowe (2026-10-19; Test01 z WIP po przeglądzie)
 Startery (pom gotowy, z WIP): `webmvc`, `data-jpa`, `flyway`, `h2` + `postgresql` (runtime), `spring-boot-docker-compose`
 (runtime), test: `-webmvc-test`, `-data-jpa-test`, `spring-boot-testcontainers`, `testcontainers-junit-jupiter`,
 `testcontainers-postgresql` (Testcontainers 2.0.5). Docker JEST dostępny na komputerze autora (28.3.3) — lekcje 06/07 sprawdzaj

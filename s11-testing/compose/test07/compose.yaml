@@ -1,0 +1,13 @@
+# Lekcja s11_testing / Test07DockerCompose — usługi, które Spring Boot uruchamia razem z aplikacją Test07Application.
+# Boot czyta ten plik (spring.docker.compose.file w application-test07.properties), wykonuje „docker compose up”,
+# czeka, aż baza będzie gotowa, i SAM tworzy połączenie (DataSource) na podstawie obrazu i zmiennych środowiskowych.
+# Hasło jest PRZYKŁADOWE, tylko do lokalnych ćwiczeń — nigdy nie wpisuj prawdziwych haseł do repozytorium.
+services:
+  postgres:
+    image: 'postgres:18-alpine'        # jawny tag — nigdy „latest”
+    environment:
+      POSTGRES_DB: 'sklep'
+      POSTGRES_USER: 'sklep'
+      POSTGRES_PASSWORD: 'haslo-tylko-do-cwiczen'
+    ports:
+      - '5432'                         # tylko port kontenera: Docker wybierze WOLNY port hosta, a Boot go odczyta
