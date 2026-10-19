@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+        Moduł s19-deploy — dział 19: wdrożenie — wykonywalny JAR, obraz Dockera, konfiguracja produkcyjna i zmienne środowiskowe, start i zamykanie aplikacji.
+    -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>springlearning</groupId>
+        <artifactId>spring-learning</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>s19-deploy</artifactId>
+    <name>s19-deploy</name>
+
+    <dependencies>
+        <!-- Spring MVC — aplikacja do zbudowania i uruchomienia jako JAR/obraz Dockera. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <!-- Actuator — sondy zdrowia (liveness/readiness) używane przy wdrożeniu. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!-- Testy webowe: MockMvc. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                spring-boot-maven-plugin (plugin — wtyczka Mavena) — temat lekcji Dep01ExecutableJar.
+                Wersję zna spring-boot-starter-parent (nie podajemy jej). Cel „repackage” (przepakuj) działa w fazie
+                package i zamienia zwykły JAR w wykonywalny („gruby”: z bibliotekami w środku).
+                mainClass: moduł ma wiele klas @SpringBootApplication (po jednej na lekcję), więc plugin nie
+                zgadnie, którą uruchamiać — wskazujemy ją wprost.
+            -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>s19_deploy.dep01_executable_jar.Dep01Application</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

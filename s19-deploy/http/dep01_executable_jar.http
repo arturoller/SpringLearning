@@ -1,0 +1,19 @@
+# Lekcja s19_deploy / Dep01ExecutableJar — plik .http (IntelliJ HTTP Client)
+# Aplikację uruchom jednym ze sposobów:
+#   a) ▶ obok main w Dep01Application (IntelliJ),
+#   b) JAR:  ./mvnw -pl s19-deploy package -DskipTests   a potem
+#            java -jar s19-deploy/target/s19-deploy-1.0-SNAPSHOT.jar
+#      z argumentem:  java -jar s19-deploy/target/s19-deploy-1.0-SNAPSHOT.jar --shop.name=Moj_sklep
+# Poczekaj na „Tomcat started on port 8080”.
+# Zmienną @host zmień, jeśli podasz inny port (--server.port=8081).
+
+@host = http://localhost:8080
+
+### 1. Dane sklepu — oczekiwane: 200 OK, {"name":"Sklep domyślny","greeting":"Witamy"} (albo wartości z argumentów)
+GET {{host}}/api/shop
+
+### 2. Produkty — oczekiwane: 200 OK i tablica z trzema nazwami
+GET {{host}}/api/products
+
+### 3. Zdrowie aplikacji — oczekiwane: 200 OK, {"groups":["liveness","readiness"],"status":"UP"}
+GET {{host}}/actuator/health

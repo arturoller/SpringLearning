@@ -1,0 +1,3 @@
+# Kontekst budowania ma zawierać tylko gotowy JAR — nie wysyłamy do Dockera źródeł, katalogu .git ani plików IDE.
+*
+!target/s19-deploy-*.jar

@@ -1,0 +1,20 @@
+# Lekcja s19_deploy / Dep04StartupAndShutdown — plik .http (IntelliJ HTTP Client)
+# 1. Uruchom Dep04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+# 2. Wyślij zapytanie 2 (wolne zamówienie) — wisi, czekając na OrderGate (20 s) — i w tym czasie zatrzymaj aplikację
+#    w terminalu przez Ctrl+C (gdy uruchomiona z JAR-a). W logu zobaczysz „Commencing graceful shutdown”, a zapytanie
+#    dokończy się dopiero po zwolnieniu bramki albo po 20 s; nowe zapytania będą odrzucane („Connection refused”).
+# Zmienną @host zmień, jeśli podasz inny port (--server.port=8081).
+
+@host = http://localhost:8080
+
+### 1. Sonda gotowości — oczekiwane: 200 OK, {"status":"UP"} (503 OUT_OF_SERVICE w czasie zamykania)
+GET {{host}}/actuator/health/readiness
+
+### 2. Sonda życia — oczekiwane: 200 OK, {"status":"UP"}
+GET {{host}}/actuator/health/liveness
+
+### 3. Szybkie zapytanie — oczekiwane: 200 OK, pong
+GET {{host}}/api/ping
+
+### 4. Wolne zamówienie — oczekiwane: po ok. 20 s 200 OK i „przerwane” (bramka nigdy nie jest otwierana ręcznie w tej wersji)
+GET {{host}}/api/slow-order

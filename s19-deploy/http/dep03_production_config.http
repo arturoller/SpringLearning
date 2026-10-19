@@ -1,0 +1,11 @@
+# Lekcja s19_deploy / Dep03ProductionConfig — plik .http (IntelliJ HTTP Client)
+# 1. Uruchom Dep03Application (▶ obok main) — włącza profil „dep03” z TESTOWYM kluczem API. Poczekaj na „Tomcat started on port 8080”.
+# 2. Z JAR-a (klasa główna JAR-a to Dep01Application, więc wskaż inną klasę przez PropertiesLauncher):
+#      java -Dloader.main=s19_deploy.dep03_production_config.Dep03Application -cp s19-deploy/target/s19-deploy-1.0-SNAPSHOT.jar org.springframework.boot.loader.launch.PropertiesLauncher
+#    (z kluczem ze zmiennej środowiska: SHOP_PAYMENT_APIKEY=moj-klucz-testowy SHOP_PAYMENT_URL=http://localhost:9000 …)
+# Zmienną @host zmień, jeśli podasz inny port (--server.port=8081).
+
+@host = http://localhost:8080
+
+### 1. Ustawienia bramki płatności — oczekiwane: 200 OK, klucz API zamaskowany gwiazdkami (widać tylko 2 ostatnie znaki)
+GET {{host}}/api/payment-settings

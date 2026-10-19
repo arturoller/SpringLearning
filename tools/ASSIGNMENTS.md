@@ -547,7 +547,7 @@ Starter: `spring-boot-starter-aspectj` (w Boot 4 zamiast `-aop`). Dział TRUDNY 
   `@Around("@annotation(...)")` z dostępem do atrybutów adnotacji, kolejność kilku aspektów (`@Order`) i kolejność względem
   transakcji, PUŁAPKA: aspekt łapiący i połykający wyjątki; kiedy aspekt to przesada (jawne wywołanie jest czytelniejsze).
 
-## R. s19_deploy — wdrożenie (4 lekcje) — stan: do napisania
+## R. s19_deploy — wdrożenie (4 lekcje) — stan: gotowe (2026-10-19)
 Startery: `webmvc`, `actuator`, test `webmvc-test`. W tym dziale agent MOŻE dodać do `s19-deploy/pom.xml` sekcję `<build>` z
 `spring-boot-maven-plugin` (to temat lekcji) — z jedną klasą główną (`mainClass`), żeby `./mvnw -pl s19-deploy package` dał
 działający JAR. Docker jest dostępny u autora — budowanie obrazu sprawdź ręcznie, ale testy (`mvnw test`) NIE mogą wymagać
