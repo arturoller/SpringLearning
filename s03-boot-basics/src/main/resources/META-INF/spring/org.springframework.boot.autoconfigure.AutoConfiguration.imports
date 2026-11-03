@@ -1,0 +1,6 @@
+# Lekcja s03_boot_basics/Boot02WritingAutoConfiguration: rejestr autokonfiguracji „biblioteki” cen.
+# Jedna pełna nazwa klasy na linię; linie zaczynające się od # to komentarze.
+# IZOLACJA: ten plik czyta KAŻDA @SpringBootApplication w module, dlatego obie klasy mają warunki
+# (boot02.price.enabled=true / istnieje bean PriceFormatter) i w innych lekcjach się nie włączają.
+s03_boot_basics.boot02_writing_auto_configuration.PriceAutoConfiguration
+s03_boot_basics.boot02_writing_auto_configuration.PriceTagAutoConfiguration
