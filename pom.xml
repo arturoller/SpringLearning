@@ -30,6 +30,7 @@
         <module>s00-start</module>
         <module>s01-core-ioc</module>
         <module>s02-configuration</module>
+        <module>s03-boot-basics</module>
     </modules>
 
     <properties>
