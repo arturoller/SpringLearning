@@ -34,6 +34,7 @@
         <module>s04-web-rest</module>
         <module>s05-validation</module>
         <module>s06-error-handling</module>
+        <module>s07-data-jdbc</module>
     </modules>
 
     <properties>

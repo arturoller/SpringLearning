@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+        Moduł s07-data-jdbc — dział 7: baza danych przez JDBC w Springu — JdbcClient, JdbcTemplate, skrypty
+        schema.sql/data.sql, migracje Flyway i repozytorium na JDBC. Bez weba: lekcje sprawdzają testy z bazą H2.
+    -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>springlearning</groupId>
+        <artifactId>spring-learning</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>s07-data-jdbc</artifactId>
+    <name>s07-data-jdbc</name>
+
+    <dependencies>
+        <!-- starter JDBC: DataSource + pula HikariCP + JdbcTemplate/JdbcClient + menedżer transakcji (autokonfigurowane). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <!-- Flyway — wersjonowane migracje bazy (V1__…sql, V2__…sql). W Boot 4 ma własny starter. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <!-- H2 — baza w pamięci; nie wymaga instalacji. -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Testy warstwy JDBC: @JdbcTest (wycinek — slice — z samą bazą, bez reszty aplikacji). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Testy z Flyway (np. @JdbcTest z migracjami) — odpowiednik startera flyway dla testów. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
