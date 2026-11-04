@@ -1,0 +1,47 @@
+# Lekcja s12_security / Sec01Basics — podstawy Spring Security 7: 401 kontra 403, Basic, formularz, /error
+# 1. Uruchom Sec01Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s12-security spring-boot:run -Dspring-boot.run.main-class=s12_security.sec01_basics.Sec01Application
+# 2. Przejdź zapytania po kolei. Patrz na STATUS i na nagłówki odpowiedzi (WWW-Authenticate, Location).
+# Użytkownicy TYLKO DO NAUKI: anna / haslo-testowe (CUSTOMER), admin / haslo-testowe (ADMIN).
+# Nagłówek Basic to "login:hasło" zakodowane w Base64 (to NIE jest szyfrowanie — każdy może to odkodować; dlatego tylko HTTPS):
+#   anna:haslo-testowe  → YW5uYTpoYXNsby10ZXN0b3dl
+#   admin:haslo-testowe → YWRtaW46aGFzbG8tdGVzdG93ZQ==
+#   anna:zle-haslo      → YW5uYTp6bGUtaGFzbG8=
+
+@host = http://localhost:8080
+
+### 1. Publiczny adres (permitAll). Oczekiwane: 200 bez logowania
+GET {{host}}/sec01/public/hello
+
+### 2. Chroniony adres bez logowania. Oczekiwane: 401 i nagłówek WWW-Authenticate: Basic realm="Realm", charset="UTF-8"
+GET {{host}}/sec01/hello
+
+### 3. Ten sam adres „jak przeglądarka”. Oczekiwane: 302, Location: http://localhost:8080/login (formularz). Otwórz go w przeglądarce!
+GET {{host}}/sec01/hello
+Accept: text/html
+
+### 4. Logowanie Basic. Oczekiwane: 200 „Cześć, anna!”
+GET {{host}}/sec01/hello
+Authorization: Basic YW5uYTpoYXNsby10ZXN0b3dl
+
+### 5. Złe hasło. Oczekiwane: 401 (tak samo jak brak danych)
+GET {{host}}/sec01/hello
+Authorization: Basic YW5uYTp6bGUtaGFzbG8=
+
+### 6. Kim jestem? Oczekiwane: 200, authorities: ["FACTOR_PASSWORD", "ROLE_CUSTOMER"]
+GET {{host}}/sec01/me
+Authorization: Basic YW5uYTpoYXNsby10ZXN0b3dl
+
+### 7. Panel administratora jako anna. Oczekiwane: 403 (wiemy, kim jesteś, ale nie wolno) — BEZ nagłówka WWW-Authenticate
+GET {{host}}/sec01/admin/panel
+Authorization: Basic YW5uYTpoYXNsby10ZXN0b3dl
+
+### 8. Panel administratora jako admin. Oczekiwane: 200
+GET {{host}}/sec01/admin/panel
+Authorization: Basic YWRtaW46aGFzbG8tdGVzdG93ZQ==
+
+### 9. Awaria publicznego adresu. Oczekiwane: 500 z JSON-em /error (bez komunikatu technicznego) — bo /error jest w permitAll()
+GET {{host}}/sec01/public/crash
+
+### 10. Nieznany publiczny adres. Oczekiwane: 404 (bez permitAll() dla /error byłoby 401!)
+GET {{host}}/sec01/public/nie-ma

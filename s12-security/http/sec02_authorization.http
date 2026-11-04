@@ -1,0 +1,71 @@
+# Lekcja s12_security / Sec02Authorization — reguły adresów, role i uprawnienia, @PreAuthorize, hierarchia ról
+# 1. Uruchom Sec02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s12-security spring-boot:run -Dspring-boot.run.main-class=s12_security.sec02_authorization.Sec02Application
+# 2. Przejdź zapytania po kolei. Ten sam adres daje różne statusy dla różnych użytkowników — porównuj!
+# Użytkownicy TYLKO DO NAUKI (hasło zawsze haslo-testowe), nagłówek Basic = Base64 z "login:hasło":
+#   anna  (CUSTOMER)                → YW5uYTpoYXNsby10ZXN0b3dl
+#   piotr (CUSTOMER)                → cGlvdHI6aGFzbG8tdGVzdG93ZQ==
+#   ewa   (EMPLOYEE + REPORTS_READ) → ZXdhOmhhc2xvLXRlc3Rvd2U=
+#   admin (ADMIN)                   → YWRtaW46aGFzbG8tdGVzdG93ZQ==
+
+@host = http://localhost:8080
+
+### 1. Katalog — GET dla każdego. Oczekiwane: 200 bez logowania
+GET {{host}}/sec02/products
+
+### 2. Dodanie produktu jako klientka. Oczekiwane: 403 (POST wymaga roli EMPLOYEE)
+POST {{host}}/sec02/products
+Authorization: Basic YW5uYTpoYXNsby10ZXN0b3dl
+Content-Type: application/json
+
+{"name": "Czekolada gorzka", "price": 12.99}
+
+### 3. Dodanie produktu jako pracownica. Oczekiwane: 201
+POST {{host}}/sec02/products
+Authorization: Basic ZXdhOmhhc2xvLXRlc3Rvd2U=
+Content-Type: application/json
+
+{"name": "Czekolada gorzka", "price": 12.99}
+
+### 4. Dodanie produktu jako admin — hierarchia ról ADMIN > EMPLOYEE. Oczekiwane: 201
+POST {{host}}/sec02/products
+Authorization: Basic YWRtaW46aGFzbG8tdGVzdG93ZQ==
+Content-Type: application/json
+
+{"name": "Czekolada gorzka", "price": 12.99}
+
+### 5. Usunięcie produktu jako pracownica. Oczekiwane: 403 (DELETE tylko ADMIN)
+DELETE {{host}}/sec02/products/1
+Authorization: Basic ZXdhOmhhc2xvLXRlc3Rvd2U=
+
+### 6. Własne zamówienia anny (@PreAuthorize: #username == authentication.name). Oczekiwane: 200, dwa zamówienia
+GET {{host}}/sec02/orders/of/anna
+Authorization: Basic YW5uYTpoYXNsby10ZXN0b3dl
+
+### 7. Cudze zamówienia (anna pyta o piotra). Oczekiwane: 403
+GET {{host}}/sec02/orders/of/piotr
+Authorization: Basic YW5uYTpoYXNsby10ZXN0b3dl
+
+### 8. Zamówienie 3 (należy do piotra) — @PostAuthorize sprawdza wynik. Oczekiwane: 403 dla anny
+GET {{host}}/sec02/orders/3
+Authorization: Basic YW5uYTpoYXNsby10ZXN0b3dl
+
+### 9. „Wszystkie” zamówienia jako piotr — @PostFilter wycina cudze. Oczekiwane: 200, tylko zamówienie 3
+GET {{host}}/sec02/orders
+Authorization: Basic cGlvdHI6aGFzbG8tdGVzdG93ZQ==
+
+### 10. Raport — uprawnienie REPORTS_READ (nie rola). Oczekiwane: 200 dla ewy…
+GET {{host}}/sec02/reports/sales
+Authorization: Basic ZXdhOmhhc2xvLXRlc3Rvd2U=
+
+### 11. …i 403 dla admina (hierarchia dotyczy ról, a REPORTS_READ to osobne uprawnienie)
+GET {{host}}/sec02/reports/sales
+Authorization: Basic YWRtaW46aGFzbG8tdGVzdG93ZQ==
+
+### 12. Panel admina. Oczekiwane: 200 dla admina (reguła adresu + @PreAuthorize w serwisie)
+GET {{host}}/sec02/admin/stats
+Authorization: Basic YWRtaW46aGFzbG8tdGVzdG93ZQ==
+
+### 13. Adres bez reguły — deny by default. Oczekiwane: 403 nawet dla admina
+GET {{host}}/sec02/internal/debug
+Authorization: Basic YWRtaW46aGFzbG8tdGVzdG93ZQ==
