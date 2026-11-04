@@ -1,0 +1,35 @@
+# Lekcja s06_error_handling / Err01DefaultErrors — domyślna obsługa błędów Boota
+# 1. Uruchom Err01Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s06-error-handling spring-boot:run -Dspring-boot.run.main-class=s06_error_handling.err01_default_errors.Err01Application
+# 2. Przejdź zapytania po kolei. Patrz na STATUS i na pola ciała (timestamp, status, error, path).
+
+@host = http://localhost:8080
+
+### 1. Wyjątek bez obsługi. Oczekiwane: 500 i JSON {timestamp, status, error, path} — bez komunikatu wyjątku.
+###    Pełny ślad stosu zobaczysz w konsoli serwera (logi), nie w odpowiedzi.
+GET {{host}}/err01/boom
+Accept: application/json
+
+### 2. Nieznana ścieżka. Oczekiwane: 404 i taki sam kształt JSON
+GET {{host}}/err01/nie-ma-takiej-sciezki
+Accept: application/json
+
+### 3. @ResponseStatus(CONFLICT) na wyjątku „brak towaru”. Oczekiwane: 409 Conflict (opisu „Brak towaru: kawa” w ciele nie ma)
+GET {{host}}/err01/stock/kawa
+Accept: application/json
+
+### 4. ResponseStatusException z opisem. Oczekiwane: 404 Not Found (opisu „Nie ma produktu o id 9” w ciele nie ma)
+GET {{host}}/err01/products/9
+Accept: application/json
+
+### 5. Poprawne zapytanie. Oczekiwane: 200 i tekst „Kawa”
+GET {{host}}/err01/products/1
+
+### 6. To samo, co 1, ale jak przeglądarka. Oczekiwane: 500 i HTML „Whitelabel Error Page”
+GET {{host}}/err01/boom
+Accept: text/html
+
+### 7. Parametr ?trace=true. Oczekiwane: 500 i brak pola trace (domyślnie include-stacktrace=never).
+###    Żeby go zobaczyć, uruchom aplikację z --spring.web.error.include-stacktrace=on_param (tylko lokalnie!)
+GET {{host}}/err01/boom?trace=true
+Accept: application/json
