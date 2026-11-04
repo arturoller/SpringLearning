@@ -160,7 +160,9 @@ public final class Test04DataJpaTest {
     //   @DataJpaTest(showSql = false)
     //   @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)   // pakiet: org.springframework.boot.jdbc.test.autoconfigure
     //
-    // Domyślnie ({@code replace = ANY}) wycinek ODRZUCA bazę z konfiguracji i podstawia wbudowaną o losowej nazwie.
+    // Domyślnie ({@code replace = NON_TEST} w Boot 4; stare tutoriale piszą {@code ANY}) wycinek ODRZUCA bazę
+    // z konfiguracji aplikacji i podstawia wbudowaną o losowej nazwie. Bazy dostarczonej przez sam test
+    // ({@code @ServiceConnection}, {@code @DynamicPropertySource}) NIE podmienia — szczegóły w Test06Testcontainers.
     // Z {@code NONE} używa tej, którą skonfigurowałeś: u nas {@code jdbc:h2:mem:test04} z profilu (Test04RealDatabaseTest
     // sprawdza adres). Po co? Gdy testujesz na bazie TAKIEJ JAK PRODUKCYJNA: w Test06Testcontainers ten sam zapis
     // z {@code NONE} da prawdziwy PostgreSQL w kontenerze (adres podstawi {@code @ServiceConnection}). H2 w trybie

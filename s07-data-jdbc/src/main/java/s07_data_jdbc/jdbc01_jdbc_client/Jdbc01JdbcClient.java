@@ -81,7 +81,9 @@ public final class Jdbc01JdbcClient {
     // DataSource, JdbcTemplate, JdbcClient, skrypty SQL — i nie startuje kontrolerów ani serwisów. Dlatego jest szybki.
     // Dwie ważne cechy:
     //   • DataSource jest PODMIENIANY na wbudowaną bazę o losowej nazwie (@AutoConfigureTestDatabase, domyślnie
-    //     replace = ANY). Adres z application-jdbc01.properties (jdbc:h2:mem:jdbc01) jest w teście ignorowany,
+    //     replace = NON_TEST w Boot 4 — podmienia każdą bazę, której nie dostarczył sam test, np. kontener
+    //     z @ServiceConnection; s11_testing/Test06Testcontainers). Adres z application-jdbc01.properties
+    //     (jdbc:h2:mem:jdbc01) jest w teście ignorowany,
     //     a skrypty schema.sql/data.sql i tak wykonają się na tej podmienionej bazie. Cel: test nigdy nie dotknie
     //     „prawdziwej” bazy z konfiguracji.
     //   • KAŻDY test działa w transakcji, którą Spring WYCOFUJE (rollback) po zakończeniu testu. Dzięki temu

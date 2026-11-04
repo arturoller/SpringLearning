@@ -1,0 +1,23 @@
+# Lekcja s11_testing / Test07DockerCompose — aplikacja, która SAMA uruchamia bazę z compose-test07.yaml
+# 1. Uruchom Docker (Docker Desktop). Potem Test07Application (▶ obok main) albo z wiersza poleceń:
+#    ./mvnw -pl s11-testing spring-boot:run -Dspring-boot.run.main-class=s11_testing.test07_docker_compose.Test07Application
+#    W logu zobaczysz „Using Docker Compose file …/s11-testing/compose-test07.yaml” i „Container … Started”,
+#    a potem „Tomcat started on port 8080”. Pierwszy start może potrwać dłużej (pobieranie obrazu postgres:17-alpine).
+# 2. Po zatrzymaniu aplikacji kontener jest ZATRZYMANY, ale nie usunięty (stop.command=stop) — dane przetrwają.
+#    Sprzątanie ręczne (z katalogu s11-testing): docker compose -f compose-test07.yaml down
+# 3. Podgląd działającego kontenera: docker compose -f compose-test07.yaml ps  (kolumna PORTS — losowy port komputera)
+
+@host = http://localhost:8080
+
+### 1. Z jaką bazą połączyła się aplikacja? Oczekiwane: 200 OK, database = sklep, user = sklep, version = 17.x
+###    (dane z compose-test07.yaml — w application-test07.properties nie ma spring.datasource.url)
+GET {{host}}/test07/database
+
+### 2. Lista produktów z PostgreSQL (migracje Flyway V1, V2). Oczekiwane: 200 OK, Czajnik, Herbata, Kawa
+GET {{host}}/test07/products
+
+### 3. Jeden produkt. Oczekiwane: 200 OK, Kawa
+GET {{host}}/test07/products/1
+
+### 4. Brak produktu. Oczekiwane: 404 i ProblemDetail „Nie ma takiego produktu”
+GET {{host}}/test07/products/99
