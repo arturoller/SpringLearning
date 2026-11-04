@@ -1,0 +1,79 @@
+# Lekcja s05_validation / Val02ValidInControllers — @Valid w kontrolerach
+# 1. Uruchom Val02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s05-validation spring-boot:run -Dspring-boot.run.main-class=s05_validation.val02_valid_in_controllers.Val02Application
+# 2. Przejdź zapytania po kolei. Patrz na STATUS i na to, ile klient dowiaduje się o błędzie (ciało odpowiedzi).
+
+@host = http://localhost:8080
+
+### 1. Poprawne dane. Oczekiwane: 201 Created, produkt z id 3
+POST {{host}}/val02/products
+Content-Type: application/json
+
+{
+  "name": "Kawa",
+  "price": 24.90,
+  "quantity": 5
+}
+
+### 2. Błędne dane (pusta nazwa, cena 0, ilość -1). Oczekiwane: 400 Bad Request.
+###    Ciało to OGÓLNY JSON Boota (timestamp, status, error, path) — bez informacji, które pole jest złe
+POST {{host}}/val02/products
+Content-Type: application/json
+
+{
+  "name": "",
+  "price": 0,
+  "quantity": -1
+}
+
+### 3. To samo, ale kontroler z własnym @ExceptionHandler.
+###    Oczekiwane: 400 i JSON: {"name": "...", "price": "...", "quantity": "..."} — pole → komunikat
+POST {{host}}/val02/friendly/products
+Content-Type: application/json
+
+{
+  "name": "",
+  "price": 0,
+  "quantity": -1
+}
+
+### 4. PUŁAPKA: ten sam błędny JSON, ale metoda BEZ @Valid. Oczekiwane: 201 (!) — adnotacje zignorowane
+POST {{host}}/val02/products/unchecked
+Content-Type: application/json
+
+{
+  "name": "",
+  "price": 0,
+  "quantity": -1
+}
+
+### 5. BindingResult: kontroler sam składa odpowiedź. Oczekiwane: 400 i lista: ["name:NotBlank", "price:DecimalMin", "quantity:Min"]
+POST {{host}}/val02/products/manual
+Content-Type: application/json
+
+{
+  "name": "",
+  "price": 0,
+  "quantity": -1
+}
+
+### 6. Parametr ścieżki z @Min(1). Oczekiwane: 400 (HandlerMethodValidationException)
+GET {{host}}/val02/products/0
+
+### 7. To samo z własnym handlerem. Oczekiwane: 400 i ["Id musi być dodatnie"]
+GET {{host}}/val02/friendly/products/0
+
+### 8. Parametr zapytania @Size(max = 10). Oczekiwane: 400 (11 znaków)
+GET {{host}}/val02/products?q=abcdefghijk
+
+### 9. Parametr zapytania w limicie. Oczekiwane: 200 i pusta tablica []
+GET {{host}}/val02/products?q=abcdefghij
+
+### 10. Zepsuty JSON — walidacja nawet nie startuje. Oczekiwane: 400 (HttpMessageNotReadableException)
+POST {{host}}/val02/products
+Content-Type: application/json
+
+{"name":
+
+### 11. Stary styl: @Validated na klasie kontrolera. Oczekiwane: 500 (ConstraintViolationException, nieobsłużony)
+GET {{host}}/val02/legacy/products/0
