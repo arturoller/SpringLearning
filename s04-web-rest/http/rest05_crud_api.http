@@ -1,0 +1,83 @@
+# Lekcja s04_web_rest / Rest05CrudApi — kompletne API produktów (CRUD)
+# 1. Uruchom Rest05Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s04-web-rest spring-boot:run -Dspring-boot.run.main-class=s04_web_rest.rest05_crud_api.Rest05Application
+# 2. Przejdź zapytania po kolei (scenariusz CRUD). Patrz na STATUS i nagłówek Location.
+#    Magazyn jest w pamięci: po restarcie aplikacji wraca do Kawy (1) i Herbaty (2).
+
+@host = http://localhost:8080
+
+### 1. READ — lista. Oczekiwane: 200 OK, tablica z Kawą (1) i Herbatą (2), posortowana po id, BEZ pola internalCode
+GET {{host}}/rest05/products
+
+### 2. READ — jeden produkt. Oczekiwane: 200 OK
+GET {{host}}/rest05/products/1
+
+### 3. READ — brak produktu. Oczekiwane: 404 Not Found, puste ciało
+GET {{host}}/rest05/products/99
+
+### 4. CREATE — oczekiwane: 201 Created, nagłówek Location: http://localhost:8080/rest05/products/3, produkt z id 3 w ciele
+POST {{host}}/rest05/products
+Content-Type: application/json
+
+{
+  "name": "Ciastka",
+  "price": 12.50
+}
+
+### 5. CREATE drugi raz to samo — oczekiwane: 201 i NOWY produkt (id 4): POST nie jest idempotentny
+POST {{host}}/rest05/products
+Content-Type: application/json
+
+{
+  "name": "Ciastka",
+  "price": 12.50
+}
+
+### 6. CREATE z błędnymi danymi (brak nazwy) — oczekiwane: 400 Bad Request
+POST {{host}}/rest05/products
+Content-Type: application/json
+
+{
+  "price": 12.50
+}
+
+### 7. UPDATE (PUT, pełna zamiana) — oczekiwane: 200 OK z nową nazwą i ceną; ponowne kliknięcie daje ten sam wynik (PUT jest idempotentny)
+PUT {{host}}/rest05/products/3
+Content-Type: application/json
+
+{
+  "name": "Ciastka maślane",
+  "price": 14.00
+}
+
+### 8. UPDATE (PUT) nieistniejącego — oczekiwane: 404 Not Found
+PUT {{host}}/rest05/products/99
+Content-Type: application/json
+
+{
+  "name": "Nikt",
+  "price": 1
+}
+
+### 9. UPDATE częściowy (PATCH) — oczekiwane: 200 OK, zmieniona tylko cena (nazwa „Ciastka maślane” zostaje)
+PATCH {{host}}/rest05/products/3
+Content-Type: application/json
+
+{
+  "price": 9.99
+}
+
+### 10. UPDATE częściowy bez ceny — oczekiwane: 400 Bad Request
+PATCH {{host}}/rest05/products/3
+Content-Type: application/json
+
+{}
+
+### 11. DELETE — oczekiwane: 204 No Content (bez ciała)
+DELETE {{host}}/rest05/products/3
+
+### 12. DELETE drugi raz — oczekiwane: 404 Not Found (stan końcowy ten sam: produktu nie ma)
+DELETE {{host}}/rest05/products/3
+
+### 13. READ po usunięciu — oczekiwane: 404 Not Found
+GET {{host}}/rest05/products/3

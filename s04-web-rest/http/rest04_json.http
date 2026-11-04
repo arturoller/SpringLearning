@@ -1,0 +1,84 @@
+# Lekcja s04_web_rest / Rest04Json — JSON w Springu (Jackson 3)
+# 1. Uruchom Rest04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s04-web-rest spring-boot:run -Dspring-boot.run.main-class=s04_web_rest.rest04_json.Rest04Application
+# 2. Kliknij ▶ obok zapytania. Patrz na KSZTAŁT JSON w odpowiedzi: nazwy pól, daty, cenę, brakujące pola.
+
+@host = http://localhost:8080
+
+### 1. Rekord jako JSON — oczekiwane: {"id":1,"name":"Kawa","price":24.90,"category":"DRINKS"}
+GET {{host}}/rest04/products/sample
+
+### 2. JSON jako rekord (POST odsyła to, co przeczytał) — oczekiwane: 200 i to samo ciało
+POST {{host}}/rest04/products/echo
+Content-Type: application/json
+
+{
+  "id": 5,
+  "name": "Ciastka",
+  "price": 12.50,
+  "category": "SWEETS"
+}
+
+### 3. Klient — oczekiwane: pole "full_name", BRAK "passwordHash" i BRAK "phone", data "17.05.1990"
+GET {{host}}/rest04/customers/sample
+
+### 4. @JsonIgnore na wejściu — oczekiwane: "passwordHash=null" (wstrzyknięty hash został zignorowany)
+POST {{host}}/rest04/customers/inspect
+Content-Type: application/json
+
+{
+  "id": 1,
+  "full_name": "Jan",
+  "passwordHash": "wstrzyknięty"
+}
+
+### 5. Daty — oczekiwane: "orderDate":"2026-03-15" i "placedAt":"2026-03-15T10:15:30Z" (tekst ISO-8601, nie liczby)
+GET {{host}}/rest04/orders/sample
+
+### 6. Instant z przesunięciem strefy — oczekiwane: 200, "placedAt":"2026-03-15T10:15:30Z" (11:15 w +01:00 = 10:15 UTC)
+POST {{host}}/rest04/orders/echo
+Content-Type: application/json
+
+{
+  "id": 1,
+  "placedAt": "2026-03-15T11:15:30+01:00"
+}
+
+### 7. Zła data — oczekiwane: 400 Bad Request
+POST {{host}}/rest04/orders/echo
+Content-Type: application/json
+
+{
+  "id": 1,
+  "orderDate": "15-03-2026"
+}
+
+### 8. Nieznane pole "color" — oczekiwane: 200 (pole zignorowane, nie wraca w odpowiedzi)
+POST {{host}}/rest04/products/echo
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Kawa",
+  "price": 24.90,
+  "category": "DRINKS",
+  "color": "brązowy"
+}
+
+### 9. Nieznana kategoria — oczekiwane: 400 Bad Request
+POST {{host}}/rest04/products/echo
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Kawa",
+  "category": "FRUIT"
+}
+
+### 10. Brak pola typu prostego (id) — oczekiwane: 400 Bad Request
+POST {{host}}/rest04/products/echo
+Content-Type: application/json
+
+{
+  "name": "Kawa"
+}
