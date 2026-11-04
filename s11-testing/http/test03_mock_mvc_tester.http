@@ -1,0 +1,34 @@
+# Lekcja s11_testing / Test03MockMvcTester — produkty (Kawa i Herbata w pamięci)
+# 1. Uruchom Test03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s11-testing spring-boot:run -Dspring-boot.run.main-class=s11_testing.test03_mock_mvc_tester.Test03Application
+# 2. Te same żądania sprawdzają testy lekcji przez MockMvcTester — tu widzisz surowe odpowiedzi.
+
+@host = http://localhost:8080
+
+### 1. Lista. Oczekiwane: 200 OK, Kawa (1) i Herbata (2)
+GET {{host}}/test03/products
+
+### 2. Brak produktu. Oczekiwane: 404, Content-Type application/problem+json, title „Nie ma takiego produktu”
+GET {{host}}/test03/products/99
+
+### 3. Poprawny POST. Oczekiwane: 201 Created, Location …/test03/products/3
+POST {{host}}/test03/products
+Content-Type: application/json
+
+{
+  "name": "Ciastka",
+  "price": 12.50
+}
+
+### 4. Błąd walidacji. Oczekiwane: 400, ProblemDetail z polem errors (name i price)
+POST {{host}}/test03/products
+Content-Type: application/json
+
+{
+  "name": " ",
+  "price": -1
+}
+
+### 5. Awaria bez obsługi. Oczekiwane: 500 Internal Server Error (w prawdziwej aplikacji jest strona błędu /error;
+###    w MockMvc jej nie ma — dlatego test widzi wyjątek, a nie kod 500)
+GET {{host}}/test03/boom
