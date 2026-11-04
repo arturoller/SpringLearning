@@ -1,0 +1,66 @@
+# Lekcja s04_web_rest / Rest03Responses — statusy i nagłówki odpowiedzi
+# 1. Uruchom Rest03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s04-web-rest spring-boot:run -Dspring-boot.run.main-class=s04_web_rest.rest03_responses.Rest03Application
+# 2. Kliknij ▶ obok zapytania. W oknie odpowiedzi patrz na STATUS i NAGŁÓWKI (nie tylko na ciało).
+#    Magazyn jest w pamięci: po restarcie aplikacji wraca do Kawy (1) i Herbaty (2).
+
+@host = http://localhost:8080
+
+### 1. Odczyt — oczekiwane: 200 OK i nagłówek X-Total-Count
+GET {{host}}/rest03/products
+
+### 2. Jeden produkt — oczekiwane: 200 OK
+GET {{host}}/rest03/products/1
+
+### 3. Brak produktu — oczekiwane: 404 Not Found, puste ciało
+GET {{host}}/rest03/products/99
+
+### 4. Utworzenie — oczekiwane: 201 Created, nagłówek Location: http://localhost:8080/rest03/products/3
+POST {{host}}/rest03/products
+Content-Type: application/json
+
+{
+  "name": "Ciastka",
+  "priceGrosze": 1299
+}
+
+### 5. To samo drugi raz — oczekiwane: 409 Conflict (nazwa już zajęta)
+POST {{host}}/rest03/products
+Content-Type: application/json
+
+{
+  "name": "Ciastka",
+  "priceGrosze": 1299
+}
+
+### 6. Brak nazwy — oczekiwane: 400 Bad Request
+POST {{host}}/rest03/products
+Content-Type: application/json
+
+{
+  "priceGrosze": 100
+}
+
+### 7. Usunięcie — oczekiwane: 204 No Content (przy drugim wysłaniu: 404)
+DELETE {{host}}/rest03/products/1
+
+### 8. @ResponseStatus na metodzie — oczekiwane: 201 Created, ale bez nagłówka Location
+POST {{host}}/rest03/products/quick
+Content-Type: application/json
+
+{
+  "name": "Kubek",
+  "priceGrosze": 3499
+}
+
+### 9. Wyjątek z @ResponseStatus — oczekiwane: 409 Conflict (Herbata jest „wyprzedana”)
+POST {{host}}/rest03/products/2/reserve
+
+### 10. ResponseStatusException — oczekiwane: 404 Not Found z powodem w odpowiedzi
+GET {{host}}/rest03/products/99/or-fail
+
+### 11. Cache-Control i ETag — oczekiwane: 200 OK, nagłówki Cache-Control: max-age=300, public oraz ETag
+GET {{host}}/rest03/products/2/cached
+
+### 12. Pułapka null — oczekiwane: 200 OK z PUSTYM ciałem (choć produktu nie ma!)
+GET {{host}}/rest03/products/99/maybe
