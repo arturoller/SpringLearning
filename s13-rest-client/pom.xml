@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+        Moduł s13-rest-client — dział 13: wywoływanie zewnętrznych API — RestClient, obsługa błędów i timeouty,
+        HTTP Interfaces (@HttpExchange), odporność wbudowana w Spring Framework 7 (@Retryable, @ConcurrencyLimit)
+        i testowanie klientów (MockRestServiceServer, lokalny serwer testowy). Żadnego prawdziwego internetu w testach.
+    -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>springlearning</groupId>
+        <artifactId>spring-learning</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>s13-rest-client</artifactId>
+    <name>s13-rest-client</name>
+
+    <dependencies>
+        <!-- webmvc: aplikacje lekcji mają też własne „zewnętrzne” API-atrapy (serwer, który wołamy w testach). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <!-- restclient = RestClient + RestClient.Builder (autokonfigurowany) + HTTP Interfaces. Nowy starter w Boot 4. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- restclient-test: @RestClientTest i MockRestServiceServer (atrapa serwera HTTP bez sieci). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

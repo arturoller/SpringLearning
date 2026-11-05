@@ -1,0 +1,78 @@
+# Lekcja s04_web_rest / Rest02RequestData — dane z zapytania
+# 1. Uruchom Rest02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s04-web-rest spring-boot:run -Dspring-boot.run.main-class=s04_web_rest.rest02_request_data.Rest02Application
+# 2. Kliknij ▶ obok zapytania. Linia z ### oddziela zapytania; tekst po ### to nazwa zapytania.
+
+@host = http://localhost:8080
+
+### 1. Produkt po id (@PathVariable) — oczekiwane: 200 OK, Czekolada
+GET {{host}}/rest02/products/3
+
+### 2. Produkt, którego nie ma — oczekiwane: 404 Not Found
+GET {{host}}/rest02/products/999
+
+### 3. Zły format id — oczekiwane: 400 Bad Request
+GET {{host}}/rest02/products/abc
+
+### 4. Filtrowanie (@RequestParam) — oczekiwane: 200 OK, tylko Herbata
+GET {{host}}/rest02/products?category=napoje&maxPrice=2000
+
+### 5. Lista parametrów, dwa zapisy — oczekiwane: 200 OK, 4 produkty (tag bio lub import)
+GET {{host}}/rest02/products?tag=bio&tag=import
+
+###
+GET {{host}}/rest02/products?tag=bio,import
+
+### 6. Parametr wymagany bez wartości — oczekiwane: 400 Bad Request
+GET {{host}}/rest02/products/search
+
+### 7. Parametr wymagany podany — oczekiwane: 200 OK, Kawa i Ciastka
+GET {{host}}/rest02/products/search?q=ka
+
+### 8. Nagłówki — oczekiwane: 200 OK, klient=mobile, język=en
+GET {{host}}/rest02/client/info
+X-Shop-Client: mobile
+Accept-Language: en
+
+### 9. Brak wymaganego nagłówka — oczekiwane: 400 Bad Request
+GET {{host}}/rest02/client/info
+
+### 10. Ciasteczko — oczekiwane: 200 OK, sesja=abc123
+GET {{host}}/rest02/client/session
+Cookie: shopSession=abc123
+
+### 11. Ciało JSON (@RequestBody) — oczekiwane: 200 OK, odesłana opinia
+POST {{host}}/rest02/reviews/json
+Content-Type: application/json
+
+{
+  "author": "Ola",
+  "rating": 5,
+  "text": "Super kawa"
+}
+
+### 12. Brakujące pola — oczekiwane: 200 OK, rating i text = null
+POST {{host}}/rest02/reviews/json
+Content-Type: application/json
+
+{
+  "author": "Ola"
+}
+
+### 13. Zły JSON — oczekiwane: 400 Bad Request
+POST {{host}}/rest02/reviews/json
+Content-Type: application/json
+
+{ author:
+
+### 14. Formularz do metody z @RequestParam — oczekiwane: 200 OK, „formularz: Ola 4”
+POST {{host}}/rest02/reviews/form
+Content-Type: application/x-www-form-urlencoded
+
+author=Ola&rating=4
+
+### 15. Formularz do metody z @RequestBody — oczekiwane: 415 Unsupported Media Type
+POST {{host}}/rest02/reviews/json
+Content-Type: application/x-www-form-urlencoded
+
+author=Ola

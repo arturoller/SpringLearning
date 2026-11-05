@@ -30,6 +30,17 @@
         <module>s00-start</module>
         <module>s01-core-ioc</module>
         <module>s02-configuration</module>
+        <module>s03-boot-basics</module>
+        <module>s04-web-rest</module>
+        <module>s05-validation</module>
+        <module>s06-error-handling</module>
+        <module>s07-data-jdbc</module>
+        <module>s08-data-jpa</module>
+        <module>s09-jpa-relations</module>
+        <module>s10-transactions</module>
+        <module>s11-testing</module>
+        <module>s12-security</module>
+        <module>s13-rest-client</module>
     </modules>
 
     <properties>

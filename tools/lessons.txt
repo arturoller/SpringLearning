@@ -74,7 +74,11 @@ s12_security/Sec03UsersPasswords
 s12_security/Sec04StatelessApi
 s12_security/Sec05Jwt
 s12_security/Sec06SecurityTesting
-s13_rest_client/*
+s13_rest_client/Client01RestClient
+s13_rest_client/Client02ErrorsTimeouts
+s13_rest_client/Client03HttpInterfaces
+s13_rest_client/Client04Resilience
+s13_rest_client/Client05Testing
 s14_openapi/*
 s15_actuator_logging/*
 s16_cache_scheduling_async/*

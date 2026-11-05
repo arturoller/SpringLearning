@@ -1,0 +1,49 @@
+# Lekcja s06_error_handling / Err04ProblemDetail — ProblemDetail (RFC 9457) i ResponseEntityExceptionHandler
+# 1. Uruchom Err04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s06-error-handling spring-boot:run -Dspring-boot.run.main-class=s06_error_handling.err04_problem_detail.Err04Application
+# 2. Przejdź zapytania po kolei. Każdy błąd ma Content-Type: application/problem+json (sprawdź nagłówki odpowiedzi!).
+
+@host = http://localhost:8080
+
+### 1. Handler zwraca ProblemDetail. Oczekiwane: 404 i pola type, title, status, detail, instance + własne code=PRODUCT_NOT_FOUND
+GET {{host}}/err04/products/9
+
+### 2. Brak towaru. Oczekiwane: 409, code=OUT_OF_STOCK
+GET {{host}}/err04/products/1/stock
+
+### 3. ResponseStatusException — bez naszego handlera. Oczekiwane: 409, title „Conflict”, detail z wyjątku
+GET {{host}}/err04/products/1/reserve
+
+### 4. ErrorResponseException (własny wyjątek niesie ProblemDetail). Oczekiwane: 410, tytuł „Produkt wycofany” z pliku messages
+GET {{host}}/err04/products/1/archive
+
+### 5. Walidacja z listą błędów pól (nadpisane handleMethodArgumentNotValid). Oczekiwane: 400, errors: [{field, message}, …]
+POST {{host}}/err04/products
+Content-Type: application/json
+
+{
+  "name": "",
+  "quantity": 0
+}
+
+### 6. Zła metoda HTTP — ResponseEntityExceptionHandler. Oczekiwane: 405, nagłówek Allow: GET, tytuł z pliku messages
+DELETE {{host}}/err04/products/1
+
+### 7. Zły typ parametru. Oczekiwane: 400 w formacie ProblemDetail
+GET {{host}}/err04/products/abc
+
+### 8. Zepsuty JSON. Oczekiwane: 400 w formacie ProblemDetail
+POST {{host}}/err04/products
+Content-Type: application/json
+
+{zepsuty
+
+### 9. Nieznana ścieżka — też ProblemDetail (nie JSON z /error z polem timestamp). Oczekiwane: 404
+GET {{host}}/err04/nie-ma-takiej-sciezki
+
+### 10. Nieoczekiwany wyjątek. Oczekiwane: 500, code=UNEXPECTED, ogólny opis (bez „hasła do bazy”!)
+GET {{host}}/err04/products/crash
+
+### 11. Klient prosi o zwykły JSON, a dostaje application/problem+json (to normalne — porównaj nagłówek Content-Type)
+GET {{host}}/err04/products/9
+Accept: application/json

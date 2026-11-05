@@ -1,0 +1,52 @@
+# Lekcja s06_error_handling / Err03ControllerAdvice — @RestControllerAdvice, globalna obsługa błędów
+# 1. Uruchom Err03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s06-error-handling spring-boot:run -Dspring-boot.run.main-class=s06_error_handling.err03_controller_advice.Err03Application
+# 2. Przejdź zapytania po kolei. Wszystkie błędy mają ten sam szkielet: status, code, message, path.
+
+@host = http://localhost:8080
+
+### 1. Błąd z kontrolera produktów. Oczekiwane: 404 i {"status":404,"code":"PRODUCT_NOT_FOUND",…}
+GET {{host}}/err03/products/9
+
+### 2. Błąd z KONTROLERA ZAMÓWIEŃ, a obsługa jest ta sama (jeden advice). Oczekiwane: 404 i kod ORDER_NOT_FOUND
+GET {{host}}/err03/orders/7
+
+### 3. Brak towaru. Oczekiwane: 409 i kod OUT_OF_STOCK
+GET {{host}}/err03/products/1/stock
+
+### 4. Walidacja: jeden format ApiError z mapą fields. Oczekiwane: 400, kod VALIDATION_FAILED, fields: {name, quantity}
+POST {{host}}/err03/products
+Content-Type: application/json
+
+{
+  "name": "",
+  "quantity": 0
+}
+
+### 5. Handler LOKALNY wygrywa z globalnym. Oczekiwane: 404 i kod LOCAL_NOT_FOUND
+GET {{host}}/err03/local/products/9
+
+### 6. Dwa advice dla tego samego wyjątku — wygrywa @Order(1). Oczekiwane: 400 i kod PRIMARY (nie ALTERNATIVE)
+GET {{host}}/err03/products/priority
+
+### 7. Zawężone advice: ten sam IllegalArgumentException, inna odpowiedź zależnie od kontrolera.
+###    Oczekiwane: 400 ADMIN_BAD_INPUT
+GET {{host}}/err03/admin/discount
+
+### 8. Oczekiwane: 422 REPORT_BAD_INPUT (selektor annotations = ReportsApi)
+GET {{host}}/err03/reports/sales
+
+### 9. Oczekiwane: 400 LEGACY_BAD_INPUT (selektor basePackageClasses)
+GET {{host}}/err03/legacy/export
+
+### 10. Handler „łap wszystko”. Oczekiwane: 500, kod UNEXPECTED, ogólny komunikat (bez „hasła do bazy”!)
+GET {{host}}/err03/products/crash
+
+### 11. Zła metoda HTTP — poprawiony fallback przepuszcza 405 z nagłówkiem Allow. Oczekiwane: 405, kod HTTP_405
+DELETE {{host}}/err03/products/1
+
+### 12. Zły typ parametru. Oczekiwane: 400 i kod MALFORMED_REQUEST
+GET {{host}}/err03/products/abc
+
+### 13. Nieznana ścieżka — advice przejmuje błąd przed /error. Oczekiwane: 404 i kod HTTP_404 (format ApiError, bez pola timestamp)
+GET {{host}}/err03/nie-ma-takiej-sciezki

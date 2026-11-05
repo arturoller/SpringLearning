@@ -1,0 +1,95 @@
+# Lekcja s05_validation / Val03NestedAndGroups — obiekty zagnieżdżone, listy i grupy walidacji
+# 1. Uruchom Val03Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s05-validation spring-boot:run -Dspring-boot.run.main-class=s05_validation.val03_nested_and_groups.Val03Application
+# 2. Przejdź zapytania po kolei. Odpowiedzi 400 mają na prawdziwym serwerze ogólne ciało Boota (patrz Val02ValidInControllers) —
+#    ścieżki pól (address.city, lines[1].quantity) obejrzysz w testach Val03NestedAndGroupsControllerTest.
+
+@host = http://localhost:8080
+
+### 1. Poprawne zamówienie (tworzenie, bez id). Oczekiwane: 201 i {"id":100}
+POST {{host}}/val03/orders
+Content-Type: application/json
+
+{
+  "address": {"street": "Długa 1", "city": "Gdańsk", "postalCode": "80-001"},
+  "lines": [{"productName": "Kawa", "quantity": 2}, {"productName": "Herbata", "quantity": 1}],
+  "tags": ["pilne"]
+}
+
+### 2. Błędy w adresie i w drugiej pozycji. Oczekiwane: 400 (address.city, address.postalCode, lines[1].quantity…)
+POST {{host}}/val03/orders
+Content-Type: application/json
+
+{
+  "address": {"street": "Długa 1", "city": " ", "postalCode": "1"},
+  "lines": [{"productName": "Kawa", "quantity": 2}, {"productName": "", "quantity": 0}],
+  "tags": ["pilne", " "]
+}
+
+### 3. Grupa OnCreate: id przy tworzeniu jest zabronione. Oczekiwane: 400 (id musi być null)
+POST {{host}}/val03/orders
+Content-Type: application/json
+
+{
+  "id": 5,
+  "address": {"street": "Długa 1", "city": "Gdańsk", "postalCode": "80-001"},
+  "lines": [{"productName": "Kawa", "quantity": 2}]
+}
+
+### 4. Grupa OnUpdate: PUT bez id. Oczekiwane: 400 (id jest wymagane)
+PUT {{host}}/val03/orders
+Content-Type: application/json
+
+{
+  "address": {"street": "Długa 1", "city": "Gdańsk", "postalCode": "80-001"},
+  "lines": [{"productName": "Kawa", "quantity": 2}]
+}
+
+### 5. Grupa OnUpdate: PUT z id. Oczekiwane: 200 i {"id":5}
+PUT {{host}}/val03/orders
+Content-Type: application/json
+
+{
+  "id": 5,
+  "address": {"street": "Długa 1", "city": "Gdańsk", "postalCode": "80-001"},
+  "lines": [{"productName": "Kawa", "quantity": 2}]
+}
+
+### 6. PUŁAPKA: zwykłe @Validated bez grupy (grupa Default). To samo co w pkt 3, ale Oczekiwane: 201 (!) — reguła OnCreate nie działa
+POST {{host}}/val03/orders/default-group
+Content-Type: application/json
+
+{
+  "id": 5,
+  "address": {"street": "Długa 1", "city": "Gdańsk", "postalCode": "80-001"},
+  "lines": [{"productName": "Kawa", "quantity": 2}]
+}
+
+### 7. Zamiast grup — osobne DTO. Pole id w JSON jest po prostu ignorowane. Oczekiwane: 201
+POST {{host}}/val03/v2/orders
+Content-Type: application/json
+
+{
+  "id": 7,
+  "address": {"street": "Długa 1", "city": "Gdańsk", "postalCode": "80-001"},
+  "lines": [{"productName": "Kawa", "quantity": 2}]
+}
+
+### 8. Osobne DTO zmiany wymaga version. Oczekiwane: 400 (brak version)
+PUT {{host}}/val03/v2/orders/1
+Content-Type: application/json
+
+{
+  "address": {"street": "Długa 1", "city": "Gdańsk", "postalCode": "80-001"},
+  "lines": [{"productName": "Kawa", "quantity": 2}]
+}
+
+### 9. To samo z version. Oczekiwane: 200 i {"id":1}
+PUT {{host}}/val03/v2/orders/1
+Content-Type: application/json
+
+{
+  "version": 3,
+  "address": {"street": "Długa 1", "city": "Gdańsk", "postalCode": "80-001"},
+  "lines": [{"productName": "Kawa", "quantity": 2}]
+}

@@ -1,0 +1,57 @@
+# Lekcja s12_security / Sec06SecurityTesting — aplikacja, którą testujemy (testy: src/test/java/s12_security/sec06_security_testing)
+# 1. Uruchom Sec06Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s12-security spring-boot:run -Dspring-boot.run.main-class=s12_security.sec06_security_testing.Sec06Application
+# 2. Te same żądania co w teście Sec06ServerTest i w macierzy Sec06AccessMatrixTest — tylko "ręcznie".
+#    Skrypt pod zapytaniem o token zapisuje go w zmiennej {{token}} (IntelliJ HTTP Client).
+# Użytkownicy TYLKO DO NAUKI (hasło zawsze haslo-testowe), nagłówek Basic = Base64 z "login:hasło":
+#   anna  (CUSTOMER) → YW5uYTpoYXNsby10ZXN0b3dl
+#   ewa   (EMPLOYEE) → ZXdhOmhhc2xvLXRlc3Rvd2U=
+#   admin (ADMIN)    → YWRtaW46aGFzbG8tdGVzdG93ZQ==
+
+@host = http://localhost:8080
+
+### 1. Token dla ewy (EMPLOYEE). Oczekiwane: 200, {"access_token": "…", "token_type": "Bearer", "expires_in": 900}
+POST {{host}}/sec06/token
+Authorization: Basic ZXdhOmhhc2xvLXRlc3Rvd2U=
+
+> {% client.global.set("token", response.body.access_token); %}
+
+### 2. Zamówienia piotra jako ewa (reguła metody: EMPLOYEE widzi cudze). Oczekiwane: 200, zamówienie 3
+GET {{host}}/sec06/orders/of/piotr
+Authorization: Bearer {{token}}
+
+### 3. Anulowanie zamówienia jako ewa (@PreAuthorize hasRole('ADMIN')). Oczekiwane: 403
+DELETE {{host}}/sec06/orders/1
+Authorization: Bearer {{token}}
+
+### 4. Dodanie produktu jako ewa. Oczekiwane: 201
+POST {{host}}/sec06/products
+Authorization: Bearer {{token}}
+
+### 5. Te same zamówienia bez tokenu. Oczekiwane: 401, WWW-Authenticate: Bearer …
+GET {{host}}/sec06/orders/of/piotr
+
+### 6. Adres bez reguły — deny by default. Oczekiwane: 403 nawet z tokenem
+GET {{host}}/sec06/internal/debug
+Authorization: Bearer {{token}}
+
+### 7. Panel (sesja + CSRF) — POST bez tokenu CSRF. Oczekiwane: 403 (tak samo w teście bez with(csrf()))
+POST {{host}}/sec06/panel/price
+Authorization: Basic ZXdhOmhhc2xvLXRlc3Rvd2U=
+Content-Type: application/x-www-form-urlencoded
+
+product=kawa&price=41.90
+
+### 8. Panel — GET jako ewa. Oczekiwane: 200 "Panel pracownika: ewa"
+GET {{host}}/sec06/panel
+Authorization: Basic ZXdhOmhhc2xvLXRlc3Rvd2U=
+
+### 9. Panel admina z tokenem admina (najpierw pobierz token admina). Oczekiwane: 200
+POST {{host}}/sec06/token
+Authorization: Basic YWRtaW46aGFzbG8tdGVzdG93ZQ==
+
+> {% client.global.set("token", response.body.access_token); %}
+
+###
+GET {{host}}/sec06/admin/stats
+Authorization: Bearer {{token}}

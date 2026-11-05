@@ -1,0 +1,38 @@
+# Lekcja s04_web_rest / Rest07ApiVersioning — wersjonowanie API (Spring Framework 7)
+# 1. Uruchom Rest07Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s04-web-rest spring-boot:run -Dspring-boot.run.main-class=s04_web_rest.rest07_api_versioning.Rest07Application
+#    Klasa startowa włącza profil rest07: wersja jest w nagłówku API-Version, domyślna wersja to 1.0.
+# 2. Porównuj CIAŁO odpowiedzi między wersjami i patrz na nagłówki Deprecation/Sunset/Link.
+
+@host = http://localhost:8080
+
+### 1. Wersja 1.0 — oczekiwane: 200 OK, "priceGrosze": 2490, nagłówki Deprecation, Sunset i Link (wersja wycofywana)
+GET {{host}}/rest07/products/1
+API-Version: 1.0
+
+### 2. Wersja 2.0 — oczekiwane: 200 OK, "price": {"amount": 24.90, "currency": "PLN"}, bez Deprecation
+GET {{host}}/rest07/products/1
+API-Version: 2.0
+
+### 3. Bez nagłówka — oczekiwane: 200 OK, kształt wersji 1.0 (wersja domyślna) + nagłówki wycofania
+GET {{host}}/rest07/products/1
+
+### 4. Wersja semantyczna „v2” = „2.0” — oczekiwane: 200 OK, kształt wersji 2.0
+GET {{host}}/rest07/products/1
+API-Version: v2
+
+### 5. Nieobsługiwana wersja — oczekiwane: 400 Bad Request („Invalid API version: '3.0.0'.”)
+GET {{host}}/rest07/products/1
+API-Version: 3.0
+
+### 6. Baseline „1.1+” w wersji 1.1 — oczekiwane: 200 OK, {"id": 1, "stock": 12}
+GET {{host}}/rest07/products/1/stock
+API-Version: 1.1
+
+### 7. Baseline „1.1+” w wersji 1.0 — oczekiwane: 404 Not Found (w 1.0 tego endpointu nie ma)
+GET {{host}}/rest07/products/1/stock
+API-Version: 1.0
+
+### 8. Mapowanie bez atrybutu version — oczekiwane: 200 OK „pong” w każdej wersji
+GET {{host}}/rest07/products/ping
+API-Version: 2.0

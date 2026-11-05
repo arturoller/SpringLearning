@@ -1,0 +1,61 @@
+# Lekcja s12_security / Sec04StatelessApi — API bez sesji, CSRF, CORS w Spring Security, błędy jako ProblemDetail
+# 1. Uruchom Sec04Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s12-security spring-boot:run -Dspring-boot.run.main-class=s12_security.sec04_stateless_api.Sec04Application
+# 2. Przejdź zapytania po kolei i patrz na NAGŁÓWKI odpowiedzi (Set-Cookie, Access-Control-*, X-Frame-Options…).
+# Użytkownicy TYLKO DO NAUKI (hasło zawsze haslo-testowe), nagłówek Basic = Base64 z "login:hasło":
+#   anna  (CUSTOMER) → YW5uYTpoYXNsby10ZXN0b3dl
+#   ewa   (EMPLOYEE) → ZXdhOmhhc2xvLXRlc3Rvd2U=
+#   admin (ADMIN)    → YWRtaW46aGFzbG8tdGVzdG93ZQ==
+
+@host = http://localhost:8080
+
+### 1. API bez sesji. Oczekiwane: 200 i BRAK nagłówka Set-Cookie
+GET {{host}}/sec04/api/orders
+Authorization: Basic YW5uYTpoYXNsby10ZXN0b3dl
+
+### 2. API bez logowania. Oczekiwane: 401, Content-Type application/problem+json, WWW-Authenticate: Basic realm="sklep"
+GET {{host}}/sec04/api/orders
+
+### 3. Złe hasło. Oczekiwane: ten sam ProblemDetail 401 (punkt wejścia ustawiony także w httpBasic)
+GET {{host}}/sec04/api/orders
+Authorization: Basic YW5uYTp6bGUtaGFzbG8=
+
+### 4. Brak uprawnień (klientka w panelu admina). Oczekiwane: 403 jako ProblemDetail "Brak uprawnień"
+GET {{host}}/sec04/api/admin/stats
+Authorization: Basic YW5uYTpoYXNsby10ZXN0b3dl
+
+### 5. POST do API bez tokenu CSRF (CSRF wyłączony w łańcuchu API). Oczekiwane: 201
+POST {{host}}/sec04/api/products
+Authorization: Basic ZXdhOmhhc2xvLXRlc3Rvd2U=
+Content-Type: application/json
+
+{"name": "Czekolada gorzka", "price": 12.99}
+
+### 6. Preflight CORS z frontendu — bez Authorization. Oczekiwane: 200, Access-Control-Allow-Origin: http://localhost:3000
+OPTIONS {{host}}/sec04/api/orders
+Origin: http://localhost:3000
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: Authorization
+
+### 7. Preflight z obcego pochodzenia. Oczekiwane: 403 "Invalid CORS request"
+OPTIONS {{host}}/sec04/api/orders
+Origin: http://zly.example
+Access-Control-Request-Method: GET
+
+### 8. Łańcuch przeglądarki bez logowania. Oczekiwane: 401 i Set-Cookie: JSESSIONID (pamięć żądań)
+GET {{host}}/sec04/web/profile
+
+### 9. Łańcuch przeglądarki — POST bez tokenu CSRF (tak wygląda atak z obcej strony). Oczekiwane: 403
+POST {{host}}/sec04/web/email
+Authorization: Basic YW5uYTpoYXNsby10ZXN0b3dl
+Content-Type: application/x-www-form-urlencoded
+
+email=napastnik@zly.example
+
+### 10. Formularz logowania: otwórz http://localhost:8080/login w przeglądarce i zobacz ukryte pole _csrf w źródle strony.
+#     Po zalogowaniu jako anna wejdź na http://localhost:8080/sec04/web/profile — sesja pamięta Cię bez hasła.
+GET {{host}}/login
+
+### 11. Nagłówki bezpieczeństwa na publicznym adresie. Oczekiwane: X-Content-Type-Options: nosniff, X-Frame-Options: DENY,
+#     Cache-Control: no-cache, no-store, max-age=0, must-revalidate; BEZ Strict-Transport-Security (to nie HTTPS)
+GET {{host}}/sec04/api/products

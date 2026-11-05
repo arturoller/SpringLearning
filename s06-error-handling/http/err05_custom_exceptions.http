@@ -1,0 +1,65 @@
+# Lekcja s06_error_handling / Err05CustomExceptions — własne wyjątki domenowe i ich mapowanie na odpowiedzi HTTP
+# 1. Uruchom Err05Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s06-error-handling spring-boot:run -Dspring-boot.run.main-class=s06_error_handling.err05_custom_exceptions.Err05Application
+# 2. Przejdź zapytania po kolei i obserwuj konsolę serwera: błędy 4xx to jedna linia INFO, błąd 500 to ERROR ze śladem stosu.
+#    Dane są w pamięci: produkt 1 (Kawa, 5 szt.), produkt 2 (Herbata, 0 szt.), zamówienie 1 (niewysłane), zamówienie 2 (wysłane).
+#    Udane zamówienie (zapytanie 6) zmniejsza stan magazynu — po restarcie aplikacji dane wracają do początku.
+
+@host = http://localhost:8080
+
+### 1. Brak produktu. Oczekiwane: 404, application/problem+json, code=PRODUCT_NOT_FOUND
+GET {{host}}/err05/products/9
+
+### 2. Brak zamówienia. Oczekiwane: 404, code=ORDER_NOT_FOUND
+GET {{host}}/err05/orders/7
+
+### 3. „Czy istnieje?” to pytanie, nie błąd (Optional). Oczekiwane: 200 i {"exists":false}
+GET {{host}}/err05/products/9/exists
+
+### 4. Za mało towaru. Oczekiwane: 409, code=OUT_OF_STOCK (konflikt ze stanem magazynu)
+POST {{host}}/err05/orders
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 9
+}
+
+### 5. Za mała ilość w zamówieniu (reguła biznesowa). Oczekiwane: 422, code=MINIMUM_ORDER_VALUE
+POST {{host}}/err05/orders
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 1
+}
+
+### 6. Udane zamówienie. Oczekiwane: 201 i zamówienie (id od 10). Powtórz kilka razy aż skończy się towar (potem zapytanie 4)
+POST {{host}}/err05/orders
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 2
+}
+
+### 7. Błąd formalny (ilość 0) — to nie nasz wyjątek, tylko walidacja. Oczekiwane: 400 w formacie ProblemDetail
+POST {{host}}/err05/orders
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 0
+}
+
+### 8. Wysyłka zamówienia, które już wysłano. Oczekiwane: 409, code=ORDER_ALREADY_SHIPPED
+POST {{host}}/err05/orders/2/ship
+
+### 9. Wysyłka niewysłanego zamówienia. Oczekiwane: 200. Powtórzona drugi raz daje 409 (ORDER_ALREADY_SHIPPED)
+POST {{host}}/err05/orders/1/ship
+
+### 10. Wyjątek z @ResponseStatus przesłonięty przez handler Exception.class. Oczekiwane: 500 (a nie 404!) — zob. sekcja 2 lekcji
+GET {{host}}/err05/suppliers/3
+
+### 11. Nieoczekiwany błąd. Oczekiwane: 500, code=UNEXPECTED, ogólny opis; w konsoli serwera ERROR ze śladem stosu
+GET {{host}}/err05/crash

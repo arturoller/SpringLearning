@@ -1,0 +1,26 @@
+# Lekcja s11_testing / Test02MockitoBeans — produkty z zewnętrzną usługą cen
+# 1. Uruchom Test02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s11-testing spring-boot:run -Dspring-boot.run.main-class=s11_testing.test02_mockito_beans.Test02Application
+# 2. Usługa cen (localhost:9) NIE ISTNIEJE — dlatego odświeżenie ceny kończy się 503. W testach tę usługę
+#    podstawia atrapa (@MockitoBean PriceClient), więc test przechodzi bez sieci.
+
+@host = http://localhost:8080
+
+### 1. Odczyt produktu. Oczekiwane: 200 OK, Kawa (id 1) z ceną 24.90
+GET {{host}}/test02/products/1
+
+### 2. Brak produktu. Oczekiwane: 404 i ProblemDetail
+GET {{host}}/test02/products/99
+
+### 3. Nowy produkt. Oczekiwane: 201 Created, Location …/test02/products/3
+POST {{host}}/test02/products
+Content-Type: application/json
+
+{
+  "name": "Ciastka",
+  "price": 12.50
+}
+
+### 4. Odświeżenie ceny z zewnętrznej usługi. Oczekiwane: 503 Service Unavailable ("Usługa cen niedostępna")
+###    — dokładnie tę ścieżkę błędu sprawdza test z atrapą, która rzuca PriceUnavailableException (willThrow)
+POST {{host}}/test02/products/1/refresh-price

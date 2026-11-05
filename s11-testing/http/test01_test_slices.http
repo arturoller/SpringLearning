@@ -1,0 +1,33 @@
+# Lekcja s11_testing / Test01TestSlices — aplikacja produktów (Kawa i Herbata z bazy H2 + Flyway)
+# 1. Uruchom Test01Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s11-testing spring-boot:run -Dspring-boot.run.main-class=s11_testing.test01_test_slices.Test01Application
+# 2. Te same zapytania sprawdzają testy lekcji (@WebMvcTest, @SpringBootTest) — tu widzisz je „na żywo”.
+
+@host = http://localhost:8080
+
+### 1. Lista. Oczekiwane: 200 OK, dwa produkty (Kawa, Herbata) z datą utworzenia z bazy
+GET {{host}}/test01/products
+
+### 2. Jeden produkt. Oczekiwane: 200 OK
+GET {{host}}/test01/products/1
+
+### 3. Brak produktu. Oczekiwane: 404 i ProblemDetail (application/problem+json) z tytułem „Nie ma takiego produktu”
+GET {{host}}/test01/products/99
+
+### 4. Nowy produkt. Oczekiwane: 201 Created i nagłówek Location …/test01/products/3
+POST {{host}}/test01/products
+Content-Type: application/json
+
+{
+  "name": "Ciastka",
+  "price": 12.50
+}
+
+### 5. Zła nazwa (pusta). Oczekiwane: 400 Bad Request (@NotBlank), produkt NIE powstaje
+POST {{host}}/test01/products
+Content-Type: application/json
+
+{
+  "name": " ",
+  "price": 12.50
+}

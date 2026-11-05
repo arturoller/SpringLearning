@@ -1,0 +1,51 @@
+# Lekcja s06_error_handling / Err02ExceptionHandler — @ExceptionHandler w kontrolerze
+# 1. Uruchom Err02Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s06-error-handling spring-boot:run -Dspring-boot.run.main-class=s06_error_handling.err02_exception_handler.Err02Application
+# 2. Przejdź zapytania po kolei. Patrz na STATUS i na to, jak wygląda ciało błędu (status, code, message, path).
+
+@host = http://localhost:8080
+
+### 1. Nieznany produkt — handler w kontrolerze. Oczekiwane: 404 i {"status":404,"code":"PRODUCT_NOT_FOUND",…}
+GET {{host}}/err02/shop/products/9
+
+### 2. Znany produkt. Oczekiwane: 200 i {"id":1,"name":"Kawa"}
+GET {{host}}/err02/shop/products/1
+
+### 3. Karta odrzucona — rekord + @ResponseStatus. Oczekiwane: 402 i kod CARD_DECLINED
+POST {{host}}/err02/shop/pay?card=0000
+
+### 4. Ogólny problem z płatnością (klasa bazowa). Oczekiwane: 400 i kod PAYMENT_ERROR
+POST {{host}}/err02/shop/pay?card=1111
+
+### 5. Brak towaru — jeden handler na dwa wyjątki. Oczekiwane: 409 i kod OUT_OF_STOCK
+POST {{host}}/err02/shop/products/1/reserve
+
+### 6. Magazyn zamknięty. Oczekiwane: 409 i kod WAREHOUSE_CLOSED
+POST {{host}}/err02/shop/products/2/reserve
+
+### 7. Handler „ostatniej szansy” dla RuntimeException. Oczekiwane: 500 i ogólny komunikat (bez „hasła do bazy”!)
+GET {{host}}/err02/shop/crash
+
+### 8. Błędne ciało. Oczekiwane: 400 i mapa pole → komunikat: {"name": "...", "quantity": "..."}
+POST {{host}}/err02/shop/products
+Content-Type: application/json
+
+{
+  "name": "",
+  "quantity": 0
+}
+
+### 9. PUŁAPKA: handler z kontrolera nie działa w innym kontrolerze. Oczekiwane: 500 i ogólny JSON Boota
+GET {{host}}/err02/other/products/9
+
+### 10. PUŁAPKA: handler, który sam rzuca wyjątek. Oczekiwane: 500 z /error (w konsoli ostrzeżenie „Failure in @ExceptionHandler”)
+GET {{host}}/err02/shop/products/3
+
+### 11. PUŁAPKA: zapomniany @ResponseStatus. Oczekiwane: 200 OK (!) z ciałem {"status":410,…}
+GET {{host}}/err02/shop/coupon
+
+### 12. PUŁAPKA: zepsuty JSON przy handlerze RuntimeException. Oczekiwane: 500 (zamiast 400) — handler połknął wyjątek Springa
+POST {{host}}/err02/shop/products
+Content-Type: application/json
+
+{zepsuty

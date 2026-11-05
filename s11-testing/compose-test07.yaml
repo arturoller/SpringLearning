@@ -1,0 +1,19 @@
+# Docker Compose dla lekcji s11_testing/Test07DockerCompose — baza PostgreSQL dla aplikacji uruchamianej LOKALNIE.
+# Spring Boot (spring-boot-docker-compose) sam robi "docker compose up" przy starcie Test07Application
+# i tworzy połączenie z bazą na podstawie tego pliku — w application-test07.properties NIE ma spring.datasource.url.
+# Ręcznie (bez Springa): docker compose -f compose-test07.yaml up -d   /   docker compose -f compose-test07.yaml down
+name: springlearning-test07            # nazwa projektu compose (przedrostek nazw kontenerów)
+services:
+  postgres:                            # usługa; Boot rozpoznaje PostgreSQL po nazwie OBRAZU, nie usługi
+    image: postgres:17-alpine          # konkretna wersja — taka jak na produkcji, nigdy "latest"
+    environment:                       # z tych zmiennych Boot bierze nazwę bazy, użytkownika i hasło
+      POSTGRES_DB: sklep
+      POSTGRES_USER: sklep
+      POSTGRES_PASSWORD: sklep-haslo-testowe   # hasło TYLKO do nauki/testów lokalnych
+    ports:
+      - "5432"                         # port kontenera 5432 na LOSOWYM wolnym porcie komputera (Boot go odczyta)
+    healthcheck:                       # "docker compose up --wait" czeka, aż baza naprawdę przyjmuje połączenia
+      test: ["CMD-SHELL", "pg_isready -U sklep -d sklep"]
+      interval: 2s
+      timeout: 5s
+      retries: 15

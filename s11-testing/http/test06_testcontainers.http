@@ -1,0 +1,42 @@
+# Lekcja s11_testing / Test06Testcontainers — produkty na PRAWDZIWYM PostgreSQL z kontenera
+# 1. Uruchom Docker (Docker Desktop), potem aplikację z kontenerem — klasę TestTest06Application z src/test/java
+#    (▶ obok main) i poczekaj na „Tomcat started on port 8080”. Z wiersza poleceń:
+#    ./mvnw -pl s11-testing spring-boot:test-run -Dspring-boot.run.main-class=s11_testing.test06_testcontainers.TestTest06Application
+# 2. Dla porównania uruchom zwykłą Test06Application (H2): zapytania 1–2 działają, a 3 kończy się 500, bo
+#    ON CONFLICT to składnia PostgreSQL — dokładnie tę różnicę pokazują testy lekcji.
+# 3. Po zatrzymaniu aplikacji kontener znika razem z danymi — przy następnym starcie znów są 4 produkty z migracji.
+
+@host = http://localhost:8080
+
+### 1. Lista. Oczekiwane: 200 OK, 4 produkty posortowane po nazwie (Czajnik, Herbata, Kawa, Kubek)
+GET {{host}}/test06/products
+
+### 2. Najdroższe. Oczekiwane: 200 OK, Czajnik i Kawa (natywne zapytanie z LIMIT)
+GET {{host}}/test06/products/top?n=2
+
+### 3. Nowy produkt. Oczekiwane (PostgreSQL): 201 Created. Na H2: 500 Internal Server Error
+POST {{host}}/test06/products
+Content-Type: application/json
+
+{
+  "name": "Ciastka",
+  "price": 12.50
+}
+
+### 4. Ten sam produkt drugi raz. Oczekiwane: 409 Conflict i ProblemDetail „Produkt już istnieje”
+POST {{host}}/test06/products
+Content-Type: application/json
+
+{
+  "name": "Ciastka",
+  "price": 12.50
+}
+
+### 5. Błąd walidacji. Oczekiwane: 400 Bad Request (pusta nazwa, ujemna cena)
+POST {{host}}/test06/products
+Content-Type: application/json
+
+{
+  "name": " ",
+  "price": -1
+}

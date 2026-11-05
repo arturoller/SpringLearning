@@ -1,0 +1,47 @@
+# Lekcja s04_web_rest / Rest06Cors — CORS (zapytania z innego pochodzenia)
+# 1. Uruchom Rest06Application (▶ obok main) i poczekaj na „Tomcat started on port 8080”.
+#    Z wiersza poleceń: ./mvnw -pl s04-web-rest spring-boot:run -Dspring-boot.run.main-class=s04_web_rest.rest06_cors.Rest06Application
+# 2. HTTP Client to NIE przeglądarka: nie dokłada nagłówka Origin i niczego nie blokuje. Dlatego Origin
+#    i Access-Control-Request-* wpisujemy ręcznie — tak, jak zrobiłaby to przeglądarka. Patrz na STATUS
+#    i nagłówki Access-Control-* w odpowiedzi.
+
+@host = http://localhost:8080
+
+### 1. Bez Origin (jak curl) — oczekiwane: 200 OK „cześć”, żadnych nagłówków Access-Control-*
+GET {{host}}/rest06/plain/hello
+
+### 2. Obce pochodzenie, kontroler bez CORS — oczekiwane: 200 OK „cześć” (serwer odpowiada!), ale BEZ Access-Control-Allow-Origin
+GET {{host}}/rest06/plain/hello
+Origin: https://evil.example.com
+
+### 3. Proste zapytanie z dozwolonego pochodzenia — oczekiwane: 200 OK, Access-Control-Allow-Origin: http://localhost:3000,
+#     Access-Control-Expose-Headers: X-Total-Count, Access-Control-Allow-Credentials: true
+GET {{host}}/rest06/api/products
+Origin: http://localhost:3000
+
+### 4. Preflight przed PUT — oczekiwane: 200 OK, puste ciało, Access-Control-Allow-Methods: GET,POST,PUT, Access-Control-Max-Age: 3600
+OPTIONS {{host}}/rest06/api/products/1
+Origin: http://localhost:3000
+Access-Control-Request-Method: PUT
+Access-Control-Request-Headers: Content-Type
+
+### 5. Preflight przed DELETE (metoda spoza reguły) — oczekiwane: 403 Forbidden, ciało „Invalid CORS request”
+OPTIONS {{host}}/rest06/api/products/1
+Origin: http://localhost:3000
+Access-Control-Request-Method: DELETE
+
+### 6. Obce pochodzenie na ścieżce z regułą — oczekiwane: 403 Forbidden „Invalid CORS request”
+GET {{host}}/rest06/api/products
+Origin: https://evil.example.com
+
+### 7. @CrossOrigin na klasie — oczekiwane: 200 OK, Access-Control-Allow-Origin: https://partner.example.com
+GET {{host}}/rest06/partner/offers
+Origin: https://partner.example.com
+
+### 8. To samo z bloga — oczekiwane: 403 Forbidden (blog jest dozwolony tylko w /news)
+GET {{host}}/rest06/partner/offers
+Origin: https://blog.example.com
+
+### 9. @CrossOrigin na metodzie dokłada pochodzenie — oczekiwane: 200 OK, Access-Control-Allow-Origin: https://blog.example.com
+GET {{host}}/rest06/partner/news
+Origin: https://blog.example.com
